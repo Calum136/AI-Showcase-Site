@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "title": "E-commerce Platform",
+    "description": "A modern e-commerce solution with real-time inventory management.",
+    "tags": ["React", "Node.js", "PostgreSQL"],
+    "link": "https://github.com/example/ecommerce"
+  },
+  {
+    "id": "2",
+    "title": "Task Management App",
+    "description": "Collaborative task manager with real-time updates using WebSockets.",
+    "tags": ["TypeScript", "Socket.io", "Redis"],
+    "link": "https://github.com/example/tasks"
+  },
+  {
+    "id": "3",
+    "title": "AI Content Generator",
+    "description": "Experimental app using OpenAI API to generate blog posts.",
+    "tags": ["Next.js", "OpenAI", "Tailwind"],
+    "link": "https://github.com/example/ai-gen"
+  }
+]

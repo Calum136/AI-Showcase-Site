@@ -1,38 +1,57 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { messages, type Message, type InsertMessage, type Resume, type PortfolioItem, type Reference } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import fs from "fs/promises";
+import path from "path";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Content methods
+  getResume(): Promise<Resume>;
+  getPortfolio(): Promise<PortfolioItem[]>;
+  getReferences(): Promise<Reference[]>;
+
+  // Chat methods
+  getMessages(): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+export class DatabaseStorage implements IStorage {
+  private contentDir = path.join(process.cwd(), "content");
 
-  constructor() {
-    this.users = new Map();
+  private async readJson<T>(filename: string): Promise<T> {
+    const filePath = path.join(this.contentDir, filename);
+    try {
+      const data = await fs.readFile(filePath, "utf-8");
+      return JSON.parse(data) as T;
+    } catch (error) {
+      console.error(`Error reading ${filename}:`, error);
+      throw new Error(`Failed to read content: ${filename}`);
+    }
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getResume(): Promise<Resume> {
+    return this.readJson<Resume>("resume.json");
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getPortfolio(): Promise<PortfolioItem[]> {
+    return this.readJson<PortfolioItem[]>("portfolio.json");
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async getReferences(): Promise<Reference[]> {
+    return this.readJson<Reference[]>("references.json");
+  }
+
+  async getMessages(): Promise<Message[]> {
+    return await db.select().from(messages).orderBy(messages.createdAt);
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
+    return message;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

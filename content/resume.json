@@ -1,0 +1,33 @@
+{
+  "personalInfo": {
+    "name": "Alex Developer",
+    "title": "Full Stack Engineer",
+    "email": "alex@example.com",
+    "location": "San Francisco, CA",
+    "summary": "Passionate full-stack developer with 5 years of experience building scalable web applications. Loves clean code and systems thinking."
+  },
+  "skills": ["TypeScript", "React", "Node.js", "Next.js", "PostgreSQL", "Tailwind CSS", "Systems Design"],
+  "experience": [
+    {
+      "company": "Tech Innovators Inc.",
+      "position": "Senior Software Engineer",
+      "period": "2023 - Present",
+      "description": "Leading the frontend team in rebuilding the core product dashboard.",
+      "highlights": ["Improved performance by 40%", "Mentored 3 junior developers", "Implemented CI/CD pipelines"]
+    },
+    {
+      "company": "StartUp Rocket",
+      "position": "Software Engineer",
+      "period": "2020 - 2023",
+      "description": "Full stack development for a high-growth fintech startup.",
+      "highlights": ["Built the payment processing service", "Designed the user onboarding flow"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Technology",
+      "degree": "B.S. Computer Science",
+      "year": "2020"
+    }
+  ]
+}
