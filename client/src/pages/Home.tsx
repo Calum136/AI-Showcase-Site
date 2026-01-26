@@ -1,9 +1,10 @@
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, Sparkles, Terminal } from "lucide-react";
+import { Sparkles, Terminal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSiteCopy } from "@/lib/queryClient";
+
 export default function Home() {
   const { data: site } = useSiteCopy();
   return (
@@ -17,7 +18,6 @@ export default function Home() {
         >
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary to-accent opacity-30 blur-xl animate-pulse" />
           <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-muted flex items-center justify-center border-4 border-background shadow-2xl overflow-hidden">
-            {/* Unsplash image of a developer coding at a modern desk */}
             <img
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces"
               alt="Profile"
@@ -52,30 +52,38 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Link href="/portfolio">
+          <Link href="/fit">
             <Button
               size="lg"
               className="w-full sm:w-auto text-base h-12 px-8 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+              data-testid="button-start-fit"
             >
-              {site?.primaryCta} <Terminal className="ml-2 w-4 h-4" />
+              {site?.primaryCta} <Sparkles className="ml-2 w-4 h-4" />
             </Button>
           </Link>
-          <Link href="/fit">
+          <Link href="/portfolio">
             <Button
               variant="outline"
               size="lg"
               className="w-full sm:w-auto text-base h-12 px-8 rounded-xl bg-background border-2 hover:bg-muted/50"
+              data-testid="button-view-portfolio"
             >
-              Check Fit <Sparkles className="ml-2 w-4 h-4 text-accent" />
+              View Portfolio <Terminal className="ml-2 w-4 h-4" />
             </Button>
-            {site && (
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>{site.builtByLine}</p>
-                <p>{site.privacyNote}</p>
-              </div>
-            )}
           </Link>
         </motion.div>
+
+        {site && (
+          <motion.div
+            className="text-sm text-muted-foreground space-y-1 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <p>{site.builtByLine}</p>
+            <p>{site.privacyNote}</p>
+          </motion.div>
+        )}
       </div>
     </Layout>
   );
