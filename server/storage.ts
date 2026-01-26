@@ -1,4 +1,11 @@
-import { messages, type Message, type InsertMessage, type Resume, type PortfolioItem, type Reference } from "@shared/schema";
+import {
+  messages,
+  type Message,
+  type InsertMessage,
+  type Resume,
+  type PortfolioItem,
+  type Reference,
+} from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import fs from "fs/promises";
@@ -9,6 +16,7 @@ export interface IStorage {
   getResume(): Promise<Resume>;
   getPortfolio(): Promise<PortfolioItem[]>;
   getReferences(): Promise<Reference[]>;
+  getSiteCopy(): Promise<any>;
 
   // Chat methods
   getMessages(): Promise<Message[]>;
@@ -36,7 +44,9 @@ export class DatabaseStorage implements IStorage {
   async getPortfolio(): Promise<PortfolioItem[]> {
     return this.readJson<PortfolioItem[]>("portfolio.json");
   }
-
+  async getSiteCopy(): Promise<any> {
+    return this.readJson<any>("site.json");
+  }
   async getReferences(): Promise<Reference[]> {
     return this.readJson<Reference[]>("references.json");
   }

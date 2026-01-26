@@ -55,3 +55,23 @@ export const queryClient = new QueryClient({
     },
   },
 });
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@shared/routes";
+
+type SiteCopy = {
+  tagline: string;
+  subtagline: string;
+  primaryCta: string;
+  builtByLine: string;
+  privacyNote: string;
+  howItWorks: {
+    title: string;
+    body: string;
+  }[];
+};
+
+export function useSiteCopy() {
+  return useQuery<SiteCopy>({
+    queryKey: [api.content.site.path],
+  });
+}
