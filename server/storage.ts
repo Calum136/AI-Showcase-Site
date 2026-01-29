@@ -1,67 +1,47 @@
-import {
-  messages,
-  type Message,
-  type InsertMessage,
-  type Resume,
-  type PortfolioItem,
-  type Reference,
-} from "@shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
 import fs from "fs/promises";
 import path from "path";
 
 export interface IStorage {
-  // Content methods
-  getResume(): Promise<Resume>;
-  getPortfolio(): Promise<PortfolioItem[]>;
-  getReferences(): Promise<Reference[]>;
   getSiteCopy(): Promise<any>;
-
-  // Chat methods
-  getMessages(): Promise<Message[]>;
-  createMessage(message: InsertMessage): Promise<Message>;
+  getResume(): Promise<any>;
+  getReferences(): Promise<any>;
+  getPortfolio(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
   private contentDir = path.join(process.cwd(), "content");
 
-  private async readJson<T>(filename: string): Promise<T> {
-    const filePath = path.join(this.contentDir, filename);
+  private async readJson<T>(relativePath: string): Promise<T> {
+    const filePath = path.join(this.contentDir, relativePath);
     try {
       const data = await fs.readFile(filePath, "utf-8");
       return JSON.parse(data) as T;
     } catch (error) {
-      console.error(`Error reading ${filename}:`, error);
-      throw new Error(`Failed to read content: ${filename}`);
+      console.error(`Error reading ${relativePath}:`, error);
+      throw new Error(`Failed to read content: ${relativePath}`);
     }
   }
 
-  async getResume(): Promise<Resume> {
-    return this.readJson<Resume>("resume.json");
+  // ✅ SITE COPY (single source of truth)
+  async getSiteCopy() {
+    return this.readJson("site/copy.json");
   }
 
-  async getPortfolio(): Promise<PortfolioItem[]> {
-    return this.readJson<PortfolioItem[]>("portfolio.json");
-  }
-  async getSiteCopy(): Promise<any> {
-    return this.readJson<any>("site.json");
-  }
-  async getReferences(): Promise<Reference[]> {
-    return this.readJson<Reference[]>("references.json");
+  // ✅ MODULAR RESUME DATA
+  async getResume() {
+    return this.readJson("resume/index.json");
   }
 
-  async getMessages(): Promise<Message[]> {
-    return await db.select().from(messages).orderBy(messages.createdAt);
+  // ✅ REFERENCE AGENTS
+  async getReferences() {
+    return this.readJson("references/index.json");
   }
 
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db
-      .insert(messages)
-      .values(insertMessage)
-      .returning();
-    return message;
+  // ✅ PORTFOLIO / CASE STUDIES
+  async getPortfolio() {
+    return this.readJson("portfolio/index.json");
   }
 }
 
+// Singleton export (simple + predictable)
 export const storage = new DatabaseStorage();

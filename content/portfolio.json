@@ -1,23 +1,16 @@
 [
   {
     "id": "1",
-    "title": "E-commerce Platform",
-    "description": "A modern e-commerce solution with real-time inventory management.",
-    "tags": ["React", "Node.js", "PostgreSQL"],
-    "link": "https://github.com/example/ecommerce"
+    "title": "JollyTails Staff Assistant",
+    "description": "AI-powered knowledge base for pet care operations using RAG and OpenAI embeddings. Consolidates fragmented SOPs into a searchable system with training tracking and admin analytics.",
+    "tags": ["React", "TypeScript", "Express", "OpenAI", "RAG"],
+    "link": "https://github.com/Calum136/jollytails-staff-assistant"
   },
   {
     "id": "2",
-    "title": "Task Management App",
-    "description": "Collaborative task manager with real-time updates using WebSockets.",
-    "tags": ["TypeScript", "Socket.io", "Redis"],
-    "link": "https://github.com/example/tasks"
-  },
-  {
-    "id": "3",
-    "title": "AI Content Generator",
-    "description": "Experimental app using OpenAI API to generate blog posts.",
-    "tags": ["Next.js", "OpenAI", "Tailwind"],
-    "link": "https://github.com/example/ai-gen"
+    "title": "AI Showcase Site (This Site)",
+    "description": "Portfolio and hiring evaluation system built with content-driven architecture. Demonstrates AI integration, systems thinking, and modern full-stack development.",
+    "tags": ["TypeScript", "React", "PostgreSQL", "Express"],
+    "link": "https://github.com/Calum136/ai-showcase-site"
   }
 ]

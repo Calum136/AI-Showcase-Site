@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
+import { aiGenerateNextStep, aiGenerateReport } from "./ai/fitPrompt";
+
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { randomUUID } from "crypto";
@@ -282,7 +284,7 @@ async function extractTextFromUpload(
   throw new Error("Unsupported file type. Please upload .txt, .pdf, or .docx");
 }
 
-function startFitSessionFromText(text: string) {
+async function startFitSessionFromText(text: string) {
   const id = randomUUID();
   const now = Date.now();
 
@@ -300,14 +302,35 @@ function startFitSessionFromText(text: string) {
 
   fitSessions.set(id, session);
 
-  const firstPrompt = STAGE_1_QUESTIONS[0];
-  session.messages.push({ role: "assistant", content: firstPrompt });
+  // ✅ AI-generated first step (question + choices)
+  // Fallback: stage 1 question list if AI fails
+  let firstQuestion = STAGE_1_QUESTIONS[0];
+  let choices: any[] | undefined = undefined;
+
+  try {
+    const step = await aiGenerateNextStep({
+      // We’re still using jdText as the starting context for now.
+      // Later you’ll rename this to problemStatement and shift the UI copy.
+      jdText: session.jdText,
+      stage: session.stage as any,
+      userTurns: session.userTurns,
+      messages: session.messages,
+    });
+
+    firstQuestion = step.question || firstQuestion;
+    choices = step.choices;
+  } catch (err) {
+    console.error("AI start step failed, using fallback:", err);
+  }
+
+  session.messages.push({ role: "assistant", content: firstQuestion });
 
   return {
     sessionId: id,
     stage: session.stage,
     role: "assistant" as const,
-    content: firstPrompt,
+    content: firstQuestion,
+    choices, // ✅ NEW: UI can render buttons if present
     message: "Fit conversation started.",
   };
 }
@@ -367,8 +390,43 @@ export async function registerRoutes(
       });
     }
 
-    const payload = startFitSessionFromText(parsed.data.text);
-    return res.json(payload);
+    const { jdText } = parsed.data;
+
+    const sessionId = crypto.randomUUID();
+
+    fitSessions.set(sessionId, {
+      id: sessionId,
+      jdText,
+      stage: 1,
+      userTurns: 0,
+      messages: [],
+      createdAt: Date.now(),
+      lastActiveAt: Date.now(),
+    });
+
+    // 🔌 AI-generated FIRST question (with fallback)
+    let firstPrompt = "";
+    try {
+      firstPrompt = await aiGenerateNextPrompt({
+        jdText,
+        stage: 1,
+        userTurns: 0,
+        messages: [],
+      });
+    } catch (err) {
+      console.error("AI start prompt failed, using fallback:", err);
+      firstPrompt = STAGE_1_QUESTIONS[0];
+    }
+
+    const session = fitSessions.get(sessionId)!;
+    session.messages.push({ role: "assistant", content: firstPrompt });
+
+    return res.json({
+      sessionId,
+      stage: 1,
+      role: "assistant",
+      content: firstPrompt,
+    });
   });
 
   app.post(api.fit.message.path, async (req, res) => {
@@ -390,6 +448,7 @@ export async function registerRoutes(
 
     session.lastActiveAt = Date.now();
 
+    // If verdict already reached, return it
     if (session.stage === 3 && session.report) {
       return res.json({
         stage: 3,
@@ -400,39 +459,75 @@ export async function registerRoutes(
       });
     }
 
+    // Record user turn
     session.userTurns += 1;
     session.messages.push({ role: "user", content: message });
 
-    const next = nextAssistantStep(session);
-    if (!next) {
-      return res.json({
-        stage: session.stage,
+    // Deterministic stage transitions (guardrails)
+    if (session.userTurns >= 6) {
+      session.stage = 3;
+
+      // AI report with fallback
+      let report: FitReport;
+      try {
+        report = await aiGenerateReport({
+          jdText: session.jdText ?? "",
+          messages: session.messages,
+        });
+      } catch (err) {
+        console.error("AI report failed, using stub fallback:", err);
+        report = buildVerdictStub(session);
+      }
+
+      session.verdict = report.verdict;
+      session.report = report;
+
+      session.messages.push({
         role: "assistant",
-        content: "No further prompts.",
+        content: `Verdict: ${report.verdict}`,
+      });
+
+      return res.json({
+        stage: 3,
+        verdict: report.verdict,
+        report,
+        role: "assistant",
+        content: "Verdict reached.",
       });
     }
 
-    if (next.kind === "prompt") {
-      session.messages.push({ role: "assistant", content: next.content });
-      return res.json({
-        stage: session.stage,
-        role: "assistant",
-        content: next.content,
-      });
+    // Stage boundary: after 3 user turns, move from Stage 1 -> Stage 2
+    if (session.userTurns >= 3 && session.stage === 1) {
+      session.stage = 2;
     }
 
-    const report = next.report;
-    session.messages.push({
-      role: "assistant",
-      content: `Verdict: ${report.verdict}`,
-    });
+    // AI next prompt with fallback to the hardcoded questions
+    let nextPrompt = "";
+    try {
+      nextPrompt = await aiGenerateNextPrompt({
+        jdText: session.jdText,
+        stage: session.stage,
+        userTurns: session.userTurns,
+        messages: session.messages,
+      });
+    } catch (err) {
+      console.error("AI next prompt failed, using fallback question:", err);
+
+      if (session.stage === 1) {
+        const idx = session.userTurns; // after user message, next question index aligns to turns
+        nextPrompt = STAGE_1_QUESTIONS[idx] ?? STAGE_1_QUESTIONS[0];
+      } else {
+        const idx = session.userTurns - 3;
+        nextPrompt = STAGE_2_QUESTIONS[idx] ?? STAGE_2_QUESTIONS[0];
+      }
+    }
+
+    session.messages.push({ role: "assistant", content: nextPrompt });
 
     return res.json({
-      stage: 3,
-      verdict: report.verdict,
-      report,
+      stage: session.stage,
       role: "assistant",
-      content: "Verdict reached.",
+      content: nextPrompt,
     });
   });
 
@@ -454,7 +549,7 @@ export async function registerRoutes(
           .json({ message: "Could not extract any text from file" });
       }
 
-      const payload = startFitSessionFromText(extracted);
+      const payload = await startFitSessionFromText(parsed.data.text);
       return res.json(payload);
     } catch (err: any) {
       return res.status(400).json({
