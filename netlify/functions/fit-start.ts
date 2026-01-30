@@ -1,5 +1,6 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 // In-memory sessions (note: will reset on cold starts)
 const fitSessions = new Map<string, any>();
@@ -113,7 +114,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     const jdText = parsed.data.jdText || parsed.data.text || "";
-    const sessionId = crypto.randomUUID();
+    const sessionId = randomUUID();
 
     // Generate first question
     const firstPrompt = await generateFirstQuestion(jdText);
