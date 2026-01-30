@@ -169,25 +169,25 @@ export default function Resume() {
     <Layout>
       <div className="max-w-6xl mx-auto">
         {/* Header - Full Width */}
-        <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm mb-8">
+        <div className="bg-surface-paper rounded-3xl p-6 md:p-8 border border-surface-line shadow-sm mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
             <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold font-display">
+              <h1 className="text-3xl md:text-4xl font-bold font-display text-brand-red">
                 {resume.personalInfo.name}
               </h1>
-              <p className="text-xl text-primary mt-1 font-medium">
+              <p className="text-xl text-brand-copper mt-1 font-medium">
                 {resume.personalInfo.title}
               </p>
-              <p className="text-muted-foreground mt-4 leading-relaxed max-w-2xl">
+              <p className="text-brand-brown mt-4 leading-relaxed max-w-2xl">
                 {resume.personalInfo.summary}
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl min-w-[240px]">
+            <div className="flex flex-col gap-3 text-sm text-brand-brown bg-brand-stone p-4 rounded-xl min-w-[240px]">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-primary" />
+                <Mail className="w-4 h-4 text-brand-copper" />
                 <a
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-brand-copper transition-colors"
                   href={`mailto:${resume.personalInfo.email}`}
                 >
                   {resume.personalInfo.email}
@@ -195,9 +195,9 @@ export default function Resume() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-primary" />
+                <Phone className="w-4 h-4 text-brand-copper" />
                 <a
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-brand-copper transition-colors"
                   href={`tel:${resume.personalInfo.phone.replace(/[^\d+]/g, "")}`}
                 >
                   {resume.personalInfo.phone}
@@ -205,14 +205,14 @@ export default function Resume() {
               </div>
 
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary" />
+                <MapPin className="w-4 h-4 text-brand-copper" />
                 {resume.personalInfo.location}
               </div>
 
               <div className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-primary" />
+                <Linkedin className="w-4 h-4 text-brand-copper" />
                 <a
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-brand-copper transition-colors"
                   href={resume.personalInfo.linkedinUrl}
                   target="_blank"
                   rel="noreferrer"
@@ -229,10 +229,10 @@ export default function Resume() {
           {/* Left Column - Skills, Education, Certifications */}
           <div className="lg:col-span-1 space-y-6">
             {/* Skills */}
-            <Card className="border-border/50 shadow-sm">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <span className="w-6 h-1 bg-accent rounded-full" />
+                  <span className="w-6 h-1 bg-brand-copper rounded-full" />
                   Technical Skills
                 </CardTitle>
               </CardHeader>
@@ -241,7 +241,7 @@ export default function Resume() {
                   <Badge
                     key={skill}
                     variant="secondary"
-                    className="px-2.5 py-1 text-xs font-normal rounded-lg hover:bg-primary/10 hover:text-primary transition-colors cursor-default"
+                    className="px-2.5 py-1 text-xs font-normal rounded-lg"
                   >
                     {skill}
                   </Badge>
@@ -250,29 +250,29 @@ export default function Resume() {
             </Card>
 
             {/* Education */}
-            <Card className="border-border/50 shadow-sm">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-primary" />
+                  <GraduationCap className="w-5 h-5 text-brand-copper" />
                   Education
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {resume.education.map((edu, i) => (
                   <div key={i} className="space-y-1">
-                    <p className="font-medium text-sm">{edu.institution}</p>
-                    <p className="text-xs text-muted-foreground">{edu.degree}</p>
-                    <p className="text-xs text-muted-foreground">{edu.year}</p>
+                    <p className="font-medium text-sm text-brand-brown">{edu.institution}</p>
+                    <p className="text-xs text-surface-line">{edu.degree}</p>
+                    <p className="text-xs text-surface-line">{edu.year}</p>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
             {/* Certifications */}
-            <Card className="border-border/50 shadow-sm">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Award className="w-5 h-5 text-primary" />
+                  <Award className="w-5 h-5 text-brand-copper" />
                   Certifications
                 </CardTitle>
               </CardHeader>
@@ -280,8 +280,8 @@ export default function Resume() {
                 <ul className="space-y-2">
                   {resume.certifications.map((c) => (
                     <li key={c} className="text-xs flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
-                      <span className="text-muted-foreground">{c}</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-1.5 shrink-0" />
+                      <span className="text-surface-line">{c}</span>
                     </li>
                   ))}
                 </ul>
@@ -289,18 +289,18 @@ export default function Resume() {
             </Card>
 
             {/* Projects */}
-            <Card className="border-border/50 shadow-sm">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <FolderOpen className="w-5 h-5 text-primary" />
+                  <FolderOpen className="w-5 h-5 text-brand-copper" />
                   Key Projects
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {resume.projects.map((p) => (
                   <div key={p.name} className="space-y-1">
-                    <div className="font-medium text-sm">{p.name}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="font-medium text-sm text-brand-brown">{p.name}</div>
+                    <div className="text-xs text-surface-line">
                       {p.description}
                     </div>
                   </div>
@@ -311,22 +311,19 @@ export default function Resume() {
 
           {/* Right Column - Experience */}
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-2xl font-bold font-display flex items-center gap-3">
-              <Briefcase className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-bold font-display flex items-center gap-3 text-brand-brown">
+              <Briefcase className="w-6 h-6 text-brand-copper" />
               Experience
             </h2>
 
             <div className="space-y-5">
               {resume.experience.map((exp, i) => (
-                <Card
-                  key={i}
-                  className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300"
-                >
+                <Card key={i}>
                   <CardHeader className="pb-2">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                       <div>
                         <CardTitle className="text-lg">{exp.position}</CardTitle>
-                        <p className="text-primary font-medium text-sm mt-0.5">
+                        <p className="text-brand-copper font-medium text-sm mt-0.5">
                           {exp.company}
                         </p>
                       </div>
@@ -336,15 +333,15 @@ export default function Resume() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground text-sm mb-3">
+                    <p className="text-surface-line text-sm mb-3">
                       {exp.description}
                     </p>
                     {exp.highlights && exp.highlights.length > 0 && (
                       <ul className="space-y-1.5">
                         {exp.highlights.map((highlight, j) => (
                           <li key={j} className="text-sm flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                            <span className="text-foreground/80">{highlight}</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
+                            <span className="text-brand-brown/80">{highlight}</span>
                           </li>
                         ))}
                       </ul>

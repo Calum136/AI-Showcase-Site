@@ -81,6 +81,20 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+        // Warm professional color palette
+        brand: {
+          red: "#8B2E2E",      // Oxide Red (authority, primary)
+          brown: "#4B3428",    // Espresso Brown (body text, foundation)
+          charcoal: "#2F2F33", // Charcoal Slate (depth, emphasis)
+          stone: "#D8D2C8",    // Soft Stone (background)
+          moss: "#5F6F52",     // Moss Green (success, insights)
+          copper: "#B45A3C",   // Burnt Copper (CTAs, highlights)
+        },
+        surface: {
+          ink: "#1F1F23",      // Deep backgrounds
+          paper: "#E7E1D7",    // Elevated surfaces, cards
+          line: "#B8B0A6",     // Borders, dividers
+        },
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

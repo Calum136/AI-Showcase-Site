@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Send, Upload } from "lucide-react";
+import { Send, Upload, CheckCircle, AlertTriangle } from "lucide-react";
 import { api } from "@shared/routes";
 
 type ChatMsg = {
@@ -34,7 +35,6 @@ export default function Fit() {
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // Smooth auto-scroll when messages update
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length]);
@@ -50,8 +50,6 @@ export default function Fit() {
 
     try {
       const payload = {
-        // ✅ Server currently expects `text` (per your routes.ts),
-        // but we also send jdText to be future-proof if you change schemas later.
         text: (jdText ?? "").trim(),
         jdText: (jdText ?? "").trim(),
       };
@@ -116,7 +114,7 @@ export default function Fit() {
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: first || "Thanks — I’ve extracted the text. Let’s start.",
+          content: first || "Thanks — I've extracted the text. Let's start.",
         },
       ]);
     } catch (e: any) {
@@ -141,7 +139,6 @@ export default function Fit() {
     setIsBusy(true);
     setError(null);
 
-    // ✅ Typing bubble (brings back the “nice delayed” feel)
     const typingId = crypto.randomUUID();
     setMessages((m) => [
       ...m,
@@ -165,7 +162,6 @@ export default function Fit() {
 
       const aiText = String(data.content ?? "").trim();
 
-      // small delay so the transition feels intentional (not instant snap)
       await new Promise((resolve) => setTimeout(resolve, 250));
 
       setMessages((m) =>
@@ -196,8 +192,8 @@ export default function Fit() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl md:text-4xl font-bold">Fit Conversation</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-brand-red">Fit Conversation</h1>
+          <p className="text-brand-brown mt-2">
             Paste or upload a job description to begin. Nothing is stored —
             session only.
           </p>
@@ -211,7 +207,7 @@ export default function Fit() {
           >
             <textarea
               data-testid="input-job-description"
-              className="w-full min-h-[220px] rounded-xl border border-border p-4 text-sm bg-background"
+              className="w-full min-h-[220px] rounded-xl border border-surface-line p-4 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
               placeholder="Paste job description here…"
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
@@ -253,7 +249,7 @@ export default function Fit() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
+              <div className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3">
                 {error}
               </div>
             )}
@@ -264,12 +260,12 @@ export default function Fit() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-2"
           >
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            <div className="text-xs uppercase tracking-wider text-surface-line">
               Conversation in progress • Stage {stage}
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
+              <div className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3">
                 {error}
               </div>
             )}
@@ -281,11 +277,11 @@ export default function Fit() {
           initial={false}
           animate={{ opacity: started ? 1 : 0.6, y: started ? 0 : 6 }}
           transition={{ duration: 0.25 }}
-          className="rounded-xl border border-border bg-card"
+          className="rounded-xl border border-surface-line bg-surface-paper"
         >
           <div className="h-[360px] overflow-y-auto p-6 text-sm space-y-3">
             {messages.length === 0 && (
-              <p className="text-muted-foreground">
+              <p className="text-surface-line">
                 Conversation output will appear here.
               </p>
             )}
@@ -303,11 +299,11 @@ export default function Fit() {
                 <div
                   className={
                     m.role === "user"
-                      ? "max-w-[85%] rounded-2xl px-4 py-2 bg-primary text-primary-foreground whitespace-pre-wrap"
-                      : `max-w-[85%] rounded-2xl px-4 py-2 whitespace-pre-wrap border border-border ${
+                      ? "max-w-[85%] rounded-2xl px-4 py-2 bg-brand-copper text-surface-paper whitespace-pre-wrap"
+                      : `max-w-[85%] rounded-2xl px-4 py-2 whitespace-pre-wrap border border-surface-line ${
                           m.isTyping
-                            ? "bg-muted/70 text-muted-foreground italic"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-brand-stone text-surface-line italic"
+                            : "bg-brand-stone text-brand-brown"
                         }`
                   }
                 >
@@ -320,10 +316,10 @@ export default function Fit() {
           </div>
 
           {started && stage !== 3 && (
-            <div className="border-t border-border p-4 flex gap-2">
+            <div className="border-t border-surface-line p-4 flex gap-2">
               <input
                 data-testid="input-chat-message"
-                className="flex-1 rounded-xl border border-border px-4 py-2 text-sm bg-background"
+                className="flex-1 rounded-xl border border-surface-line px-4 py-2 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
                 placeholder={isBusy ? "Thinking…" : "Type a response…"}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -349,31 +345,49 @@ export default function Fit() {
 
         {/* Report */}
         {report && (
-          <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
+          <div className="rounded-2xl border border-surface-line bg-surface-paper p-6 space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-xl font-semibold">Fit Report</h2>
-              <div className="text-sm text-muted-foreground">
-                Verdict:{" "}
-                <span className="font-semibold text-foreground">
-                  {report.verdict}
-                </span>
-              </div>
+              <h2 className="text-xl font-semibold text-brand-brown">Fit Report</h2>
+              <Badge
+                className={
+                  report.verdict === "YES"
+                    ? "bg-brand-moss/10 text-brand-moss border-brand-moss"
+                    : "bg-brand-red/10 text-brand-red border-brand-red"
+                }
+              >
+                {report.verdict === "YES" ? (
+                  <><CheckCircle className="w-3 h-3 mr-1" /> Good Fit</>
+                ) : (
+                  <><AlertTriangle className="w-3 h-3 mr-1" /> Needs Review</>
+                )}
+              </Badge>
             </div>
 
-            <Section title="Role Alignment" items={report.roleAlignment} />
+            <Section
+              title="Role Alignment"
+              items={report.roleAlignment}
+              borderColor="border-brand-moss"
+            />
             <Section
               title="Environment Compatibility"
               items={report.environmentCompatibility}
+              borderColor="border-brand-copper"
             />
             <Section
               title="Structural Risk Factors"
               items={report.structuralRisks}
+              borderColor="border-brand-red"
             />
             <Section
               title="Success Conditions Observed"
               items={report.successConditions}
+              borderColor="border-brand-moss"
             />
-            <Section title="30–90 Day Gap Plan" items={report.gapPlan} />
+            <Section
+              title="30–90 Day Gap Plan"
+              items={report.gapPlan}
+              borderColor="border-brand-copper"
+            />
           </div>
         )}
       </div>
@@ -381,11 +395,19 @@ export default function Fit() {
   );
 }
 
-function Section({ title, items }: { title: string; items: string[] }) {
+function Section({
+  title,
+  items,
+  borderColor = "border-surface-line",
+}: {
+  title: string;
+  items: string[];
+  borderColor?: string;
+}) {
   return (
-    <div className="space-y-2">
-      <div className="font-semibold">{title}</div>
-      <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+    <div className={`space-y-2 border-l-4 ${borderColor} pl-4 bg-brand-stone/30 py-3 pr-3 rounded-r-lg`}>
+      <div className="font-semibold text-brand-brown">{title}</div>
+      <ul className="list-disc pl-5 text-sm text-brand-brown/80 space-y-1">
         {(items || []).map((x, idx) => (
           <li key={`${title}-${idx}`}>{x}</li>
         ))}

@@ -17,7 +17,7 @@ export default function Home() {
         {/* Hero */}
         <div className="max-w-3xl mx-auto text-center pt-8 md:pt-12 space-y-6">
           <motion.h1
-            className="text-4xl md:text-6xl font-bold tracking-tighter"
+            className="text-4xl md:text-6xl font-bold tracking-tighter text-brand-red"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -26,7 +26,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.p
-            className="text-lg md:text-xl text-muted-foreground leading-relaxed"
+            className="text-lg md:text-xl text-brand-brown leading-relaxed"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -54,7 +54,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto text-base h-12 px-8 rounded-xl bg-background border-2 hover:bg-muted/50"
+                className="w-full sm:w-auto text-base h-12 px-8 rounded-xl"
                 data-testid="button-view-resume"
               >
                 View Modular Resume
@@ -63,7 +63,7 @@ export default function Home() {
           </motion.div>
 
           {site && (
-            <div className="text-sm text-muted-foreground space-y-1 pt-2">
+            <div className="text-sm text-surface-line space-y-1 pt-2">
               <p>{site.builtByLine}</p>
               <p>{site.privacyNote}</p>
             </div>
@@ -82,17 +82,17 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.05 * idx }}
                 >
-                  <Card className="h-full rounded-2xl border-border/60 shadow-sm hover:shadow-md transition-all">
+                  <Card className="h-full rounded-2xl">
                     <CardContent className="p-6 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                          <Icon className="h-5 w-5" />
+                        <div className="h-10 w-10 rounded-xl bg-brand-charcoal flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-surface-paper" />
                         </div>
-                        <h3 className="font-semibold text-lg leading-tight">
+                        <h3 className="font-semibold text-lg leading-tight text-brand-brown">
                           {step.title}
                         </h3>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-surface-line leading-relaxed">
                         {step.body}
                       </p>
                     </CardContent>
