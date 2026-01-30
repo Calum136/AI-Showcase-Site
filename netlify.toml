@@ -1,9 +1,23 @@
 [build]
   command = "npm run build"
   publish = "dist/public"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/fit/start"
+  to = "/.netlify/functions/fit-start"
+  status = 200
+
+[[redirects]]
+  from = "/api/fit/message"
+  to = "/.netlify/functions/fit-message"
+  status = 200
 
 [[redirects]]
   from = "/api/*"
