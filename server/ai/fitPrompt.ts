@@ -18,24 +18,23 @@ export type FitReport = {
 };
 
 export type FitChoice = {
-  id: string; // stable-ish id for UI
+  id: string;
   label: string;
 };
 
 export type FitStep = {
   question: string;
-  choices?: FitChoice[]; // if present: render as multiple-choice buttons + "Other"
+  choices?: FitChoice[];
 };
 
 type AiOptions = {
   apiKey?: string;
   model?: string;
   baseUrl?: string;
+  provider?: "anthropic" | "openai";
 };
 
 type NextStepInput = {
-  // Instead of only JD, we allow a "problem statement" flow.
-  // For now we still accept jdText for backwards compatibility.
   problemStatement?: string;
   jdText?: string;
   stage: FitStage;
@@ -49,74 +48,116 @@ type ReportInput = {
   messages: FitMessage[];
 };
 
-const DEFAULT_MODEL = "gpt-4.1-mini";
+// Calum's resume context for fit analysis
+const CALUM_RESUME_CONTEXT = `
+CANDIDATE PROFILE: Calum Kershaw
+Title: AI Solutions Developer & Systems Thinker
+Location: Truro, Nova Scotia
+
+SUMMARY:
+Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation. Combines data analysis background with modern AI development.
+
+TECHNICAL SKILLS:
+- Languages: TypeScript, Python, JavaScript, SQL
+- Frameworks: React, Node.js, Express
+- AI/ML: OpenAI API, Anthropic Claude, RAG Systems, Vector Databases, Embeddings
+- Data: PostgreSQL, Power BI, Data Analysis, ETL
+- Other: Systems Design, Process Automation, API Development
+
+KEY EXPERIENCE:
+1. AI Systems Developer (Independent, 2025-Present)
+   - Built JollyTails Staff Assistant: RAG-based knowledge system consolidating 20+ SOPs
+   - Developed Fit Check AI using Claude API for job evaluation
+   - Created MCP server integrations for workflow automation
+   - Full-stack TypeScript applications
+
+2. Operations Supervisor - Jolly Tails Pet Resort (2022, 2025-Present)
+   - Improved operational KPIs by ~10% through data profiling
+   - Built cross-system validation workflows
+   - Technology liaison role
+
+3. Data Analyst - STFX Advancement (2024-2025)
+   - Power BI dashboards with rule-based quality checks
+   - SQL data extraction and transformation
+   - Root cause analysis
+
+4. Student Manager - Kevin's Corner Food Bank (2023-2024)
+   - Scaled operations supporting 140+ additional users
+   - Designed workflows enabling 300% increase in operational hours
+
+EDUCATION:
+- Post-Bacc Diploma, Enterprise IT Management - St. Francis Xavier (2024)
+- BSc, Biology & Psychology - Dalhousie University (2022)
+
+CERTIFICATIONS:
+- AI & Agentic Workflows - Maven (2025)
+- Generative AI Leader - Google Cloud (2025)
+- AI Mastery - Marketing AI Institute (2024-Present)
+
+STRENGTHS:
+- Bridging technical and operational perspectives
+- Building AI systems that solve real business problems
+- Data quality and systems thinking
+- Quick learning and practical implementation
+
+AREAS OF GROWTH:
+- Enterprise-scale system architecture
+- Team leadership in technical roles
+- Deepening ML/AI theoretical foundations
+`;
 
 // -----------------------------
-// Docs loading (optional, future-proof)
+// Anthropic Claude API call
 // -----------------------------
-async function safeReadText(relativePathFromRepoRoot: string): Promise<string> {
-  try {
-    const filePath = path.join(process.cwd(), relativePathFromRepoRoot);
-    return await fs.readFile(filePath, "utf-8");
-  } catch {
-    return "";
+async function callAnthropicText(
+  systemPrompt: string,
+  userPrompt: string,
+  opts: { apiKey: string; model: string }
+): Promise<string> {
+  const { apiKey, model } = opts;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(
+      `Anthropic API error (${response.status}): ${errorText || response.statusText}`
+    );
   }
-}
 
-async function loadFitDocs() {
-  const [systemPrompt, logic, operating] = await Promise.all([
-    safeReadText("docs/ai_system_prompt.md"),
-    safeReadText("docs/conversation_logic.md"),
-    safeReadText("docs/operating_profile.md"),
-  ]);
+  const data: any = await response.json();
+  const content = data?.content?.[0]?.text;
 
-  return {
-    combined: [systemPrompt, logic, operating]
-      .filter(Boolean)
-      .join("\n\n---\n\n"),
-  };
+  if (typeof content !== "string" || !content.trim()) {
+    throw new Error("Anthropic returned an empty response.");
+  }
+
+  return content.trim();
 }
 
 // -----------------------------
-// OpenAI call (Responses API first, Chat Completions fallback)
+// OpenAI API call (fallback)
 // -----------------------------
 async function callOpenAiText(
   input: string,
-  opts: Required<Pick<AiOptions, "apiKey" | "model" | "baseUrl">>,
+  opts: { apiKey: string; model: string; baseUrl: string }
 ): Promise<string> {
   const { apiKey, model, baseUrl } = opts;
 
-  // 1) Responses API
-  try {
-    const r = await fetch(`${baseUrl}/v1/responses`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        input,
-        text: { format: { type: "text" } },
-      }),
-    });
-
-    if (r.ok) {
-      const data: any = await r.json();
-      const text =
-        data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")
-          ?.text ??
-        data?.output_text ??
-        data?.response?.output_text;
-
-      if (typeof text === "string" && text.trim()) return text.trim();
-    }
-  } catch {
-    // fall through
-  }
-
-  // 2) Chat Completions fallback
-  const r2 = await fetch(`${baseUrl}/v1/chat/completions`, {
+  const r = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -125,208 +166,200 @@ async function callOpenAiText(
     body: JSON.stringify({
       model,
       messages: [
-        {
-          role: "system",
-          content: "Return only the requested output. No markdown.",
-        },
+        { role: "system", content: "Return only the requested output. No markdown wrappers." },
         { role: "user", content: input },
       ],
-      temperature: 0.2,
+      temperature: 0.3,
     }),
   });
 
-  if (!r2.ok) {
-    const errText = await r2.text().catch(() => "");
-    throw new Error(
-      `OpenAI request failed (${r2.status}): ${errText || r2.statusText}`,
-    );
+  if (!r.ok) {
+    const errText = await r.text().catch(() => "");
+    throw new Error(`OpenAI request failed (${r.status}): ${errText || r.statusText}`);
   }
 
-  const data2: any = await r2.json();
-  const out = data2?.choices?.[0]?.message?.content;
+  const data: any = await r.json();
+  const out = data?.choices?.[0]?.message?.content;
   if (typeof out !== "string" || !out.trim()) {
     throw new Error("OpenAI returned an empty response.");
   }
   return out.trim();
 }
 
-function getAiOpts(
-  overrides?: AiOptions,
-): Required<Pick<AiOptions, "apiKey" | "model" | "baseUrl">> {
-  const apiKey = overrides?.apiKey ?? process.env.OPENAI_API_KEY ?? "";
-  const model = overrides?.model ?? process.env.OPENAI_MODEL ?? DEFAULT_MODEL;
-  const baseUrl =
-    overrides?.baseUrl ??
-    process.env.OPENAI_BASE_URL ??
-    "https://api.openai.com";
-
-  if (!apiKey) {
-    throw new Error(
-      "Missing OPENAI_API_KEY. Set it in your Replit Secrets / env vars.",
-    );
+function getAiOpts(overrides?: AiOptions): {
+  provider: "anthropic" | "openai";
+  apiKey: string;
+  model: string;
+  baseUrl: string;
+} {
+  // Check for Anthropic first (preferred)
+  const anthropicKey = overrides?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "";
+  if (anthropicKey) {
+    return {
+      provider: "anthropic",
+      apiKey: anthropicKey,
+      model: overrides?.model ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
+      baseUrl: "https://api.anthropic.com",
+    };
   }
-  return { apiKey, model, baseUrl };
+
+  // Fallback to OpenAI
+  const openaiKey = process.env.OPENAI_API_KEY ?? "";
+  if (openaiKey) {
+    return {
+      provider: "openai",
+      apiKey: openaiKey,
+      model: overrides?.model ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      baseUrl: overrides?.baseUrl ?? process.env.OPENAI_BASE_URL ?? "https://api.openai.com",
+    };
+  }
+
+  throw new Error(
+    "Missing API key. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment variables."
+  );
 }
 
 // -----------------------------
-// NEW: Generate next step as JSON { question, choices[] }
+// Generate next step as JSON { question, choices[] }
 // -----------------------------
 export async function aiGenerateNextStep(
   input: NextStepInput,
-  overrides?: AiOptions,
+  overrides?: AiOptions
 ): Promise<FitStep> {
-  const { combined } = await loadFitDocs();
-  const { apiKey, model, baseUrl } = getAiOpts(overrides);
-
-  const problem = String(input.problemStatement ?? "").trim();
+  const opts = getAiOpts(overrides);
   const jd = String(input.jdText ?? "").trim();
 
-  const contextBlock = problem
-    ? `Problem statement (from the hiring manager / operator):\n"""${problem.slice(0, 50_000)}"""\n`
-    : jd
-      ? `Job description:\n"""${jd.slice(0, 50_000)}"""\n`
-      : `No JD provided. Ask to describe the gap/pain in simple terms.\n`;
+  const systemPrompt = `You are an AI career advisor helping evaluate job fit for Calum Kershaw.
 
-  const prompt = `
-You are generating the next assistant step for a mutual-fit BUSINESS PROBLEM assessment.
+${CALUM_RESUME_CONTEXT}
 
-Audience:
-- The user is a hiring manager / operator describing an organizational gap or pain point.
-- This is NOT a job interview. Do NOT ask about the user's personal experiences or skills.
+Your role is to ask clarifying questions about the job to better understand fit. Be conversational but focused.`;
 
-Your job:
-- Ask ONE simple question that clarifies the business need.
-- ALSO provide 3–5 multiple-choice answers that a busy manager can pick from.
-- ALWAYS include an "Other (I'll type my own)" option as the last choice.
-
-Hard rules:
-- Output VALID JSON ONLY. No markdown.
-- Keep the question under 2 short sentences.
-- Choices must be short, plain language.
-- Each choice must have: { "id": "a", "label": "..." }.
-- Use ids: "a","b","c","d","e","other" (only as many as needed, always include "other").
-
-Stage guidance:
-- Stage 0: intake — clarify the gap/pain, impact, desired outcome, and whether they think they need person/system/both.
-- Stage 1: fast narrowing — what kind of work is needed, what success looks like, what constraints exist.
-- Stage 2: deeper — authority/data/tooling constraints, stakeholders, timeline, support for change.
-- Stage 3: do not ask questions; stage 3 is report generation.
-
-Conversation stage: ${input.stage}
-User turns so far: ${input.userTurns}
-
-${contextBlock}
+  const userPrompt = `
+Job Description:
+"""
+${jd.slice(0, 30000)}
+"""
 
 Conversation so far:
 ${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
-Optional internal docs (may be empty):
-${combined ? `---\n${combined}\n---` : "(none)"}
+Current stage: ${input.stage} (0=intake, 1=narrowing, 2=deep dive, 3=report)
+User turns: ${input.userTurns}
 
-Return JSON exactly in this shape:
+Generate the next question to ask about this job opportunity. Focus on understanding:
+- Stage 0-1: Role responsibilities, team structure, key challenges
+- Stage 2: Growth opportunities, decision-making authority, success metrics
+
+Return ONLY valid JSON in this exact format (no markdown):
 {
-  "question": "string",
+  "question": "Your question here",
   "choices": [
-    { "id": "a", "label": "..." },
-    { "id": "b", "label": "..." },
-    { "id": "c", "label": "..." },
+    { "id": "a", "label": "Choice 1" },
+    { "id": "b", "label": "Choice 2" },
+    { "id": "c", "label": "Choice 3" },
     { "id": "other", "label": "Other (I'll type my own)" }
   ]
 }
-`.trim();
+`;
 
-  const raw = await callOpenAiText(prompt, { apiKey, model, baseUrl });
+  let raw: string;
+  if (opts.provider === "anthropic") {
+    raw = await callAnthropicText(systemPrompt, userPrompt, opts);
+  } else {
+    raw = await callOpenAiText(systemPrompt + "\n\n" + userPrompt, opts);
+  }
 
-  // Extract JSON safely
+  // Extract JSON
   const jsonStart = raw.indexOf("{");
   const jsonEnd = raw.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
-    throw new Error("AI step did not contain valid JSON.");
+    return {
+      question: "What aspects of this role interest you most?",
+      choices: [{ id: "other", label: "Type your answer" }],
+    };
   }
 
-  const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+  try {
+    const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+    const question = String(parsed?.question ?? "").trim();
+    const choicesRaw = Array.isArray(parsed?.choices) ? parsed.choices : [];
 
-  const question = String(parsed?.question ?? "").trim();
-  const choicesRaw = Array.isArray(parsed?.choices) ? parsed.choices : [];
+    const choices: FitChoice[] = choicesRaw
+      .map((c: any) => ({
+        id: String(c?.id ?? "").trim(),
+        label: String(c?.label ?? "").trim(),
+      }))
+      .filter((c: FitChoice) => c.id && c.label);
 
-  const choices: FitChoice[] = choicesRaw
-    .map((c: any) => ({
-      id: String(c?.id ?? "").trim(),
-      label: String(c?.label ?? "").trim(),
-    }))
-    .filter((c: FitChoice) => c.id && c.label);
-
-  return {
-    question:
-      question || "What gap or pain point are you trying to solve right now?",
-    choices: choices.length
-      ? choices
-      : [{ id: "other", label: "Other (I'll type my own)" }],
-  };
+    return {
+      question: question || "What aspects of this role interest you most?",
+      choices: choices.length ? choices : [{ id: "other", label: "Type your answer" }],
+    };
+  } catch {
+    return {
+      question: "What aspects of this role interest you most?",
+      choices: [{ id: "other", label: "Type your answer" }],
+    };
+  }
 }
 
-// -----------------------------
-// Backwards-compatible helper: returns only the question text
-// (so existing routes won't break while we update UI)
-// -----------------------------
+// Backwards-compatible helper
 export async function aiGenerateNextPrompt(
   input: NextStepInput,
-  overrides?: AiOptions,
+  overrides?: AiOptions
 ) {
   const step = await aiGenerateNextStep(input, overrides);
   return step.question;
 }
 
 // -----------------------------
-// Report generation (unchanged shape for now)
-// We'll update this later to include "need synthesis" explicitly.
+// Report generation
 // -----------------------------
 export async function aiGenerateReport(
   input: ReportInput,
-  overrides?: AiOptions,
+  overrides?: AiOptions
 ): Promise<FitReport> {
-  const { combined } = await loadFitDocs();
-  const { apiKey, model, baseUrl } = getAiOpts(overrides);
-
-  const problem = String(input.problemStatement ?? "").trim();
+  const opts = getAiOpts(overrides);
   const jd = String(input.jdText ?? "").trim();
 
-  const contextBlock = problem
-    ? `Problem statement:\n"""${problem.slice(0, 50_000)}"""\n`
-    : `Job description:\n"""${jd.slice(0, 50_000)}"""\n`;
+  const systemPrompt = `You are an AI career advisor producing a fit analysis report for Calum Kershaw.
 
-  const prompt = `
-You are producing the FINAL report for a mutual fit BUSINESS PROBLEM assessment.
+${CALUM_RESUME_CONTEXT}
 
-Return VALID JSON ONLY (no markdown, no commentary).
-Schema:
-{
-  "verdict": "YES" | "NO",
-  "roleAlignment": string[2..5],
-  "environmentCompatibility": string[2..5],
-  "structuralRisks": string[2..5],
-  "successConditions": string[2..5],
-  "gapPlan": string[2..5]
-}
+Be honest and balanced. If something is a weak fit, say so. If there are gaps, acknowledge them with suggested mitigation strategies.`;
 
-Rules:
-- Verdict must be a realistic mutual-fit conclusion based on the context + conversation.
-- Avoid hype, avoid absolutes. Use neutral, observational phrasing.
-- If info is missing, reflect it as a condition or risk (don’t invent specifics).
-
-${contextBlock}
+  const userPrompt = `
+Job Description:
+"""
+${jd.slice(0, 30000)}
+"""
 
 Conversation transcript:
 ${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
-Optional internal docs (may be empty):
-${combined ? `---\n${combined}\n---` : "(none)"}
+Analyze the fit between Calum's profile and this role. Return ONLY valid JSON (no markdown):
+{
+  "verdict": "YES" or "NO",
+  "roleAlignment": ["2-5 specific ways Calum's experience aligns with role requirements"],
+  "environmentCompatibility": ["2-5 observations about work environment fit"],
+  "structuralRisks": ["2-5 potential challenges or risks to flag"],
+  "successConditions": ["2-5 conditions that would help Calum succeed"],
+  "gapPlan": ["2-5 specific actions to address any gaps or prepare for the role"]
+}
 
-Now output JSON only:
-`.trim();
+Verdict should be YES if there's reasonable alignment and growth potential, NO if fundamental mismatches exist.
+Be specific and reference actual details from the job description and Calum's background.
+`;
 
-  const raw = await callOpenAiText(prompt, { apiKey, model, baseUrl });
+  let raw: string;
+  if (opts.provider === "anthropic") {
+    raw = await callAnthropicText(systemPrompt, userPrompt, opts);
+  } else {
+    raw = await callOpenAiText(systemPrompt + "\n\n" + userPrompt, opts);
+  }
 
+  // Extract JSON
   const jsonStart = raw.indexOf("{");
   const jsonEnd = raw.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {

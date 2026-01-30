@@ -70,7 +70,10 @@ const STAGE_2_QUESTIONS = [
 
 // Zod request schemas
 const fitStartSchema = z.object({
-  text: z.string().min(1).max(50_000),
+  text: z.string().min(1).max(50_000).optional(),
+  jdText: z.string().min(1).max(50_000).optional(),
+}).refine(data => data.text || data.jdText, {
+  message: "Either text or jdText is required",
 });
 
 const fitMessageSchema = z.object({
@@ -390,7 +393,7 @@ export async function registerRoutes(
       });
     }
 
-    const { jdText } = parsed.data;
+    const jdText = parsed.data.jdText || parsed.data.text || "";
 
     const sessionId = crypto.randomUUID();
 
@@ -531,8 +534,7 @@ export async function registerRoutes(
     });
   });
 
-  // ✅ NEW: Upload endpoint (multipart file -> extracted text -> start session)
-  // ✅ NEW: Upload endpoint (multipart file -> extracted text -> start session)
+  // Upload endpoint (multipart file -> extracted text -> start session)
   app.post(api.fit.upload.path, upload.single("file"), async (req, res) => {
     try {
       cleanupExpiredFitSessions();
@@ -549,7 +551,7 @@ export async function registerRoutes(
           .json({ message: "Could not extract any text from file" });
       }
 
-      const payload = await startFitSessionFromText(parsed.data.text);
+      const payload = await startFitSessionFromText(extracted);
       return res.json(payload);
     } catch (err: any) {
       return res.status(400).json({

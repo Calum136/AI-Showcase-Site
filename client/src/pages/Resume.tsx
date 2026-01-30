@@ -8,6 +8,8 @@ import {
   MapPin,
   Phone,
   Linkedin,
+  Award,
+  FolderOpen,
 } from "lucide-react";
 
 type ResumeData = {
@@ -44,81 +46,85 @@ type ResumeData = {
 const CALUM_RESUME: ResumeData = {
   personalInfo: {
     name: "Calum Kershaw",
-    title: "Data Analyst (Data Quality • Operations Systems • Reporting)",
+    title: "AI Solutions Developer & Systems Thinker",
     summary:
-      "People-forward, detail-oriented Data Analyst with 3 years of experience in data profiling, quality analysis, and rule-based validation across academic and operational environments. Known for building dashboards and validation processes that improve decision-making in fast-moving settings, and for acting as a practical technology liaison during system and process change.",
+      "Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation. Combines data analysis background with modern AI development to deliver systems that actually work.",
     email: "calum@nineroads.com",
     phone: "727-900-4878",
     location: "Truro, NS",
-    linkedinLabel: "linkedin.com/in/calum-kershaw-a213bb15a/",
+    linkedinLabel: "linkedin.com/in/calum-kershaw",
     linkedinUrl: "https://linkedin.com/in/calum-kershaw-a213bb15a/",
   },
 
   skills: [
-    "Data Quality & Analysis",
-    "Technical Skills",
-    "Communication & Collaboration",
-    "Data Profiling & Quality Rules",
-    "SQL Query Design",
-    "Stakeholder Management",
-    "Data Analysis & Pattern Recognition",
-    "Python Programming",
-    "Clear and Effective Leadership & Teamwork",
-    "Root Cause Analysis",
-    "Advanced Excel & Data Modeling",
-    "Requirements Gathering",
-    "Data Controls & Validation",
-    "Power BI & Tableau",
-    "Community Engagement",
-    "Problem-Solving & Investigation",
-    "R Studio Programming",
-    "Technology Liaison & Translator",
-    "Management Reporting",
-    "Project Management",
-    "Strategic Goal Development",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Python",
+    "OpenAI API",
+    "Anthropic Claude",
+    "RAG Systems",
+    "Vector Databases",
+    "PostgreSQL",
+    "SQL",
+    "Power BI",
+    "Data Analysis",
+    "Systems Design",
+    "AI Integration",
+    "Process Automation",
+    "API Development",
   ],
 
   experience: [
+    {
+      position: "AI Systems Developer",
+      company: "Independent Projects",
+      period: "2025 - Present",
+      description:
+        "Building AI-powered tools and automation systems focused on decision support and operational efficiency.",
+      highlights: [
+        "JollyTails Staff Assistant: RAG-based knowledge system with OpenAI embeddings",
+        "Fit Check AI: Job evaluation system using Claude API",
+        "MCP server integrations for workflow automation",
+        "Full-stack TypeScript applications with React + Express",
+      ],
+    },
     {
       position: "Operations Supervisor",
       company: "Jolly Tails Pet Resort • Halifax, NS",
       period: "2022 & Jan 2025 – Present",
       description:
-        "Analyzed and optimized operational data processes for a high-capacity pet care facility, implementing quality controls and validation workflows across scheduling, inventory, and financial tracking.",
+        "Analyzed and optimized operational data processes for a high-capacity pet care facility, implementing quality controls and validation workflows.",
       highlights: [
-        "Improved key operational KPIs by ~10% by profiling scheduling, finance, and inventory data, then addressing process and data-quality gaps.",
-        "Built cross-system validation workflows (consistency checks + rule-based logic) to detect discrepancies and maintain data integrity.",
-        "Created quality controls for staffing/scheduling data to optimize allocation and reduce operational incidents through pattern recognition and root cause analysis.",
-        "Acted as a technology liaison: troubleshooting data inconsistencies and improving reliability of operational platforms.",
-        "Developed SOPs and data-quality protocols; led hiring, training, onboarding, and change adoption across teams.",
+        "Improved key operational KPIs by ~10% through data profiling and process optimization",
+        "Built cross-system validation workflows for data integrity",
+        "Acted as technology liaison troubleshooting data inconsistencies",
+        "Developed SOPs and data-quality protocols",
       ],
     },
     {
       position: "Data Analyst",
-      company: "STFX Advancement Department • Halifax/Antigonish, NS",
+      company: "STFX Advancement Department",
       period: "Apr 2024 – Feb 2025",
       description:
-        "Profiled donor datasets and built rule-driven dashboards to surface data-quality issues, standardize classifications, and improve reporting accuracy.",
+        "Profiled donor datasets and built rule-driven dashboards to surface data-quality issues and improve reporting accuracy.",
       highlights: [
-        "Identified misclassifications, duplicate records, and invalid categorizations across fragmented Excel and semi-structured sources.",
-        "Implemented rule-based quality checks inside Power BI dashboards to detect missing segments, repeats, and classification errors.",
-        "Used SQL to extract/transform/validate data from multiple sources (including text exports and screenshots).",
-        "Performed root cause analysis and validation improvements to streamline storage and improve query performance.",
-        "Partnered with stakeholders to gather requirements; completed UAT to ensure controls matched business needs.",
+        "Identified misclassifications and duplicate records across fragmented sources",
+        "Implemented rule-based quality checks in Power BI dashboards",
+        "Used SQL for data extraction, transformation, and validation",
+        "Performed root cause analysis and validation improvements",
       ],
     },
     {
       position: "Student Manager",
-      company: "Kevin’s Corner Food Bank • Antigonish, NS",
+      company: "Kevin's Corner Food Bank • Antigonish, NS",
       period: "Sep 2023 – Dec 2024",
       description:
-        "Owned systems and operations scaling for a campus food bank; implemented data controls and workflow improvements to support rapid growth.",
+        "Owned systems and operations scaling for a campus food bank; implemented data controls and workflow improvements.",
       highlights: [
-        "Implemented data quality controls that supported scaling to accommodate ~140 additional regular users.",
-        "Built partnership proposals and supported requirements gathering as a technology liaison for operational improvements.",
-        "Designed volunteer management + scheduling workflows with validation logic, enabling a ~300% increase in operational hours.",
-        "Used analysis to identify partnership opportunities, contributing to a ~45% increase in food donations.",
-        "Created documentation (process maps + validation procedures) and supported UAT on implemented solutions.",
+        "Implemented data quality controls supporting ~140 additional regular users",
+        "Designed volunteer management workflows enabling ~300% increase in operational hours",
+        "Analysis contributed to ~45% increase in food donations",
       ],
     },
   ],
@@ -144,14 +150,14 @@ const CALUM_RESUME: ResumeData = {
 
   projects: [
     {
-      name: "Power BI Financial Analytics Platform",
+      name: "JollyTails Staff Assistant",
       description:
-        "Designed an analytics solution using Power BI, Tableau, and SQL to replace manual reporting and improve accuracy and decision-making.",
+        "AI-powered knowledge base using RAG with OpenAI embeddings, consolidating 20+ SOPs into a searchable system.",
     },
     {
-      name: "Volunteer Management System Optimization",
+      name: "Fit Check AI",
       description:
-        "Built process maps and optimized workflows for a 110+ member team, enabling a ~250% increase in operational hours and improved service utilization.",
+        "Job fit evaluation system using Claude API to analyze role alignment and provide structured recommendations.",
     },
   ],
 };
@@ -161,189 +167,194 @@ export default function Resume() {
 
   return (
     <Layout>
-      <div className="space-y-8 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-card rounded-3xl p-8 border border-border shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold font-display">
-              {resume.personalInfo.name}
-            </h1>
-            <p className="text-xl text-primary mt-1 font-medium">
-              {resume.personalInfo.title}
-            </p>
-            <p className="text-muted-foreground mt-4 leading-relaxed max-w-xl">
-              {resume.personalInfo.summary}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl min-w-[240px]">
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-primary" />
-              <a
-                className="hover:text-primary transition-colors"
-                href={`mailto:${resume.personalInfo.email}`}
-              >
-                {resume.personalInfo.email}
-              </a>
+      <div className="max-w-6xl mx-auto">
+        {/* Header - Full Width */}
+        <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm mb-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl font-bold font-display">
+                {resume.personalInfo.name}
+              </h1>
+              <p className="text-xl text-primary mt-1 font-medium">
+                {resume.personalInfo.title}
+              </p>
+              <p className="text-muted-foreground mt-4 leading-relaxed max-w-2xl">
+                {resume.personalInfo.summary}
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-primary" />
-              <a
-                className="hover:text-primary transition-colors"
-                href={`tel:${resume.personalInfo.phone.replace(/[^\d+]/g, "")}`}
-              >
-                {resume.personalInfo.phone}
-              </a>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              {resume.personalInfo.location}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Linkedin className="w-4 h-4 text-primary" />
-              <a
-                className="hover:text-primary transition-colors"
-                href={resume.personalInfo.linkedinUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {resume.personalInfo.linkedinLabel}
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Skills */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <span className="w-8 h-1 bg-accent rounded-full" />
-              Technical Skills
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {resume.skills.map((skill) => (
-              <Badge
-                key={skill}
-                variant="secondary"
-                className="px-3 py-1.5 text-sm font-normal rounded-lg hover:bg-primary/10 hover:text-primary transition-colors cursor-default"
-              >
-                {skill}
-              </Badge>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Experience */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold font-display flex items-center gap-3">
-            <Briefcase className="w-6 h-6 text-primary" />
-            Experience
-          </h2>
-
-          <div className="space-y-6">
-            {resume.experience.map((exp, i) => (
-              <Card
-                key={i}
-                className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300"
-              >
-                <CardHeader>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                    <div>
-                      <CardTitle className="text-xl">{exp.position}</CardTitle>
-                      <p className="text-primary font-medium mt-1">
-                        {exp.company}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="w-fit">
-                      {exp.period}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    {exp.description}
-                  </p>
-                  <ul className="space-y-2">
-                    {exp.highlights.map((highlight, j) => (
-                      <li key={j} className="text-sm flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                        <span className="text-foreground/80">{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold font-display flex items-center gap-3">
-            <GraduationCap className="w-6 h-6 text-primary" />
-            Education
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {resume.education.map((edu, i) => (
-              <Card key={i} className="border-border/50 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg">{edu.institution}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-medium text-foreground">{edu.degree}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {edu.year}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Certifications */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <span className="w-8 h-1 bg-accent rounded-full" />
-              Certifications & Training
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {resume.certifications.map((c) => (
-                <li key={c} className="text-sm flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                  <span className="text-foreground/80">{c}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Projects */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <span className="w-8 h-1 bg-accent rounded-full" />
-              Relevant Projects
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {resume.projects.map((p) => (
-              <div key={p.name} className="space-y-1">
-                <div className="font-medium text-foreground">{p.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {p.description}
-                </div>
+            <div className="flex flex-col gap-3 text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl min-w-[240px]">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-primary" />
+                <a
+                  className="hover:text-primary transition-colors"
+                  href={`mailto:${resume.personalInfo.email}`}
+                >
+                  {resume.personalInfo.email}
+                </a>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-primary" />
+                <a
+                  className="hover:text-primary transition-colors"
+                  href={`tel:${resume.personalInfo.phone.replace(/[^\d+]/g, "")}`}
+                >
+                  {resume.personalInfo.phone}
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                {resume.personalInfo.location}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Linkedin className="w-4 h-4 text-primary" />
+                <a
+                  className="hover:text-primary transition-colors"
+                  href={resume.personalInfo.linkedinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Skills, Education, Certifications */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Skills */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="w-6 h-1 bg-accent rounded-full" />
+                  Technical Skills
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {resume.skills.map((skill) => (
+                  <Badge
+                    key={skill}
+                    variant="secondary"
+                    className="px-2.5 py-1 text-xs font-normal rounded-lg hover:bg-primary/10 hover:text-primary transition-colors cursor-default"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Education */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                  Education
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {resume.education.map((edu, i) => (
+                  <div key={i} className="space-y-1">
+                    <p className="font-medium text-sm">{edu.institution}</p>
+                    <p className="text-xs text-muted-foreground">{edu.degree}</p>
+                    <p className="text-xs text-muted-foreground">{edu.year}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Certifications */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Certifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {resume.certifications.map((c) => (
+                    <li key={c} className="text-xs flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
+                      <span className="text-muted-foreground">{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Projects */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-primary" />
+                  Key Projects
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {resume.projects.map((p) => (
+                  <div key={p.name} className="space-y-1">
+                    <div className="font-medium text-sm">{p.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {p.description}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Experience */}
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-2xl font-bold font-display flex items-center gap-3">
+              <Briefcase className="w-6 h-6 text-primary" />
+              Experience
+            </h2>
+
+            <div className="space-y-5">
+              {resume.experience.map((exp, i) => (
+                <Card
+                  key={i}
+                  className="border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300"
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <div>
+                        <CardTitle className="text-lg">{exp.position}</CardTitle>
+                        <p className="text-primary font-medium text-sm mt-0.5">
+                          {exp.company}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="w-fit text-xs">
+                        {exp.period}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground text-sm mb-3">
+                      {exp.description}
+                    </p>
+                    {exp.highlights && exp.highlights.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {exp.highlights.map((highlight, j) => (
+                          <li key={j} className="text-sm flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
+                            <span className="text-foreground/80">{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </Layout>
   );
