@@ -1,40 +1,40 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@shared/routes";
 import { type Resume, type PortfolioItem, type Reference } from "@shared/schema";
 
-// GET /api/content/resume
+// Import JSON files directly for static deployment
+import resumeData from "../../../content/resume.json";
+import portfolioData from "../../../content/portfolio.json";
+import referencesData from "../../../content/references.json";
+
+// GET resume data
 export function useResume() {
   return useQuery({
-    queryKey: [api.content.resume.path],
+    queryKey: ["resume"],
     queryFn: async () => {
-      const res = await fetch(api.content.resume.path);
-      if (!res.ok) throw new Error("Failed to fetch resume");
-      // Validate with Zod schema from routes
-      return api.content.resume.responses[200].parse(await res.json());
+      // Return imported JSON directly
+      return resumeData as Resume;
     },
   });
 }
 
-// GET /api/content/portfolio
+// GET portfolio data
 export function usePortfolio() {
   return useQuery({
-    queryKey: [api.content.portfolio.path],
+    queryKey: ["portfolio"],
     queryFn: async () => {
-      const res = await fetch(api.content.portfolio.path);
-      if (!res.ok) throw new Error("Failed to fetch portfolio");
-      return api.content.portfolio.responses[200].parse(await res.json());
+      // Return imported JSON directly
+      return portfolioData as PortfolioItem[];
     },
   });
 }
 
-// GET /api/content/references
+// GET references data
 export function useReferences() {
   return useQuery({
-    queryKey: [api.content.references.path],
+    queryKey: ["references"],
     queryFn: async () => {
-      const res = await fetch(api.content.references.path);
-      if (!res.ok) throw new Error("Failed to fetch references");
-      return api.content.references.responses[200].parse(await res.json());
+      // Return imported JSON directly
+      return referencesData as Reference[];
     },
   });
 }
