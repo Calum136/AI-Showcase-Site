@@ -10,14 +10,14 @@ const fitMessageSchema = z.object({
 
 const STAGE_1_QUESTIONS = [
   "At a high level, what problem is this role primarily responsible for solving?",
-  "What does "success" look like in the first 30–90 days for this person?",
+  "What does 'success' look like in the first 30-90 days for this person?",
   "What kind of environment is this role stepping into?",
 ];
 
 const STAGE_2_QUESTIONS = [
   "Where does this role have real decision-making authority vs. influence-only?",
   "What are the biggest blockers or risks you expect this person to run into?",
-  "What support exists for improving systems/processes—not just maintaining them?",
+  "What support exists for improving systems/processes - not just maintaining them?",
 ];
 
 const CALUM_RESUME_CONTEXT = `

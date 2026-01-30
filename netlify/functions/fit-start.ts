@@ -6,7 +6,7 @@ const fitSessions = new Map<string, any>();
 
 const STAGE_1_QUESTIONS = [
   "At a high level, what problem is this role primarily responsible for solving?",
-  "What does "success" look like in the first 30–90 days for this person?",
+  "What does 'success' look like in the first 30-90 days for this person?",
   "What kind of environment is this role stepping into (process maturity, pace, and change expectations)?",
 ];
 
