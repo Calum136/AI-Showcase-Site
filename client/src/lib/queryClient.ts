@@ -56,7 +56,9 @@ export const queryClient = new QueryClient({
   },
 });
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@shared/routes";
+
+// Import site.json directly for static deployment
+import siteData from "../../../content/site.json";
 
 type SiteCopy = {
   tagline: string;
@@ -72,6 +74,9 @@ type SiteCopy = {
 
 export function useSiteCopy() {
   return useQuery<SiteCopy>({
-    queryKey: [api.content.site.path],
+    queryKey: ["site"],
+    queryFn: async () => {
+      return siteData as SiteCopy;
+    },
   });
 }
