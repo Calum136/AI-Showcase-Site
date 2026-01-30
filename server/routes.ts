@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import { aiGenerateNextStep, aiGenerateReport } from "./ai/fitPrompt";
+import { aiGenerateNextStep, aiGenerateNextPrompt, aiGenerateReport } from "./ai/fitPrompt";
 
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -405,6 +405,8 @@ export async function registerRoutes(
       messages: [],
       createdAt: Date.now(),
       lastActiveAt: Date.now(),
+      verdict: null,
+      report: null,
     });
 
     // 🔌 AI-generated FIRST question (with fallback)
