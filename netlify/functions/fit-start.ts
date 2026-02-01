@@ -5,33 +5,40 @@ import { randomUUID } from "crypto";
 // In-memory sessions (note: will reset on cold starts)
 const fitSessions = new Map<string, any>();
 
-const STAGE_1_QUESTIONS = [
-  "At a high level, what problem is this role primarily responsible for solving?",
-  "What does 'success' look like in the first 30-90 days for this person?",
-  "What kind of environment is this role stepping into (process maturity, pace, and change expectations)?",
-];
+const DEFAULT_OPENING = "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
 
 const fitStartSchema = z.object({
-  text: z.string().min(1).max(50_000).optional(),
-  jdText: z.string().min(1).max(50_000).optional(),
-}).refine(data => data.text || data.jdText, {
-  message: "Either text or jdText is required",
+  text: z.string().max(50_000).optional(),
+  jdText: z.string().max(50_000).optional(),
 });
+// Note: Both text and jdText are now optional - empty start triggers default diagnostic opening
 
-const CALUM_RESUME_CONTEXT = `
-CANDIDATE PROFILE: Calum Kershaw
-Title: AI Solutions Developer & Systems Thinker
+const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to conduct a calm, systems-focused conversation that reveals operational bottlenecks in the user's organization.
 
-SUMMARY:
-Developer focused on AI systems integration, automation, and decision support tools.
+**Your Persona:**
+- Systems-thinking consultant
+- Genuinely curious, not interrogating
+- Synthesize before asking next question
+- Focus on operations, not emotions
+- Grounded, professional, unhurried
 
-TECHNICAL SKILLS:
-TypeScript, Python, React, Node.js, OpenAI API, Anthropic Claude, RAG Systems, PostgreSQL, Power BI
+**Conversation Goals:**
+1. Identify energy drains (what's consuming capacity)
+2. Diagnose bottlenecks (approval delays, coordination gaps, unclear ownership)
+3. Explore workaround behavior (reveals misalignment)
+4. Map improvement opportunities (where leverage lives)
+5. Understand resource constraints (capacity vs running)
 
-KEY EXPERIENCE:
-1. AI Systems Developer (2025-Present) - RAG systems, Fit Check AI, MCP integrations
-2. Operations Supervisor - Jolly Tails (2022, 2025-Present) - Data profiling, process optimization
-3. Data Analyst - STFX (2024-2025) - Power BI dashboards, SQL, data quality
+**CRITICAL RULES:**
+- Never use corporate jargon ("synergy", "bandwidth", "touch base")
+- Never sell Calum directly ("I can help with that")
+- Always synthesize what they said before asking next question
+- Stay diagnostic, not prescriptive
+- If they provide context (like a JD), extract role context and adjust questions accordingly
+- Keep responses 2-4 sentences max (this is conversation, not essay)
+
+**Opening:**
+Start with: "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?"
 `;
 
 async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -63,24 +70,27 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<str
 }
 
 async function generateFirstQuestion(jdText: string): Promise<string> {
-  const systemPrompt = `You are an AI career advisor helping evaluate job fit for Calum Kershaw.
-${CALUM_RESUME_CONTEXT}
-Ask a clarifying question about the job to understand fit. Be conversational but focused.`;
+  // If no JD provided, use the default opening
+  if (!jdText || jdText.trim().length === 0) {
+    return DEFAULT_OPENING;
+  }
 
-  const userPrompt = `Job Description:
+  const userPrompt = `The user has provided this context (likely a job description):
 """
 ${jdText.slice(0, 10000)}
 """
 
-Generate ONE opening question to start evaluating this role. Focus on understanding the core problem this role solves.
+Based on this context, generate an appropriate opening question that acknowledges you've seen their context and asks about their current operational challenges or energy drains.
+
+Keep it 1-2 sentences. Be warm but professional. Don't use corporate jargon.
 Return ONLY the question text, nothing else.`;
 
   try {
-    const question = await callOpenAI(systemPrompt, userPrompt);
-    return question || STAGE_1_QUESTIONS[0];
+    const question = await callOpenAI(DIAGNOSTIC_SYSTEM_PROMPT, userPrompt);
+    return question || DEFAULT_OPENING;
   } catch (err) {
     console.error("AI failed, using fallback:", err);
-    return STAGE_1_QUESTIONS[0];
+    return DEFAULT_OPENING;
   }
 }
 

@@ -24,7 +24,8 @@ export function Navigation() {
 
         <ul className="flex w-full md:w-auto justify-between md:gap-1">
           {navItems.map((item) => {
-            const isActive = location === item.href;
+            // Check if current location matches or starts with the href (for nested routes like /fit/chat)
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             const Icon = item.icon;
 
             return (
