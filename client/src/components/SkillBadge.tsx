@@ -4,11 +4,11 @@ import { useState } from "react";
 interface SkillBadgeProps {
   name: string;
   description: string;
-  icon: string;
+  iconSrc: string;
   category: "gpt" | "skill" | "project";
 }
 
-export function SkillBadge({ name, description, icon, category }: SkillBadgeProps) {
+export function SkillBadge({ name, description, iconSrc, category }: SkillBadgeProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const categoryColors = {
@@ -32,15 +32,22 @@ export function SkillBadge({ name, description, icon, category }: SkillBadgeProp
         whileHover={{ scale: 1.05 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
-        {icon}
+        <img
+          src={iconSrc}
+          alt={name}
+          className="w-10 h-10 object-contain select-none"
+          draggable={false}
+        />
       </motion.div>
 
       {/* Hover Pop-out */}
       <motion.div
-        className="absolute left-0 top-0 z-10 pointer-events-none
-             bg-stone-800/95 text-white
-             rounded-xl shadow-2xl
-             p-4 backdrop-blur-sm"
+        className="absolute z-50 pointer-events-none"
+        style={{
+          left: "50%",
+          top: "50%",
+          transform: "translate(calc(-100% - 16px), -50%)",
+        }}
         initial={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
         animate={
           isHovered
@@ -49,14 +56,19 @@ export function SkillBadge({ name, description, icon, category }: SkillBadgeProp
         }
         transition={{ duration: 0.3 }}
       >
-        <div className="bg-surface-charcoal border border-brand-copper/30 rounded-lg p-4 shadow-xl min-w-[250px]">
-          <div className="flex items-start gap-3">
-            <div className="text-3xl">{icon}</div>
-            <div className="flex-1">
-              <h4 className="font-heading text-brand-copper font-semibold mb-1">
+        <div className="rounded-2xl border border-brand-copper/25 bg-surface-charcoal shadow-2xl p-5 w-[480px]">
+          <div className="flex items-start gap-4">
+            <img
+              src={iconSrc}
+              alt={name}
+              className="w-12 h-12 object-contain opacity-90"
+              draggable={false}
+            />
+            <div>
+              <h4 className="font-heading text-brand-copper font-semibold mb-2">
                 {name}
               </h4>
-              <p className="text-sm text-surface-paper/70 leading-relaxed">
+              <p className="text-sm text-surface-paper/80 leading-relaxed">
                 {description}
               </p>
             </div>
