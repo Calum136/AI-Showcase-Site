@@ -1,0 +1,39 @@
+{
+  "personalInfo": {
+    "name": "Calum Kershaw",
+    "title": "AI Solutions Developer & Systems Thinker",
+    "email": "calum.kershaw@example.com",
+    "location": "Truro, Nova Scotia",
+    "summary": "Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation."
+  },
+  "skills": ["TypeScript", "React", "Python", "Node.js", "OpenAI API", "RAG Systems", "PostgreSQL", "Systems Design", "AI Integration", "Automation"],
+  "experience": [
+    {
+      "company": "JollyTails Resort",
+      "position": "Operations & Systems (Pro-Bono Project)",
+      "period": "2025 - 2026",
+      "description": "Built AI-powered knowledge base consolidating fragmented SOPs into searchable system with training tracking.",
+      "highlights": ["Implemented RAG with OpenAI embeddings", "Processed 20-30+ operational documents", "Deployed full-stack TypeScript application", "Demonstrated real-world AI problem solving"]
+    },
+    {
+      "company": "Independent Projects",
+      "position": "AI Systems Developer",
+      "period": "2025 - Present",
+      "description": "Building AI-powered tools and automation systems focused on decision support and operational efficiency.",
+      "highlights": ["FitTest AI: Hiring evaluation system", "MCP server integrations", "Process automation tools"]
+    },
+    {
+      "company": "Staples",
+      "position": "Sales Associate",
+      "period": "2026 - Present",
+      "description": "Customer service and retail operations while building technical portfolio."
+    }
+  ],
+  "education": [
+    {
+      "institution": "Self-Directed Learning",
+      "degree": "AI Systems & Full-Stack Development",
+      "year": "2025-2026"
+    }
+  ]
+}
