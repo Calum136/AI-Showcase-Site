@@ -37,14 +37,17 @@ export function SkillBadge({ name, description, icon, category }: SkillBadgeProp
 
       {/* Hover Pop-out */}
       <motion.div
-        className="absolute left-0 top-0 z-10 pointer-events-none"
-        initial={{ opacity: 0, scale: 0.9, x: 0, y: 0 }}
+        className="absolute left-0 top-0 z-10 pointer-events-none
+             bg-stone-800/95 text-white
+             rounded-xl shadow-2xl
+             p-4 backdrop-blur-sm"
+        initial={{ opacity: 0, scale: 0.8, x: 0, y: 0 }}
         animate={
           isHovered
-            ? { opacity: 1, scale: 1, x: -20, y: -10 }
-            : { opacity: 0, scale: 0.9, x: 0, y: 0 }
+            ? { opacity: 1, scale: 1.15, x: -30, y: -15 }
+            : { opacity: 0, scale: 0.8, x: 0, y: 0 }
         }
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.3 }}
       >
         <div className="bg-surface-charcoal border border-brand-copper/30 rounded-lg p-4 shadow-xl min-w-[250px]">
           <div className="flex items-start gap-3">
