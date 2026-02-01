@@ -41,7 +41,7 @@ export function SkillBadge({ name, description, icon, category }: SkillBadgeProp
         initial={{ opacity: 0, scale: 0.9, x: 0, y: 0 }}
         animate={
           isHovered
-            ? { opacity: 1, scale: 1, x: 0, y: 0 }
+            ? { opacity: 1, scale: 1, x: -20, y: -10 }
             : { opacity: 0, scale: 0.9, x: 0, y: 0 }
         }
         transition={{ duration: 0.2 }}
