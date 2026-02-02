@@ -11,4 +11,5 @@ vite.config.ts.*
 .env.local
 .env.*.local
 AI-Showcase-Site__OLD/
+.claude/
 
