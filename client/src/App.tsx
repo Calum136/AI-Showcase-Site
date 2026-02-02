@@ -10,7 +10,6 @@ import Portfolio from "@/pages/Portfolio";
 import References from "@/pages/References";
 import FitLanding from "@/pages/FitLanding";
 import FitChat from "@/pages/FitChat";
-import FitAssessment from "@/pages/FitAssessment";
 import CaseStudy from "@/pages/CaseStudy";
 import NotFound from "@/pages/not-found";
 
@@ -23,7 +22,6 @@ function Router() {
       <Route path="/references" component={References} />
       <Route path="/fit" component={FitLanding} />
       <Route path="/fit/chat" component={FitChat} />
-      <Route path="/fit-assessment" component={FitAssessment} />
       <Route path="/case-study" component={CaseStudy} />
       <Route path="/case-study/jollytails" component={CaseStudy} />
       <Route component={NotFound} />
