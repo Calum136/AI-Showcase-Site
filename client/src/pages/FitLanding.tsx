@@ -4,12 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { MessageSquare, User, ArrowRight, Target, Clock, Zap } from "lucide-react";
+import { ContactDialog } from "@/components/ContactDialog";
 
 export default function FitLanding() {
-  const scrollToFooter = () => {
-    const footer = document.querySelector("footer");
-    footer?.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <Layout>
@@ -79,10 +76,7 @@ export default function FitLanding() {
           </Card>
 
           {/* Personal Connection Card */}
-          <Card
-            className="group rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            onClick={scrollToFooter}
-          >
+          <Card className="group rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-8 space-y-6 h-full">
               <div className="h-14 w-14 rounded-xl bg-brand-moss/10 flex items-center justify-center group-hover:bg-brand-moss/20 transition-colors">
                 <User className="h-7 w-7 text-brand-moss" />
@@ -93,18 +87,15 @@ export default function FitLanding() {
                   I want to connect with Calum
                 </h3>
                 <p className="text-brand-brown/80 leading-relaxed">
-                  Reach out directly via email, phone, or LinkedIn to discuss
-                  opportunities, collaborations, or just say hello.
+                  Reach out directly via email, phone, or LinkedIn to discuss opportunities,
+                  collaborations, or just say hello.
                 </p>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full rounded-xl h-12 text-base font-medium border-2 group-hover:border-brand-copper transition-all"
-              >
-                View Contact Info
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <ContactDialog
+                triggerClassName="w-full rounded-xl h-12 text-base font-medium border-2 border-brand-espresso/20 bg-transparent hover:border-brand-copper transition-all group inline-flex items-center justify-center"
+                triggerLabel="View Contact Info"
+              />
             </CardContent>
           </Card>
         </motion.div>

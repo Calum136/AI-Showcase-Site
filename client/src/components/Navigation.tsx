@@ -17,10 +17,19 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:top-0 md:bottom-auto border-t md:border-t-0 md:border-b border-surface-line/30 bg-surface-ink/95 backdrop-blur-md px-4 py-2 md:py-4 shadow-lg md:shadow-none">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <Link href="/">
-          <span className="hidden md:block text-xl font-bold font-display tracking-tight text-brand-red hover:text-brand-red/90 transition-colors cursor-pointer">
-            Calum Kershaw
-          </span>
+          <div className="hidden md:flex items-center gap-3 cursor-pointer group">
+            <img
+              src="/CalumHeadshot.png"
+              alt="Calum Kershaw"
+              className="w-9 h-9 rounded-full object-cover ring-1 ring-inset ring-surface-paper/15 shadow-[0_10px_30px_rgba(15,23,42,0.35)]"
+              draggable={false}
+            />
+            <span className="text-xl font-bold font-display tracking-tight text-brand-red group-hover:text-brand-red/90 transition-colors">
+              Calum Kershaw
+            </span>
+          </div>
         </Link>
+
 
         <ul className="flex w-full md:w-auto justify-between md:gap-1">
           {navItems.map((item) => {
