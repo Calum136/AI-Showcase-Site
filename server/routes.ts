@@ -2,6 +2,8 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { aiGenerateNextStep, aiGenerateNextPrompt, aiGenerateReport } from "./ai/fitPrompt";
+import { generateFitAssessment } from "./ai/fitAssessment";
+import { fitAssessmentInputSchema } from "@shared/fitAssessmentSchema";
 
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -47,7 +49,7 @@ const FIT_SESSION_TTL_MS = 30 * 60 * 1000;
 
 function cleanupExpiredFitSessions() {
   const now = Date.now();
-  for (const [id, s] of fitSessions.entries()) {
+  for (const [id, s] of Array.from(fitSessions.entries())) {
     if (now - s.lastActiveAt > FIT_SESSION_TTL_MS) {
       fitSessions.delete(id);
     }
@@ -558,6 +560,94 @@ export async function registerRoutes(
     } catch (err: any) {
       return res.status(400).json({
         message: err?.message ?? "Upload failed",
+      });
+    }
+  });
+
+  // ======================
+  // Fit Assessment Route
+  // ======================
+
+  // Simple in-memory rate limiter
+  const fitAssessmentRateLimit = new Map<string, { count: number; resetAt: number }>();
+  const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+  const RATE_LIMIT_MAX_REQUESTS = 5; // 5 requests per minute
+
+  function checkRateLimit(ip: string): boolean {
+    const now = Date.now();
+    const record = fitAssessmentRateLimit.get(ip);
+
+    if (!record || now > record.resetAt) {
+      fitAssessmentRateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+      return true;
+    }
+
+    if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+      return false;
+    }
+
+    record.count++;
+    return true;
+  }
+
+  // Clean up old rate limit entries periodically
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, record] of Array.from(fitAssessmentRateLimit.entries())) {
+      if (now > record.resetAt) {
+        fitAssessmentRateLimit.delete(ip);
+      }
+    }
+  }, 5 * 60 * 1000);
+
+  app.post(api.fitAssessment.analyze.path, async (req, res) => {
+    const startTime = Date.now();
+    const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+
+    // Rate limit check
+    if (!checkRateLimit(clientIp)) {
+      console.log(`[fit-assessment] Rate limited: ${clientIp}`);
+      return res.status(429).json({
+        success: false,
+        error: "Too many requests. Please wait a minute before trying again.",
+      });
+    }
+
+    // Validate input
+    const parsed = fitAssessmentInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      console.log(`[fit-assessment] Validation error: ${parsed.error.errors[0]?.message}`);
+      return res.status(400).json({
+        success: false,
+        error: parsed.error.errors[0]?.message ?? "Invalid input",
+      });
+    }
+
+    const { inputText } = parsed.data;
+    console.log(`[fit-assessment] Processing request (${inputText.length} chars)`);
+
+    try {
+      const result = await generateFitAssessment(inputText);
+      const duration = Date.now() - startTime;
+      console.log(`[fit-assessment] Success (${duration}ms)`);
+
+      return res.json({
+        success: true,
+        data: result,
+      });
+    } catch (err: any) {
+      const duration = Date.now() - startTime;
+      console.error(`[fit-assessment] Error (${duration}ms):`, err?.message || err);
+
+      // Determine appropriate status code
+      const isTimeout = err?.name === "AbortError" || err?.message?.includes("timeout");
+      const isApiError = err?.message?.includes("API error");
+
+      return res.status(isTimeout || isApiError ? 502 : 500).json({
+        success: false,
+        error: isTimeout
+          ? "Analysis took too long. Please try again with a shorter input."
+          : "Failed to generate assessment. Please try again.",
       });
     }
   });

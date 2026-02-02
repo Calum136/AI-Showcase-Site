@@ -6,6 +6,8 @@ export interface IStorage {
   getResume(): Promise<any>;
   getReferences(): Promise<any>;
   getPortfolio(): Promise<any>;
+  getMessages(): Promise<any[]>;
+  createMessage(input: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -40,6 +42,15 @@ export class DatabaseStorage implements IStorage {
   // ✅ PORTFOLIO / CASE STUDIES
   async getPortfolio() {
     return this.readJson("portfolio/index.json");
+  }
+
+  // Legacy chat methods (not actively used - stubs for API compatibility)
+  async getMessages(): Promise<any[]> {
+    return [];
+  }
+
+  async createMessage(input: any): Promise<any> {
+    return { id: 1, ...input, createdAt: new Date() };
   }
 }
 

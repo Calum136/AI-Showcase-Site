@@ -6,6 +6,11 @@ import {
   portfolioSchema,
   referencesSchema,
 } from "./schema";
+import {
+  fitAssessmentInputSchema,
+  fitAssessmentResponseSchema,
+  fitAssessmentErrorSchema,
+} from "./fitAssessmentSchema";
 
 // Content schemas
 export const siteSchema = z.any();
@@ -134,6 +139,21 @@ export const api = {
       responses: {
         201: z.custom<typeof messages.$inferSelect>(),
         500: errorSchemas.internal,
+      },
+    },
+  },
+
+  fitAssessment: {
+    analyze: {
+      method: "POST" as const,
+      path: "/api/fit-assessment",
+      input: fitAssessmentInputSchema,
+      responses: {
+        200: fitAssessmentResponseSchema,
+        400: fitAssessmentErrorSchema,
+        429: fitAssessmentErrorSchema,
+        500: fitAssessmentErrorSchema,
+        502: fitAssessmentErrorSchema,
       },
     },
   },
