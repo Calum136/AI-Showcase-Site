@@ -1,13 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Home, MessageSquare, FileText, Briefcase, BookOpen } from "lucide-react";
+import { Home, MessageSquare, FileText, Briefcase, BookOpen, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ContactDialog } from "@/components/ContactDialog";
 
 export function Navigation() {
   const [location] = useLocation();
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/fit", label: "Fit Check", icon: MessageSquare },
+    { href: "/about", label: "About", icon: User },
+    { href: "/fit", label: "Evaluate", icon: MessageSquare },
     { href: "/case-study", label: "Case Study", icon: BookOpen },
     { href: "/resume", label: "Resume", icon: FileText },
     { href: "/portfolio", label: "Portfolio", icon: Briefcase },
@@ -23,6 +26,7 @@ export function Navigation() {
               alt="Calum Kershaw"
               className="w-9 h-9 rounded-full object-cover ring-1 ring-inset ring-surface-paper/15 shadow-[0_10px_30px_rgba(15,23,42,0.35)]"
               draggable={false}
+              loading="lazy"
             />
             <span className="text-xl font-bold font-display tracking-tight text-brand-red group-hover:text-brand-red/90 transition-colors">
               Calum Kershaw
@@ -41,6 +45,7 @@ export function Navigation() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "flex flex-col md:flex-row items-center gap-1 md:gap-2 px-2 md:px-4 py-2 md:py-2 rounded-lg transition-all duration-200",
                     isActive
@@ -55,6 +60,27 @@ export function Navigation() {
             );
           })}
         </ul>
+
+        {/* Desktop CTA Buttons */}
+        <div className="hidden md:flex items-center gap-3 ml-4">
+          <Link href="/case-study">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10 hover:border-surface-paper/50"
+            >
+              View Case Study
+            </Button>
+          </Link>
+          <ContactDialog>
+            <Button
+              size="sm"
+              className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper"
+            >
+              Contact
+            </Button>
+          </ContactDialog>
+        </div>
       </div>
     </nav>
   );

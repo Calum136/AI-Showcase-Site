@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Briefcase,
@@ -10,6 +11,9 @@ import {
   Linkedin,
   Award,
   FolderOpen,
+  Download,
+  CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 
 type ResumeData = {
@@ -23,13 +27,19 @@ type ResumeData = {
     linkedinLabel: string;
     linkedinUrl: string;
   };
-  skills: string[];
+  impactSummary: string[];
+  skillGroups: Array<{
+    category: string;
+    skills: string[];
+  }>;
   experience: Array<{
     position: string;
     company: string;
     period: string;
-    description: string;
+    scope: string;
     highlights: string[];
+    techStack?: string[];
+    keyAchievement?: string;
   }>;
   education: Array<{
     institution: string;
@@ -48,7 +58,7 @@ const CALUM_RESUME: ResumeData = {
     name: "Calum Kershaw",
     title: "AI Solutions Developer & Systems Thinker",
     summary:
-      "Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation. Combines data analysis background with modern AI development to deliver systems that actually work.",
+      "Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation.",
     email: "calum@nineroads.com",
     phone: "727-900-4878",
     location: "Truro, NS",
@@ -56,23 +66,30 @@ const CALUM_RESUME: ResumeData = {
     linkedinUrl: "https://linkedin.com/in/calum-kershaw-a213bb15a/",
   },
 
-  skills: [
-    "TypeScript",
-    "React",
-    "Node.js",
-    "Python",
-    "OpenAI API",
-    "Anthropic Claude",
-    "RAG Systems",
-    "Vector Databases",
-    "PostgreSQL",
-    "SQL",
-    "Power BI",
-    "Data Analysis",
-    "Systems Design",
-    "AI Integration",
-    "Process Automation",
-    "API Development",
+  impactSummary: [
+    "Reduced staff knowledge lookup time by ~70% with AI knowledge base",
+    "Built RAG system consolidating 20+ SOPs into searchable answers",
+    "Analytics background driving data-informed operational decisions",
+    "Shipped usable systems for real workflows, not just prototypes",
+  ],
+
+  skillGroups: [
+    {
+      category: "AI Systems",
+      skills: ["RAG Architecture", "Prompt Engineering", "OpenAI API", "Claude API", "Embeddings", "Vector DBs"],
+    },
+    {
+      category: "Data & Analytics",
+      skills: ["SQL", "Python", "Power BI", "Data Profiling", "ETL", "Root Cause Analysis"],
+    },
+    {
+      category: "Engineering",
+      skills: ["TypeScript", "React", "Node.js", "Express", "PostgreSQL", "REST APIs"],
+    },
+    {
+      category: "Operations",
+      skills: ["Workflow Design", "Process Improvement", "SOP Development", "Systems Thinking"],
+    },
   ],
 
   experience: [
@@ -80,52 +97,54 @@ const CALUM_RESUME: ResumeData = {
       position: "AI Systems Developer",
       company: "Independent Projects",
       period: "2025 - Present",
-      description:
-        "Building AI-powered tools and automation systems focused on decision support and operational efficiency.",
+      scope: "Building AI-powered tools focused on decision support and operational efficiency.",
       highlights: [
-        "JollyTails Staff Assistant: RAG-based knowledge system with OpenAI embeddings",
-        "Fit Check AI: Job evaluation system using Claude API",
-        "MCP server integrations for workflow automation",
-        "Full-stack TypeScript applications with React + Express",
+        "Built RAG-based knowledge system reducing procedure lookup time by ~70%",
+        "Developed job fit evaluation tool using Claude API for structured analysis",
+        "Implemented MCP server integrations for workflow automation",
+        "Shipped full-stack TypeScript applications with React + Express",
       ],
+      techStack: ["TypeScript", "React", "OpenAI", "Claude", "PostgreSQL", "pgvector"],
+      keyAchievement: "JollyTails Staff Assistant: 20+ SOPs → searchable AI knowledge base",
     },
     {
       position: "Operations Supervisor",
       company: "Jolly Tails Pet Resort • Halifax, NS",
       period: "2022 & Jan 2025 – Present",
-      description:
-        "Analyzed and optimized operational data processes for a high-capacity pet care facility, implementing quality controls and validation workflows.",
+      scope: "Analyzed and optimized operational data processes for high-capacity pet care facility.",
       highlights: [
         "Improved key operational KPIs by ~10% through data profiling and process optimization",
-        "Built cross-system validation workflows for data integrity",
+        "Built cross-system validation workflows ensuring data integrity",
         "Acted as technology liaison troubleshooting data inconsistencies",
-        "Developed SOPs and data-quality protocols",
+        "Developed SOPs and data-quality protocols adopted by team",
       ],
+      techStack: ["Excel", "Data Analysis", "Process Design"],
     },
     {
       position: "Data Analyst",
       company: "STFX Advancement Department",
       period: "Apr 2024 – Feb 2025",
-      description:
-        "Profiled donor datasets and built rule-driven dashboards to surface data-quality issues and improve reporting accuracy.",
+      scope: "Profiled donor datasets and built dashboards to surface data-quality issues.",
       highlights: [
         "Identified misclassifications and duplicate records across fragmented sources",
         "Implemented rule-based quality checks in Power BI dashboards",
         "Used SQL for data extraction, transformation, and validation",
-        "Performed root cause analysis and validation improvements",
+        "Performed root cause analysis improving reporting accuracy",
       ],
+      techStack: ["SQL", "Power BI", "Excel"],
+      keyAchievement: "Surfaced data quality issues impacting donor reporting accuracy",
     },
     {
       position: "Student Manager",
       company: "Kevin's Corner Food Bank • Antigonish, NS",
       period: "Sep 2023 – Dec 2024",
-      description:
-        "Owned systems and operations scaling for a campus food bank; implemented data controls and workflow improvements.",
+      scope: "Owned systems and operations scaling for campus food bank.",
       highlights: [
         "Implemented data quality controls supporting ~140 additional regular users",
         "Designed volunteer management workflows enabling ~300% increase in operational hours",
         "Analysis contributed to ~45% increase in food donations",
       ],
+      keyAchievement: "Scaled operations 300% through systematic workflow improvements",
     },
   ],
 
@@ -155,7 +174,7 @@ const CALUM_RESUME: ResumeData = {
         "AI-powered knowledge base using RAG with OpenAI embeddings, consolidating 20+ SOPs into a searchable system.",
     },
     {
-      name: "Fit Check AI",
+      name: "Evaluate AI",
       description:
         "Job fit evaluation system using Claude API to analyze role alignment and provide structured recommendations.",
     },
@@ -168,19 +187,89 @@ export default function Resume() {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto">
-        {/* Header - Full Width */}
+        {/* Header with Impact Summary */}
         <div className="bg-surface-paper rounded-3xl p-6 md:p-8 border border-surface-line shadow-sm mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
             <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold font-display text-brand-red">
-                {resume.personalInfo.name}
-              </h1>
-              <p className="text-xl text-brand-copper mt-1 font-medium">
-                {resume.personalInfo.title}
-              </p>
-              <p className="text-brand-brown mt-4 leading-relaxed max-w-2xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold font-display text-brand-red">
+                    {resume.personalInfo.name}
+                  </h1>
+                  <p className="text-xl text-brand-copper mt-1 font-medium">
+                    {resume.personalInfo.title}
+                  </p>
+                </div>
+                <a href="/Calum-Kershaw-Resume.pdf" download>
+                  <Button variant="outline" className="rounded-xl gap-2">
+                    <Download className="w-4 h-4" />
+                    Download PDF
+                  </Button>
+                </a>
+              </div>
+
+              <p className="text-brand-brown leading-relaxed max-w-2xl mb-6">
                 {resume.personalInfo.summary}
               </p>
+
+              {/* Impact Summary */}
+              <div className="bg-brand-stone/50 rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-brand-charcoal mb-3">Key Impact</h3>
+                <ul className="grid sm:grid-cols-2 gap-2">
+                  {resume.impactSummary.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-brand-brown">
+                      <CheckCircle2 className="w-4 h-4 text-brand-moss mt-0.5 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* AICred Demonstrated Expertise */}
+              <div className="bg-brand-stone/50 rounded-xl p-4 mt-4 border border-brand-copper/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-4 h-4 text-brand-copper" />
+                  <h3 className="text-sm font-semibold text-brand-charcoal">Demonstrated Expertise</h3>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-brand-red">#8</span>
+                    <span className="text-sm text-brand-brown">AICred Global Leaderboard</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-semibold text-brand-copper">9.2</span>
+                    <span className="text-sm text-brand-brown">/10 Skill Fluency</span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-brand-brown/80 mb-3">
+                  AICred is an adaptive learning platform that identifies specific gaps and builds personalized learning paths. My ranking demonstrates rapid skill-building in:
+                </p>
+
+                <ul className="grid sm:grid-cols-2 gap-1.5 mb-3">
+                  <li className="flex items-start gap-2 text-sm text-brand-brown/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
+                    RAG architecture and knowledge systems
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-brand-brown/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
+                    Prompt engineering for operational reliability
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-brand-brown/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
+                    AI workflow automation and tool integration
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-brand-brown/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
+                    Decision support system design
+                  </li>
+                </ul>
+
+                <p className="text-xs text-brand-brown/60 italic">
+                  This ranking reflects active learning velocity and systematic improvement in how I architect and deploy AI systems—the technical foundations I apply in every client engagement.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 text-sm text-brand-brown bg-brand-stone p-4 rounded-xl min-w-[240px]">
@@ -228,7 +317,7 @@ export default function Resume() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Skills, Education, Certifications */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Skills */}
+            {/* Grouped Skills */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -236,15 +325,22 @@ export default function Resume() {
                   Technical Skills
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {resume.skills.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant="secondary"
-                    className="px-2.5 py-1 text-xs font-normal rounded-lg"
-                  >
-                    {skill}
-                  </Badge>
+              <CardContent className="space-y-4">
+                {resume.skillGroups.map((group) => (
+                  <div key={group.category}>
+                    <p className="text-xs font-medium text-brand-copper mb-2">{group.category}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.skills.map((skill) => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="px-2 py-0.5 text-xs font-normal rounded-md"
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </CardContent>
             </Card>
@@ -333,11 +429,14 @@ export default function Resume() {
                     </div>
                   </CardHeader>
                   <CardContent>
+                    {/* One-line scope */}
                     <p className="text-surface-line text-sm mb-3">
-                      {exp.description}
+                      {exp.scope}
                     </p>
+
+                    {/* Impact bullets */}
                     {exp.highlights && exp.highlights.length > 0 && (
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-1.5 mb-3">
                         {exp.highlights.map((highlight, j) => (
                           <li key={j} className="text-sm flex items-start gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-2 shrink-0" />
@@ -345,6 +444,29 @@ export default function Resume() {
                           </li>
                         ))}
                       </ul>
+                    )}
+
+                    {/* Tech stack */}
+                    {exp.techStack && exp.techStack.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {exp.techStack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="px-2 py-0.5 text-xs bg-brand-stone rounded text-brand-brown"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Key achievement callout */}
+                    {exp.keyAchievement && (
+                      <div className="bg-brand-moss/10 border border-brand-moss/20 rounded-lg p-3 mt-3">
+                        <p className="text-xs font-medium text-brand-moss">
+                          Key Achievement: {exp.keyAchievement}
+                        </p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>

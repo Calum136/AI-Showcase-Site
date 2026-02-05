@@ -7,12 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MessageSquare,
-  User,
   ArrowRight,
-  Target,
-  Clock,
-  Zap,
   Loader2,
   Send,
   FileText,
@@ -24,12 +19,14 @@ import {
   Tag,
   Briefcase,
 } from "lucide-react";
-import { ContactDialog } from "@/components/ContactDialog";
 import type { FitAssessmentOutput } from "@shared/fitAssessmentSchema";
 
 const MAX_CHARS = 10000;
 
-const SAMPLE_INPUT = `Senior Operations Manager - Tech Startup
+const EXAMPLE_JDS = {
+  operations: {
+    label: "Ops Manager",
+    content: `Senior Operations Manager - Tech Startup
 
 About the Role:
 We're looking for a Senior Operations Manager to build and scale our operational infrastructure. You'll own process design, automation initiatives, and cross-functional workflows.
@@ -51,7 +48,59 @@ Requirements:
 Nice to Have:
 - SQL or Python skills
 - Experience with AI/automation tools
-- Background in scaling operations from scratch`;
+- Background in scaling operations from scratch`,
+  },
+  dataAnalyst: {
+    label: "Data Analyst",
+    content: `Data Analyst - Business Intelligence
+
+We're seeking a Data Analyst to transform raw data into actionable insights that drive business decisions.
+
+Responsibilities:
+- Build and maintain dashboards and reports using Power BI/Tableau
+- Write SQL queries to extract, transform, and analyze data
+- Partner with stakeholders to define KPIs and success metrics
+- Perform ad-hoc analysis to answer business questions
+- Document data sources and maintain data dictionary
+
+Requirements:
+- 2-4 years experience in data analysis or BI role
+- Proficient in SQL and at least one BI tool
+- Strong Excel/Google Sheets skills
+- Experience with data quality and validation
+- Clear communication of technical concepts to non-technical audiences
+
+Nice to Have:
+- Python or R for analysis
+- Experience with data warehousing
+- Understanding of statistical methods`,
+  },
+  aiSystems: {
+    label: "AI Systems",
+    content: `AI Systems Engineer
+
+Join our team building AI-powered products that solve real business problems.
+
+Responsibilities:
+- Design and implement RAG systems and AI workflows
+- Build integrations with LLM APIs (OpenAI, Anthropic)
+- Develop evaluation frameworks for AI system quality
+- Create documentation and training for AI features
+- Collaborate with product to translate requirements into technical solutions
+
+Requirements:
+- Experience building production AI/ML systems
+- Proficiency in Python or TypeScript
+- Understanding of LLM capabilities and limitations
+- Experience with vector databases and embeddings
+- Strong problem-solving and debugging skills
+
+Nice to Have:
+- Experience with prompt engineering
+- Knowledge of RAG architectures
+- Background in full-stack development`,
+  },
+};
 
 type AssessmentState =
   | { status: "idle" }
@@ -59,9 +108,12 @@ type AssessmentState =
   | { status: "success"; data: FitAssessmentOutput }
   | { status: "error"; message: string };
 
+type ExampleKey = keyof typeof EXAMPLE_JDS;
+
 export default function FitLanding() {
   const [inputText, setInputText] = useState("");
   const [state, setState] = useState<AssessmentState>({ status: "idle" });
+  const [activeExample, setActiveExample] = useState<ExampleKey | null>(null);
 
   const charCount = inputText.length;
   const isOverLimit = charCount > MAX_CHARS;
@@ -99,50 +151,51 @@ export default function FitLanding() {
     }
   };
 
-  const handleLoadSample = () => {
-    setInputText(SAMPLE_INPUT);
+  const handleLoadExample = (key: ExampleKey) => {
+    setInputText(EXAMPLE_JDS[key].content);
+    setActiveExample(key);
     setState({ status: "idle" });
   };
 
   const handleReset = () => {
     setInputText("");
+    setActiveExample(null);
     setState({ status: "idle" });
   };
 
   return (
     <Layout>
-      <div className="space-y-8">
-        {/* Compact Hero */}
+      <div className="space-y-6">
+        {/* Hero */}
         <div className="text-center space-y-3">
           <motion.h1
-            className="text-3xl md:text-4xl font-bold tracking-tight text-brand-red"
+            className="text-3xl md:text-4xl font-bold tracking-tight text-brand-red leading-tight"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Test the Fit. See the Analysis.
+            Don't hire blindly.<br />
+            Test the role.<br />
+            Reveal the systems.
           </motion.h1>
 
           <motion.p
-            className="text-lg text-brand-brown max-w-2xl mx-auto"
+            className="text-sm text-brand-brown/70 max-w-xl mx-auto"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Paste a job description. Get a structured breakdown of alignment,
-            gaps, and next steps.
+            Paste a job description or try an example to see how I analyze role fit.
           </motion.p>
         </div>
 
-        {/* 3:1 Grid Layout */}
+        {/* Main Content */}
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-4 gap-8"
+          className="max-w-3xl mx-auto space-y-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
         >
-          {/* LEFT COLUMN - Assessment (3 cols) */}
-          <div className="lg:col-span-3 space-y-6">
             {/* Input Card */}
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-3">
@@ -152,12 +205,32 @@ export default function FitLanding() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Example Tabs */}
+                <div className="flex flex-wrap gap-2 pb-2 border-b border-surface-line/30">
+                  <span className="text-xs text-brand-brown/60 self-center mr-1">Try example:</span>
+                  {(Object.keys(EXAMPLE_JDS) as ExampleKey[]).map((key) => (
+                    <button
+                      key={key}
+                      onClick={() => handleLoadExample(key)}
+                      disabled={state.status === "loading"}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        activeExample === key
+                          ? "bg-brand-copper text-surface-paper"
+                          : "bg-brand-stone text-brand-brown hover:bg-brand-stone/80"
+                      }`}
+                    >
+                      {EXAMPLE_JDS[key].label}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="relative">
                   <Textarea
                     placeholder="Paste the job description, role requirements, or workflow description here..."
                     value={inputText}
                     onChange={(e) => {
                       setInputText(e.target.value);
+                      setActiveExample(null);
                       if (state.status === "error") setState({ status: "idle" });
                     }}
                     className="min-h-[160px] resize-y rounded-xl border-surface-line bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper"
@@ -191,22 +264,13 @@ export default function FitLanding() {
                     )}
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    onClick={handleLoadSample}
-                    disabled={state.status === "loading"}
-                    className="h-11 px-5 rounded-xl"
-                  >
-                    Load Sample
-                  </Button>
-
-                  {state.status === "success" && (
+                  {(state.status === "success" || inputText.length > 0) && (
                     <Button
                       variant="ghost"
                       onClick={handleReset}
                       className="h-11 px-5 rounded-xl"
                     >
-                      Start Over
+                      Clear
                     </Button>
                   )}
                 </div>
@@ -267,111 +331,6 @@ export default function FitLanding() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-
-          {/* RIGHT COLUMN - Sidebar (1 col) */}
-          <div className="space-y-5">
-            {/* Guided Chat Card */}
-            <Card className="group rounded-2xl shadow-sm hover:shadow-md transition-all">
-              <Link href="/fit/chat">
-                <CardContent className="p-5 space-y-4">
-                  <div className="h-10 w-10 rounded-lg bg-brand-copper/10 flex items-center justify-center group-hover:bg-brand-copper/20 transition-colors">
-                    <MessageSquare className="h-5 w-5 text-brand-copper" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-brand-charcoal">
-                      Guided Conversation
-                    </h3>
-                    <p className="text-sm text-brand-brown/80 leading-relaxed">
-                      8-12 questions to surface bottlenecks and improvement
-                      opportunities.
-                    </p>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl h-10 text-sm font-medium group-hover:border-brand-copper transition-colors"
-                  >
-                    Start Chat
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Link>
-            </Card>
-
-            {/* Contact Card */}
-            <Card className="group rounded-2xl shadow-sm hover:shadow-md transition-all">
-              <CardContent className="p-5 space-y-4">
-                <div className="h-10 w-10 rounded-lg bg-brand-moss/10 flex items-center justify-center group-hover:bg-brand-moss/20 transition-colors">
-                  <User className="h-5 w-5 text-brand-moss" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-brand-charcoal">
-                    Connect with Calum
-                  </h3>
-                  <p className="text-sm text-brand-brown/80 leading-relaxed">
-                    Reach out via email, phone, or LinkedIn.
-                  </p>
-                </div>
-
-                <ContactDialog
-                  triggerClassName="w-full rounded-xl h-10 text-sm font-medium border border-surface-line bg-transparent hover:border-brand-copper transition-all inline-flex items-center justify-center"
-                  triggerLabel="View Contact Info"
-                />
-              </CardContent>
-            </Card>
-
-            {/* What to Expect - Compact */}
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-brand-charcoal mb-4">
-                  What to Expect
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-4 w-4 text-brand-copper mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-brand-charcoal">
-                        Quick Analysis
-                      </p>
-                      <p className="text-xs text-brand-brown/70">
-                        Results in seconds
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Target className="h-4 w-4 text-brand-copper mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-brand-charcoal">
-                        Systems Focus
-                      </p>
-                      <p className="text-xs text-brand-brown/70">
-                        Bottlenecks, not symptoms
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Zap className="h-4 w-4 text-brand-copper mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-brand-charcoal">
-                        Actionable Output
-                      </p>
-                      <p className="text-xs text-brand-brown/70">
-                        Gaps, risks, next steps
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Privacy Note */}
-            <p className="text-xs text-surface-line text-center px-2">
-              Nothing stored. Session data discarded after use.
-            </p>
-          </div>
         </motion.div>
       </div>
     </Layout>
@@ -405,6 +364,8 @@ function LoadingSkeleton() {
 }
 
 function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
+  const fitLevel = data.fitScore >= 70 ? "High" : data.fitScore >= 50 ? "Medium" : "Low";
+
   const scoreColor =
     data.fitScore >= 70
       ? "text-brand-moss"
@@ -419,6 +380,13 @@ function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
         ? "bg-brand-copper/10 border-brand-copper/30"
         : "bg-brand-red/10 border-brand-red/30";
 
+  const fitBadgeColor =
+    data.fitScore >= 70
+      ? "bg-brand-moss text-surface-paper"
+      : data.fitScore >= 50
+        ? "bg-brand-copper text-surface-paper"
+        : "bg-brand-red text-surface-paper";
+
   return (
     <>
       {/* Summary + Score */}
@@ -429,18 +397,53 @@ function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
             <div
               className={`flex-shrink-0 flex flex-col items-center justify-center p-5 rounded-2xl border ${scoreBgColor}`}
             >
+              <span className={`px-3 py-1 text-xs font-bold rounded-full mb-2 ${fitBadgeColor}`}>
+                {fitLevel} Fit
+              </span>
               <span className={`text-4xl font-bold ${scoreColor}`}>
                 {data.fitScore}
               </span>
-              <span className="text-sm text-brand-brown mt-1">Fit Score</span>
+              <span className="text-xs text-brand-brown/70 mt-1">out of 100</span>
             </div>
 
             {/* Summary */}
-            <div className="flex-1">
-              <h3 className="font-semibold text-brand-charcoal mb-2">Summary</h3>
-              <p className="text-brand-brown leading-relaxed text-sm">
-                {data.summary}
-              </p>
+            <div className="flex-1 space-y-4">
+              <div>
+                <h3 className="font-semibold text-brand-charcoal mb-2">Summary</h3>
+                <p className="text-brand-brown leading-relaxed text-sm">
+                  {data.summary}
+                </p>
+              </div>
+
+              {/* Why Hire - Top 3 strengths */}
+              {data.strengths.length > 0 && (
+                <div className="bg-brand-moss/5 border border-brand-moss/20 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold text-brand-moss mb-2">Why Consider Hiring</h4>
+                  <ul className="space-y-1">
+                    {data.strengths.slice(0, 3).map((s, i) => (
+                      <li key={i} className="text-xs text-brand-brown flex items-start gap-2">
+                        <CheckCircle2 className="w-3 h-3 text-brand-moss mt-0.5 shrink-0" />
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Honest Risk Flags */}
+              {data.risks.length > 0 && (
+                <div className="bg-brand-red/5 border border-brand-red/20 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold text-brand-red mb-2">Honest Risk Flags</h4>
+                  <ul className="space-y-1">
+                    {data.risks.slice(0, 3).map((r, i) => (
+                      <li key={i} className="text-xs text-brand-brown flex items-start gap-2">
+                        <AlertCircle className="w-3 h-3 text-brand-red mt-0.5 shrink-0" />
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

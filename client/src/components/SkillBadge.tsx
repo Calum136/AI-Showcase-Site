@@ -50,6 +50,10 @@ export function SkillBadge({
         alt={name}
         className="w-14 h-14 object-contain opacity-95"
         draggable={false}
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+        }}
       />
     </motion.div>
   );
@@ -103,6 +107,10 @@ export function SkillBadge({
                 alt={name}
                 className="w-12 h-12 object-contain opacity-95"
                 draggable={false}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
 

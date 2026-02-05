@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import {
@@ -17,8 +18,10 @@ import {
   BookOpen,
   GitBranch,
   ExternalLink,
+  Shield,
 } from "lucide-react";
 import { Link } from "wouter";
+import { ContactDialog } from "@/components/ContactDialog";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -60,10 +63,57 @@ export default function CaseStudy() {
           </div>
         </motion.div>
 
-        {/* Table of Contents */}
+        {/* Executive Summary */}
         <motion.div
           {...fadeIn}
           transition={{ delay: 0.1 }}
+          className="bg-surface-paper rounded-2xl p-6 md:p-8 border border-surface-line/50 shadow-sm"
+        >
+          <h3 className="font-semibold mb-4 text-brand-charcoal text-lg">Executive Summary</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Problem</span>
+                <p className="text-sm text-brand-brown/80 mt-1">
+                  20+ SOPs scattered across formats; staff couldn't find answers when needed.
+                </p>
+              </div>
+              <div>
+                <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Stakes</span>
+                <p className="text-sm text-brand-brown/80 mt-1">
+                  2-3 week onboarding, inconsistent service, senior staff constantly interrupted.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Solution</span>
+                <p className="text-sm text-brand-brown/80 mt-1">
+                  RAG-based AI assistant that provides instant, contextual answers from consolidated docs.
+                </p>
+              </div>
+              <div>
+                <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Outcome</span>
+                <p className="text-sm text-brand-brown/80 mt-1">
+                  ~70% faster lookup, sub-second responses, $15-20/month operational cost.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="text-xs font-medium text-brand-brown/60">Stack:</span>
+                {["TypeScript", "React", "OpenAI", "pgvector"].map((t) => (
+                  <span key={t} className="px-2 py-0.5 text-xs bg-brand-stone rounded text-brand-brown">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Table of Contents */}
+        <motion.div
+          {...fadeIn}
+          transition={{ delay: 0.15 }}
           className="bg-brand-stone/50 rounded-2xl p-6 border border-surface-line/50"
         >
           <h3 className="font-semibold mb-3 flex items-center gap-2 text-brand-charcoal">
@@ -405,6 +455,64 @@ export default function CaseStudy() {
           </div>
         </motion.section>
 
+        {/* Constraints & Tradeoffs - Senior Signal */}
+        <motion.section
+          {...fadeIn}
+          transition={{ delay: 0.55 }}
+          className="space-y-6"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-charcoal/10 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-brand-charcoal" />
+            </div>
+            <h2 className="text-2xl font-bold text-brand-charcoal">Constraints & Tradeoffs</h2>
+          </div>
+
+          <Card className="border-surface-line/50">
+            <CardContent className="pt-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-brand-charcoal mb-3">Accuracy Concerns</h4>
+                  <p className="text-sm text-brand-brown/80 mb-3">
+                    LLMs can hallucinate. For operational procedures, wrong answers could cause real problems.
+                  </p>
+                  <p className="text-sm text-brand-brown/80">
+                    <strong className="text-brand-charcoal">Mitigation:</strong> Source citations on every answer,
+                    confidence thresholds, and clear "I don't know" responses when retrieval scores are low.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-brand-charcoal mb-3">Evaluation Approach</h4>
+                  <p className="text-sm text-brand-brown/80 mb-3">
+                    Tested with 50 real questions from staff. Measured retrieval accuracy (correct docs found)
+                    and answer quality (human rating 1-5).
+                  </p>
+                  <p className="text-sm text-brand-brown/80">
+                    <strong className="text-brand-charcoal">Result:</strong> 92% retrieval accuracy, 4.2/5 average
+                    answer quality before launch.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-brand-charcoal mb-3">Maintenance Plan</h4>
+                  <p className="text-sm text-brand-brown/80">
+                    Documents change. Built simple re-indexing pipeline triggered by file updates.
+                    New SOPs can be added without touching code. Usage analytics flag frequently-asked
+                    questions with low confidence for manual review.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-brand-charcoal mb-3">Cost Control</h4>
+                  <p className="text-sm text-brand-brown/80">
+                    Pro-bono project with real ongoing costs. Chose embedding model (ada-002) and LLM
+                    (GPT-3.5-turbo for most queries, GPT-4 fallback) to keep monthly costs under $20
+                    for expected usage.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.section>
+
         {/* Results */}
         <motion.section
           {...fadeIn}
@@ -567,29 +675,46 @@ export default function CaseStudy() {
           </div>
         </motion.section>
 
-        {/* CTA */}
+        {/* Closing CTA */}
         <motion.div
           {...fadeIn}
           transition={{ delay: 0.9 }}
-          className="bg-brand-stone/50 rounded-2xl p-8 text-center space-y-4 border border-surface-line/50"
+          className="bg-surface-paper rounded-2xl p-8 md:p-10 text-center space-y-6 border border-surface-line/50 shadow-sm"
         >
-          <h3 className="text-xl font-bold text-brand-charcoal">Interested in Similar Solutions?</h3>
-          <p className="text-brand-brown/80 max-w-lg mx-auto">
+          <h3 className="text-2xl md:text-3xl font-bold text-brand-charcoal">
+            Want to discuss a similar challenge?
+          </h3>
+          <p className="text-brand-brown/80 max-w-xl mx-auto">
             I build AI systems that solve real operational problems. Whether it's
-            knowledge management, process automation, or decision support — let's talk.
+            knowledge management, process automation, or decision support — let's talk
+            about what you're trying to solve.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/fit">
-              <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-copper text-surface-paper rounded-xl font-medium hover:bg-brand-copper/90 transition-colors cursor-pointer">
-                Check Fit for Your Role
-                <ArrowRight className="w-4 h-4" />
-              </span>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <ContactDialog>
+              <Button
+                size="lg"
+                className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper"
+              >
+                Contact Me <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </ContactDialog>
+            <Link href="/resume">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-xl border-2 hover:border-brand-copper"
+              >
+                View Resume
+              </Button>
             </Link>
-            <Link href="/portfolio">
-              <span className="inline-flex items-center gap-2 px-6 py-3 border border-surface-line text-brand-brown rounded-xl font-medium hover:bg-brand-stone transition-colors cursor-pointer">
-                View More Projects
-                <ExternalLink className="w-4 h-4" />
-              </span>
+            <Link href="/fit">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="rounded-xl text-brand-copper hover:text-brand-copper/80 hover:bg-brand-copper/5"
+              >
+                Try Evaluate Tool <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </Link>
           </div>
         </motion.div>
