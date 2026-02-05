@@ -7,7 +7,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-surface-ink text-brand-stone py-12 mt-20">
+    <footer className="bg-surface-ink text-brand-stone py-10 mt-12">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* CTA Section */}
         <div className="text-center pb-10 mb-10 border-b border-white/10">

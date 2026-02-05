@@ -18,7 +18,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            AI systems that turn messy operations into reliable execution.
+            I Build AI systems that transform your operations.
           </motion.h1>
 
           <motion.p
@@ -27,8 +27,8 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            I build decision support tools, knowledge systems, and automation workflows
-            that reduce manual load and improve operational clarity.
+            By building decision support tools, knowledge systems, and automation workflows
+            I reduce your manual work load and improve operational clarity.
           </motion.p>
 
           {/* Proof Panel */}
