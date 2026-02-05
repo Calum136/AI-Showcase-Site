@@ -9,9 +9,9 @@ import { FeaturedCaseStudy } from "@/components/FeaturedCaseStudy";
 export default function Home() {
   return (
     <Layout>
-      <div className="space-y-8 md:space-y-16">
+      <div className="space-y-6 md:space-y-10">
         {/* Hero - Outcome-focused */}
-        <div className="max-w-3xl mx-auto text-center py-8 md:py-12 space-y-6">
+        <div className="max-w-3xl mx-auto text-center py-4 md:py-6 space-y-5">
           <motion.h1
             className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-brand-red"
             initial={{ opacity: 0, y: 16 }}
