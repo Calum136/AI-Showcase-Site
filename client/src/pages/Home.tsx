@@ -18,7 +18,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            I Build AI systems that transform your operations.
+            AI Systems that transform operations.
           </motion.h1>
 
           <motion.p
