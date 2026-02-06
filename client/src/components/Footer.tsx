@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Mail, Phone, Linkedin, Github, ArrowRight } from "lucide-react";
+import { Mail, Phone, Linkedin, Github, ArrowRight, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactDialog } from "@/components/ContactDialog";
 
@@ -107,6 +107,15 @@ export function Footer() {
               >
                 <Github className="w-4 h-4" />
                 GitHub
+              </a>
+              <a
+                href="https://www.aicred.ai/profile/Calum136"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-brand-copper hover:translate-x-1 transition-all duration-200 flex items-center gap-2"
+              >
+                <Award className="w-4 h-4" />
+                AICred
               </a>
             </div>
           </div>

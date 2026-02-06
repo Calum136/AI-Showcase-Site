@@ -72,6 +72,23 @@ export default function About() {
               St. Francis Xavier, combining my systems thinking with formal technical training.
               Now I focus on building AI tools that create measurable operational improvements.
             </p>
+            <p>
+              My commitment to continuous learning is reflected in my{" "}
+              <a
+                href="https://www.aicred.ai/profile/Calum136"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-copper hover:underline"
+              >
+                AICred ranking
+              </a>
+              —currently <strong className="text-brand-copper">#8 globally</strong> with a{" "}
+              <strong className="text-brand-copper">9.2/10 skill fluency</strong> score.
+              AICred is an adaptive learning platform that identifies gaps and builds
+              personalized learning paths. This ranking demonstrates active learning
+              velocity in RAG architecture, prompt engineering, workflow automation,
+              and decision support system design.
+            </p>
           </div>
         </motion.section>
 

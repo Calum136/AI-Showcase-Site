@@ -2,6 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "wouter";
 import {
   Briefcase,
   GraduationCap,
@@ -14,6 +15,7 @@ import {
   Download,
   CheckCircle2,
   TrendingUp,
+  BookOpen,
 } from "lucide-react";
 
 type ResumeData = {
@@ -200,12 +202,20 @@ export default function Resume() {
                     {resume.personalInfo.title}
                   </p>
                 </div>
-                <a href="/Calum-Kershaw-Resume.pdf" download>
-                  <Button variant="outline" className="rounded-xl gap-2">
-                    <Download className="w-4 h-4" />
-                    Download PDF
-                  </Button>
-                </a>
+                <div className="flex gap-2">
+                  <Link href="/case-study">
+                    <Button className="rounded-xl gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      View Case Study
+                    </Button>
+                  </Link>
+                  <a href="/Calum-Kershaw-Resume.pdf" download>
+                    <Button variant="outline" className="rounded-xl gap-2">
+                      <Download className="w-4 h-4" />
+                      Download PDF
+                    </Button>
+                  </a>
+                </div>
               </div>
 
               <p className="text-brand-brown leading-relaxed max-w-2xl mb-6">

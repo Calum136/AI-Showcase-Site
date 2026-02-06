@@ -63,13 +63,13 @@ export function Navigation() {
 
         {/* Desktop CTA Buttons */}
         <div className="hidden md:flex items-center gap-3 ml-4">
-          <Link href="/case-study">
+          <Link href="/fit">
             <Button
               variant="outline"
               size="sm"
               className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10 hover:border-surface-paper/50"
             >
-              View Case Study
+              Use Evaluation Tool
             </Button>
           </Link>
           <ContactDialog>
