@@ -79,17 +79,14 @@ export function SkillBadge({
       )}
 
       {/* Pop-out (centered above badges in page) */}
-      <motion.div
-        className="fixed z-50 pointer-events-none left-1/2"
-        style={{
-          top: "180px",
-          transform: "translateX(-50%)",
-        }}
-        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-        animate={isHovered ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 10 }}
-        transition={{ duration: 0.15 }}
+      <div
+        className="fixed z-50 pointer-events-none inset-x-0 flex justify-center"
+        style={{ top: "180px" }}
       >
-        <div
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
+          animate={isHovered ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 10 }}
+          transition={{ duration: 0.15 }}
           className={[
             "bg-surface-ink",
             "border border-surface-line/40",
@@ -125,8 +122,8 @@ export function SkillBadge({
           </div>
 
           <div className="mt-6 h-px w-full bg-brand-copper/25" />
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
