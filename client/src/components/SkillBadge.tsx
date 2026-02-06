@@ -78,17 +78,16 @@ export function SkillBadge({
         Tile
       )}
 
-      {/* Pop-out (large, solid, readable) */}
+      {/* Pop-out (centered above badges in page) */}
       <motion.div
-        className="absolute z-50 pointer-events-none"
+        className="fixed z-50 pointer-events-none left-1/2"
         style={{
-          right: "calc(100% + 14px)",
-          top: "50%",
-          transform: "translateY(-50%)",
+          top: "180px",
+          transform: "translateX(-50%)",
         }}
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={isHovered ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.12 }}
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={isHovered ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 10 }}
+        transition={{ duration: 0.15 }}
       >
         <div
           className={[
@@ -97,6 +96,7 @@ export function SkillBadge({
             "rounded-2xl",
             "p-7",
             "w-[720px]",
+            "max-w-[90vw]",
             "shadow-[0_22px_60px_rgba(15,23,42,0.55)]",
           ].join(" ")}
         >
