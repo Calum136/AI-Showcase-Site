@@ -33,7 +33,7 @@ export function WhatIBuild() {
         className="text-center mb-10"
       >
         <h2 className="text-3xl md:text-4xl font-bold text-brand-charcoal mb-3">
-          What Calum Has Built
+          Proven Systems in Practice
         </h2>
         <p className="text-brand-brown/80 max-w-2xl mx-auto">
           Systems that solve real operational problems through strategic AI implementation.
