@@ -567,7 +567,7 @@ export default function CaseStudy() {
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <blockquote className="border-l-2 border-brand-copper pl-3 italic text-brand-brown/80">
-                    "I can actually find what I need now without bothering Sarah."
+                    "I can actually find what I need now without bothering management."
                     <span className="block mt-1 text-xs not-italic text-brand-brown/60">— New Hire</span>
                   </blockquote>
                   <blockquote className="border-l-2 border-brand-copper pl-3 italic text-brand-brown/80">

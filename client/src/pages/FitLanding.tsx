@@ -18,6 +18,10 @@ import {
   Lightbulb,
   Tag,
   Briefcase,
+  Shield,
+  Sparkles,
+  ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import type { FitAssessmentOutput } from "@shared/fitAssessmentSchema";
 
@@ -187,7 +191,37 @@ export default function FitLanding() {
           >
             Paste a job description or try an example to see how I analyze role fit.
           </motion.p>
+
+          {/* Trust Badge */}
+          <motion.div
+            className="flex items-center justify-center gap-2 text-xs text-brand-brown/60"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Sparkles className="w-3 h-3 text-brand-copper" />
+            <span>Powered by Claude AI</span>
+            <span className="text-surface-line">•</span>
+            <span>Built by Calum Kershaw</span>
+          </motion.div>
         </div>
+
+        {/* Video/Image Placeholder - for future use */}
+        {/*
+        <motion.div
+          className="max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+        >
+          <div className="aspect-video bg-brand-stone/50 rounded-2xl border-2 border-dashed border-surface-line flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <Play className="w-12 h-12 text-brand-copper/50 mx-auto" />
+              <p className="text-sm text-brand-brown/50">Demo video coming soon</p>
+            </div>
+          </div>
+        </motion.div>
+        */}
 
         {/* Main Content */}
         <motion.div
@@ -328,12 +362,114 @@ export default function FitLanding() {
                   className="space-y-6"
                 >
                   <AssessmentResults data={state.data} />
+
+                  {/* Post-Results CTA */}
+                  <Card className="rounded-2xl bg-surface-ink border-surface-line/30">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <h3 className="text-lg font-semibold text-surface-paper">
+                        Like this analysis?
+                      </h3>
+                      <p className="text-sm text-surface-paper/70 max-w-md mx-auto">
+                        I build custom evaluation tools and AI systems for organizations.
+                        This same structured approach helped JollyTails reduce procedure lookup time by ~70%.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Link href="/case-study">
+                          <Button
+                            variant="outline"
+                            className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10"
+                          >
+                            See the Case Study
+                          </Button>
+                        </Link>
+                        <Link href="/about">
+                          <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper">
+                            Learn About My Approach <ArrowRight className="ml-2 w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* How It Works - Expandable */}
+            <MethodologySection />
         </motion.div>
       </div>
     </Layout>
+  );
+}
+
+function MethodologySection() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Card className="rounded-2xl border-surface-line/50">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-5 flex items-center justify-between text-left hover:bg-brand-stone/30 transition-colors rounded-2xl"
+      >
+        <div className="flex items-center gap-3">
+          <Shield className="w-5 h-5 text-brand-copper" />
+          <span className="font-medium text-brand-charcoal">How does this evaluation work?</span>
+        </div>
+        <ChevronDown className={`w-5 h-5 text-brand-brown/50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <CardContent className="pt-0 pb-5 px-5 space-y-4">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-brand-copper/10 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-brand-copper" />
+                  </div>
+                  <h4 className="font-medium text-sm text-brand-charcoal">1. Parse & Extract</h4>
+                  <p className="text-xs text-brand-brown/70">
+                    Claude AI extracts key signals: seniority level, required skills, domain, and core responsibilities.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-brand-copper/10 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-brand-copper" />
+                  </div>
+                  <h4 className="font-medium text-sm text-brand-charcoal">2. Match & Score</h4>
+                  <p className="text-xs text-brand-brown/70">
+                    Compares against my documented experience, skills, and project outcomes to calculate fit score.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-brand-copper/10 flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-brand-copper" />
+                  </div>
+                  <h4 className="font-medium text-sm text-brand-charcoal">3. Honest Assessment</h4>
+                  <p className="text-xs text-brand-brown/70">
+                    Returns strengths, gaps, and risks with transparency. No inflated scores—honest fit evaluation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-brand-stone/50 rounded-xl p-4 mt-4">
+                <p className="text-xs text-brand-brown/80">
+                  <strong className="text-brand-charcoal">Why build this?</strong> Most job applications are a black box.
+                  This tool demonstrates structured AI analysis while giving you real insight into role alignment.
+                  It's the same systematic approach I apply when building decision support tools for organizations.
+                </p>
+              </div>
+            </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
   );
 }
 

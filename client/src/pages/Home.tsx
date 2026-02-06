@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Quote } from "lucide-react";
 import { WhatIBuild } from "@/components/WhatIBuild";
 import { FeaturedCaseStudy } from "@/components/FeaturedCaseStudy";
 
@@ -34,6 +34,26 @@ export default function Home() {
 
         {/* What I Build Section - moved up */}
         <WhatIBuild />
+
+        {/* Micro-testimonial */}
+        <motion.div
+          className="max-w-xl mx-auto"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <div className="bg-brand-stone/50 rounded-xl p-4 flex items-start gap-3">
+            <Quote className="w-5 h-5 text-brand-copper shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-brand-brown/80 italic">
+                "I can actually find what I need now without bothering management."
+              </p>
+              <p className="text-xs text-brand-brown/60 mt-1">
+                — Staff feedback after JollyTails AI system launch
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
         {/* CTAs */}
         <motion.div

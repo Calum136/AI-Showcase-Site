@@ -1,7 +1,8 @@
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Mail, Linkedin, Github, Lightbulb, Target, Workflow } from "lucide-react";
+import { ArrowRight, Mail, Linkedin, Github, Lightbulb, Target, Workflow, BookOpen } from "lucide-react";
+import { Link } from "wouter";
 import { ContactDialog } from "@/components/ContactDialog";
 
 export default function About() {
@@ -46,7 +47,7 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <h2 className="text-2xl font-bold text-brand-charcoal mb-6">
-            How I Got Here
+            How did I become an AI developer?
           </h2>
           <div className="space-y-4 text-brand-brown/80 leading-relaxed">
             <p>
@@ -99,7 +100,7 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <h2 className="text-2xl font-bold text-brand-charcoal mb-6">
-            How I Think About Building
+            What's my approach to building AI systems?
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-surface-paper rounded-xl p-6 border border-surface-line">
@@ -154,7 +155,7 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <h2 className="text-2xl font-bold text-brand-charcoal mb-4">
-            What I'm Looking For
+            What kind of work energizes me?
           </h2>
           <p className="text-brand-brown/80 leading-relaxed mb-4">
             I'm most energized by roles where I can build AI systems that solve real
@@ -193,6 +194,16 @@ export default function About() {
                 Get In Touch <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </ContactDialog>
+            <Link href="/case-study">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10"
+              >
+                <BookOpen className="mr-2 w-4 h-4" />
+                See My Work
+              </Button>
+            </Link>
           </div>
 
           {/* Social Links */}
