@@ -1,13 +1,31 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { z } from "zod";
 
-// Shared session storage (persisted across function invocations via external store would be better)
-// For MVP, we'll use a simple approach
-const fitMessageSchema = z.object({
-  sessionId: z.string().min(1),
-  message: z.string().min(1).max(20_000),
+// ---------------------
+// Schemas
+// ---------------------
+const messageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
 });
 
+const fitChatSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("start"),
+    jdText: z.string().max(50_000).optional().default(""),
+  }),
+  z.object({
+    action: z.literal("message"),
+    userMessage: z.string().min(1).max(20_000),
+    jdText: z.string().max(50_000).optional().default(""),
+    messages: z.array(messageSchema).max(30),
+    userTurns: z.number().int().min(0).max(30),
+  }),
+]);
+
+// ---------------------
+// System Prompt
+// ---------------------
 const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to conduct a calm, systems-focused conversation that reveals operational bottlenecks in the user's organization.
 
 **Your Persona:**
@@ -58,6 +76,12 @@ Experience: AI Systems Developer, Operations Supervisor, Data Analyst
 Strengths: Systems thinking, AI integration, data quality, quick learning
 `;
 
+const DEFAULT_OPENING =
+  "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
+
+// ---------------------
+// Fallback Questions
+// ---------------------
 const FALLBACK_QUESTIONS = {
   stage1: [
     "That's interesting context. When that tension comes up, does it feel more like a communication gap or a structural one?",
@@ -76,23 +100,26 @@ const FALLBACK_QUESTIONS = {
   ],
 };
 
-async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<string> {
+// ---------------------
+// OpenAI Helpers
+// ---------------------
+async function callOpenAI(
+  messages: Array<{ role: string; content: string }>,
+  temperature = 0.3,
+): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.3,
+      messages,
+      temperature,
     }),
   });
 
@@ -101,47 +128,119 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<str
   return data?.choices?.[0]?.message?.content?.trim() || "";
 }
 
-async function generateNextQuestion(jdText: string, messages: any[], stage: number, userTurns: number): Promise<string> {
-  const conversation = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+// ---------------------
+// Stage Logic
+// ---------------------
+function computeStage(userTurns: number): 1 | 2 | 3 {
+  if (userTurns >= 8) return 3;
+  if (userTurns >= 4) return 2;
+  return 1;
+}
 
-  const stageGuidance = stage === 1
-    ? "You are in Stage 1 (Energy Mapping). Focus on understanding what's consuming their capacity, where friction lives, and what patterns they're seeing."
-    : stage === 2
-    ? "You are in Stage 2 (Bottleneck Diagnosis). Focus on impact of bottlenecks, workaround behaviors, and whether information flows properly."
-    : "You are in Stage 3 (Improvement & Ownership). Focus on where leverage lives, who owns improvement, and whether teams have capacity to change.";
+function getFallbackQuestion(stage: number, userTurns: number): string {
+  const questions =
+    stage === 1
+      ? FALLBACK_QUESTIONS.stage1
+      : stage === 2
+        ? FALLBACK_QUESTIONS.stage2
+        : FALLBACK_QUESTIONS.stage3;
+  return questions[userTurns % questions.length];
+}
 
-  const userPrompt = `${jdText ? `Context provided by user:\n"""\n${jdText.slice(0, 6000)}\n"""\n\n` : ""}Conversation so far:
-${conversation}
+// ---------------------
+// Generate First Question
+// ---------------------
+async function generateFirstQuestion(jdText: string): Promise<string> {
+  if (!jdText || jdText.trim().length === 0) {
+    return DEFAULT_OPENING;
+  }
 
+  try {
+    const result = await callOpenAI([
+      { role: "system", content: DIAGNOSTIC_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: `The user has provided this context (likely a job description):
+"""
+${jdText.slice(0, 10000)}
+"""
+
+Based on this context, generate an appropriate opening question that acknowledges you've seen their context and asks about their current operational challenges or energy drains.
+
+Keep it 1-2 sentences. Be warm but professional. Don't use corporate jargon.
+Return ONLY the question text, nothing else.`,
+      },
+    ]);
+    return result || DEFAULT_OPENING;
+  } catch (err) {
+    console.error("AI failed for first question, using fallback:", err);
+    return DEFAULT_OPENING;
+  }
+}
+
+// ---------------------
+// Generate Next Question
+// ---------------------
+async function generateNextQuestion(
+  jdText: string,
+  messages: Array<{ role: string; content: string }>,
+  stage: number,
+  userTurns: number,
+): Promise<string> {
+  const stageGuidance =
+    stage === 1
+      ? "You are in Stage 1 (Energy Mapping). Focus on understanding what's consuming their capacity, where friction lives, and what patterns they're seeing."
+      : stage === 2
+        ? "You are in Stage 2 (Bottleneck Diagnosis). Focus on impact of bottlenecks, workaround behaviors, and whether information flows properly."
+        : "You are in Stage 3 (Improvement & Ownership). Focus on where leverage lives, who owns improvement, and whether teams have capacity to change.";
+
+  // Build proper multi-turn messages for OpenAI
+  const chatMessages: Array<{ role: string; content: string }> = [
+    { role: "system", content: DIAGNOSTIC_SYSTEM_PROMPT },
+  ];
+
+  if (jdText) {
+    chatMessages.push({
+      role: "system",
+      content: `Context provided by the user:\n"""\n${jdText.slice(0, 6000)}\n"""`,
+    });
+  }
+
+  // Add conversation history as proper multi-turn messages
+  for (const msg of messages) {
+    chatMessages.push({ role: msg.role, content: msg.content });
+  }
+
+  // Add generation instruction
+  chatMessages.push({
+    role: "user",
+    content: `[SYSTEM INSTRUCTION - NOT A USER MESSAGE]
 ${stageGuidance}
-
 User turn count: ${userTurns}
 
-Based on their last response, generate your next message. Remember to:
+Based on the last user response, generate your next message. Remember to:
 1. Briefly synthesize or acknowledge what they shared (1 sentence)
 2. Ask your next diagnostic question (1-2 sentences)
 
 Keep the total response to 2-4 sentences. Be conversational and curious, not interrogating.
-Return ONLY your response text.`;
+Return ONLY your response text.`,
+  });
 
   try {
-    const response = await callOpenAI(DIAGNOSTIC_SYSTEM_PROMPT, userPrompt);
+    const response = await callOpenAI(chatMessages);
     return response || getFallbackQuestion(stage, userTurns);
   } catch {
     return getFallbackQuestion(stage, userTurns);
   }
 }
 
-function getFallbackQuestion(stage: number, userTurns: number): string {
-  const questions = stage === 1
-    ? FALLBACK_QUESTIONS.stage1
-    : stage === 2
-    ? FALLBACK_QUESTIONS.stage2
-    : FALLBACK_QUESTIONS.stage3;
-  return questions[userTurns % questions.length];
-}
-
-async function generateReport(jdText: string, messages: any[]): Promise<any> {
+// ---------------------
+// Generate Report
+// ---------------------
+async function generateReport(
+  jdText: string,
+  messages: Array<{ role: string; content: string }>,
+): Promise<any> {
   const reportSystemPrompt = `You are producing a FitReport based on a diagnostic conversation about operational bottlenecks and organizational challenges.
 
 Your job is to synthesize the conversation into actionable insights about:
@@ -158,7 +257,9 @@ About Calum Kershaw:
 
 Be honest and specific. Reference actual points from the conversation.`;
 
-  const conversation = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
+  const conversation = messages
+    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+    .join("\n");
 
   const userPrompt = `${jdText ? `Context provided:\n"""\n${jdText.slice(0, 6000)}\n"""\n\n` : ""}Diagnostic Conversation:
 ${conversation}
@@ -174,7 +275,10 @@ Based on this diagnostic conversation, generate a FitReport. Return ONLY valid J
 }`;
 
   try {
-    const raw = await callOpenAI(reportSystemPrompt, userPrompt);
+    const raw = await callOpenAI([
+      { role: "system", content: reportSystemPrompt },
+      { role: "user", content: userPrompt },
+    ]);
     const jsonStart = raw.indexOf("{");
     const jsonEnd = raw.lastIndexOf("}");
     if (jsonStart >= 0 && jsonEnd > jsonStart) {
@@ -190,36 +294,39 @@ Based on this diagnostic conversation, generate a FitReport. Return ONLY valid J
     roleAlignment: [
       "Systems thinking approach aligns with identifying operational bottlenecks",
       "AI/automation skills relevant to improving information flow",
-      "Data analysis background supports evidence-based improvement"
+      "Data analysis background supports evidence-based improvement",
     ],
     environmentCompatibility: [
       "Adaptable to environments in transition",
       "Comfortable working across multiple stakeholders",
-      "Quick learner in new domains"
+      "Quick learner in new domains",
     ],
     structuralRisks: [
       "Improvement initiatives need clear ownership to succeed",
       "Capacity constraints may limit ability to drive change",
-      "Scope clarity important for early wins"
+      "Scope clarity important for early wins",
     ],
     successConditions: [
       "Clear mandate to identify and address bottlenecks",
       "Access to key stakeholders and decision-makers",
-      "Time allocated for improvement work, not just maintenance"
+      "Time allocated for improvement work, not just maintenance",
     ],
     gapPlan: [
       "Map current information flows in first 30 days",
       "Identify 2-3 quick wins that demonstrate value",
       "Build relationships with process owners early",
-      "Document baseline metrics to show improvement"
+      "Document baseline metrics to show improvement",
     ],
   };
 }
 
-// Simple in-memory session store (for demo - won't persist across deploys)
-const sessions = new Map<string, any>();
-
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+// ---------------------
+// Handler
+// ---------------------
+export const handler: Handler = async (
+  event: HandlerEvent,
+  context: HandlerContext,
+) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -232,102 +339,109 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers, body: JSON.stringify({ message: "Method not allowed" }) };
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ message: "Method not allowed" }),
+    };
   }
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const parsed = fitMessageSchema.safeParse(body);
+    const parsed = fitChatSchema.safeParse(body);
 
     if (!parsed.success) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ message: parsed.error.errors[0]?.message ?? "Invalid input" }),
+        body: JSON.stringify({
+          message: parsed.error.errors[0]?.message ?? "Invalid input",
+        }),
       };
     }
 
-    const { sessionId, message } = parsed.data;
+    const data = parsed.data;
 
-    // Get or create session
-    let session = sessions.get(sessionId);
-    if (!session) {
-      // For serverless, session may not exist - create minimal one
-      session = {
-        id: sessionId,
-        jdText: message, // Use first message as context if no session
-        stage: 1,
-        userTurns: 0,
-        messages: [],
-        verdict: null,
-        report: null,
-      };
-    }
-
-    // Record user message
-    session.userTurns += 1;
-    session.messages.push({ role: "user", content: message });
-
-    // Stage transitions for 3-stage conversation (8-12 exchanges)
-    // Stage 1: Turns 1-4 (Energy Mapping)
-    // Stage 2: Turns 5-8 (Bottleneck Diagnosis)
-    // Stage 3: Turn 9+ (Report generation)
-
-    if (session.userTurns >= 4 && session.stage === 1) {
-      session.stage = 2;
-    }
-
-    // Generate report after 8 turns (allowing for 8-12 exchange range)
-    if (session.userTurns >= 8) {
-      session.stage = 3;
-      const report = await generateReport(session.jdText, session.messages);
-      session.verdict = report.verdict;
-      session.report = report;
-
-      const closingMessage = "Thank you for sharing all of that. I have enough context now to put together a FitReport for you. Here's what I'm seeing...";
-      session.messages.push({ role: "assistant", content: closingMessage });
-
-      sessions.set(sessionId, session);
+    // ========== START ACTION ==========
+    if (data.action === "start") {
+      const firstPrompt = await generateFirstQuestion(data.jdText);
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          stage: 3,
-          verdict: report.verdict,
-          report,
+          stage: 1,
           role: "assistant",
-          content: closingMessage,
+          content: firstPrompt,
         }),
       };
     }
 
-    // Generate next question
-    const nextPrompt = await generateNextQuestion(
-      session.jdText,
-      session.messages,
-      session.stage,
-      session.userTurns
-    );
+    // ========== MESSAGE ACTION ==========
+    if (data.action === "message") {
+      const { userMessage, jdText, messages, userTurns } = data;
 
-    session.messages.push({ role: "assistant", content: nextPrompt });
-    sessions.set(sessionId, session);
+      // Add the new user message to the history
+      const fullMessages = [
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: "user" as const, content: userMessage },
+      ];
+
+      const currentTurns = userTurns;
+      const stage = computeStage(currentTurns);
+
+      // Generate report after 8 user turns
+      if (currentTurns >= 8) {
+        const report = await generateReport(jdText, fullMessages);
+
+        const closingMessage =
+          "Thank you for sharing all of that. I have enough context now to put together a FitReport for you. Here's what I'm seeing...";
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            stage: 3,
+            verdict: report.verdict,
+            report,
+            role: "assistant",
+            content: closingMessage,
+          }),
+        };
+      }
+
+      // Generate next question
+      const nextPrompt = await generateNextQuestion(
+        jdText,
+        fullMessages,
+        stage,
+        currentTurns,
+      );
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          stage,
+          role: "assistant",
+          content: nextPrompt,
+        }),
+      };
+    }
 
     return {
-      statusCode: 200,
+      statusCode: 400,
       headers,
-      body: JSON.stringify({
-        stage: session.stage,
-        role: "assistant",
-        content: nextPrompt,
-      }),
+      body: JSON.stringify({ message: "Unknown action" }),
     };
   } catch (err: any) {
     console.error("Error:", err);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ message: err?.message || "Internal server error" }),
+      body: JSON.stringify({
+        message: err?.message || "Internal server error",
+      }),
     };
   }
 };

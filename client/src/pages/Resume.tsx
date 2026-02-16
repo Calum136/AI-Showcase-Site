@@ -209,12 +209,14 @@ export default function Resume() {
                       View Case Study
                     </Button>
                   </Link>
-                  <a href="/Calum-Kershaw-Resume.pdf" download>
-                    <Button variant="outline" className="rounded-xl gap-2">
-                      <Download className="w-4 h-4" />
-                      Download PDF
-                    </Button>
-                  </a>
+                  <Button
+                    variant="outline"
+                    className="rounded-xl gap-2"
+                    onClick={() => window.print()}
+                  >
+                    <Download className="w-4 h-4" />
+                    Download PDF
+                  </Button>
                 </div>
               </div>
 
@@ -367,8 +369,8 @@ export default function Resume() {
                 {resume.education.map((edu, i) => (
                   <div key={i} className="space-y-1">
                     <p className="font-medium text-sm text-brand-brown">{edu.institution}</p>
-                    <p className="text-xs text-surface-line">{edu.degree}</p>
-                    <p className="text-xs text-surface-line">{edu.year}</p>
+                    <p className="text-xs text-brand-brown/70">{edu.degree}</p>
+                    <p className="text-xs text-brand-brown/70">{edu.year}</p>
                   </div>
                 ))}
               </CardContent>
@@ -387,7 +389,7 @@ export default function Resume() {
                   {resume.certifications.map((c) => (
                     <li key={c} className="text-xs flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-brand-copper mt-1.5 shrink-0" />
-                      <span className="text-surface-line">{c}</span>
+                      <span className="text-brand-brown/70">{c}</span>
                     </li>
                   ))}
                 </ul>
@@ -406,7 +408,7 @@ export default function Resume() {
                 {resume.projects.map((p) => (
                   <div key={p.name} className="space-y-1">
                     <div className="font-medium text-sm text-brand-brown">{p.name}</div>
-                    <div className="text-xs text-surface-line">
+                    <div className="text-xs text-brand-brown/70">
                       {p.description}
                     </div>
                   </div>
@@ -440,7 +442,7 @@ export default function Resume() {
                   </CardHeader>
                   <CardContent>
                     {/* One-line scope */}
-                    <p className="text-surface-line text-sm mb-3">
+                    <p className="text-brand-brown/70 text-sm mb-3">
                       {exp.scope}
                     </p>
 

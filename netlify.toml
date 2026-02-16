@@ -11,12 +11,17 @@
 
 [[redirects]]
   from = "/api/fit/start"
-  to = "/.netlify/functions/fit-start"
+  to = "/.netlify/functions/fit-chat"
   status = 200
 
 [[redirects]]
   from = "/api/fit/message"
-  to = "/.netlify/functions/fit-message"
+  to = "/.netlify/functions/fit-chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/fit/upload"
+  to = "/.netlify/functions/fit-chat"
   status = 200
 
 [[redirects]]

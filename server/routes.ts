@@ -1,18 +1,14 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import { aiGenerateNextStep, aiGenerateNextPrompt, aiGenerateReport } from "./ai/fitPrompt";
+import { aiGenerateNextPrompt, aiGenerateReport } from "./ai/fitPrompt";
 import { generateFitAssessment } from "./ai/fitAssessment";
 import { fitAssessmentInputSchema } from "@shared/fitAssessmentSchema";
 
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { randomUUID } from "crypto";
-import multer from "multer";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 // -----------------------------
-// Fit (in-memory, privacy-first)
+// Fit (stateless architecture - context passed by client each request)
 // -----------------------------
 type FitStage = 1 | 2 | 3;
 
@@ -30,314 +26,27 @@ type FitReport = {
   gapPlan: string[];
 };
 
-type FitSession = {
-  id: string;
-  createdAt: number;
-  lastActiveAt: number;
-  jdText: string;
-  stage: FitStage;
-  userTurns: number;
-  messages: FitMessage[];
-  verdict: "YES" | "NO" | null;
-  report: FitReport | null;
-};
-
-const fitSessions = new Map<string, FitSession>();
-
-// TTL: expire sessions after 30 minutes of inactivity
-const FIT_SESSION_TTL_MS = 30 * 60 * 1000;
-
-function cleanupExpiredFitSessions() {
-  const now = Date.now();
-  for (const [id, s] of Array.from(fitSessions.entries())) {
-    if (now - s.lastActiveAt > FIT_SESSION_TTL_MS) {
-      fitSessions.delete(id);
-    }
-  }
-}
-
-setInterval(cleanupExpiredFitSessions, 5 * 60 * 1000);
-
-const STAGE_1_QUESTIONS = [
-  "At a high level, what problem is this role primarily responsible for solving?",
-  "What does “success” look like in the first 30–90 days for this person?",
-  "What kind of environment is this role stepping into (process maturity, pace, and change expectations)?",
-];
-
-const STAGE_2_QUESTIONS = [
-  "Where does this role have real decision-making authority vs. influence-only?",
-  "What are the biggest blockers or risks you expect this person to run into?",
-  "What support exists (people, tools, time) for improving systems/processes—not just maintaining them?",
-];
-
-// Zod request schemas
+// Zod request schemas (stateless)
 const fitStartSchema = z.object({
-  text: z.string().min(1).max(50_000).optional(),
-  jdText: z.string().min(1).max(50_000).optional(),
-}).refine(data => data.text || data.jdText, {
-  message: "Either text or jdText is required",
+  action: z.literal("start"),
+  jdText: z.string().max(50_000).optional(),
 });
 
 const fitMessageSchema = z.object({
-  sessionId: z.string().min(1),
-  message: z.string().min(1).max(20_000),
+  action: z.literal("message"),
+  userMessage: z.string().min(1).max(20_000),
+  jdText: z.string().max(50_000).optional(),
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })).max(30),
+  userTurns: z.number().int().min(0),
 });
 
-function buildVerdictStub(session: FitSession): FitReport {
-  const jdShort = session.jdText.trim().length < 200;
-  const userMsgs = session.messages.filter((m) => m.role === "user");
-  const avgUserLen =
-    userMsgs.reduce((sum, m) => sum + m.content.trim().length, 0) /
-    Math.max(1, userMsgs.length);
-
-  const verdict: "YES" | "NO" = jdShort || avgUserLen < 40 ? "NO" : "YES";
-
-  return {
-    verdict,
-    roleAlignment: [
-      "Stub: confirm the role is systems/process + automation-heavy.",
-      "Stub: verify scope matches ownership and expected outcomes.",
-    ],
-    environmentCompatibility: [
-      "Stub: assess pace, ambiguity tolerance, and change appetite.",
-      "Stub: confirm stakeholders support improvement work.",
-    ],
-    structuralRisks: [
-      "Stub: responsibility without authority.",
-      "Stub: unclear ownership across teams.",
-    ],
-    successConditions: [
-      "Stub: clear success metrics by day 30/60/90.",
-      "Stub: access to systems/tools and decision makers.",
-    ],
-    gapPlan:
-      verdict === "YES"
-        ? [
-            "Stub: align on first 2–3 highest leverage problems.",
-            "Stub: define decision rights + escalation path.",
-          ]
-        : [
-            "Stub: reduce scope density or add authority.",
-            "Stub: provide explicit support for change work.",
-          ],
-  };
-}
-
-type NextStep =
-  | { kind: "prompt"; content: string }
-  | { kind: "report"; report: FitReport };
-
-function nextAssistantStep(session: FitSession): NextStep | null {
-  if (session.stage === 3) return null;
-
-  if (session.userTurns >= 6) {
-    session.stage = 3;
-    const report = buildVerdictStub(session);
-    session.verdict = report.verdict;
-    session.report = report;
-    return { kind: "report", report };
-  }
-
-  if (session.userTurns >= 3 && session.stage === 1) {
-    session.stage = 2;
-    return {
-      kind: "prompt",
-      content: `Stage 1 complete. Moving to deeper evaluation.\n\n${STAGE_2_QUESTIONS[0]}`,
-    };
-  }
-
-  if (session.stage === 1) {
-    const idx = session.userTurns;
-    const q = STAGE_1_QUESTIONS[idx];
-    return q ? { kind: "prompt", content: q } : null;
-  }
-
-  if (session.stage === 2) {
-    const idx = session.userTurns - 3;
-    const q = STAGE_2_QUESTIONS[idx];
-    return q ? { kind: "prompt", content: q } : null;
-  }
-
-  return null;
-}
-
-// -----------------------------
-// Upload handling (memory only)
-// -----------------------------
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
-
-function fileExt(name?: string) {
-  const n = (name ?? "").toLowerCase();
-  const idx = n.lastIndexOf(".");
-  return idx >= 0 ? n.slice(idx + 1) : "";
-}
-function resolvePdfParse(
-  mod: any,
-): (data: Uint8Array | Buffer) => Promise<any> {
-  // Most common shapes we’ve seen in ESM/CJS toolchains:
-  // - function
-  // - { default: function }
-  // - { default: { default: function } }
-  // - { pdfParse: function } or similar
-  if (typeof mod === "function") return mod;
-  if (typeof mod?.default === "function") return mod.default;
-  if (typeof mod?.default?.default === "function") return mod.default.default;
-
-  // Fall back: find the first function-valued property on the object
-  if (mod && typeof mod === "object") {
-    for (const v of Object.values(mod)) {
-      if (typeof v === "function") return v as any;
-      if (typeof (v as any)?.default === "function") return (v as any).default;
-    }
-  }
-
-  throw new Error("pdf-parse module did not expose a callable parser function");
-}
-async function loadPdfJs() {
-  // pdfjs-dist export paths vary by version/tooling.
-  // We try a few common ones and normalize the module shape.
-  const candidates = [
-    "pdfjs-dist/legacy/build/pdf.cjs",
-    "pdfjs-dist/legacy/build/pdf.js",
-    "pdfjs-dist/legacy/build/pdf",
-  ];
-
-  for (const id of candidates) {
-    try {
-      const mod = require(id);
-      return mod?.default ?? mod;
-    } catch {
-      // keep trying
-    }
-  }
-
-  // ESM fallback (some installs only expose .mjs)
-  try {
-    const mod = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    return (mod as any)?.default ?? (mod as any);
-  } catch {
-    // ignore
-  }
-
-  throw new Error("Unable to load pdfjs-dist legacy build");
-}
-
-async function extractPdfTextWithPdfJs(buffer: Buffer): Promise<string> {
-  const pdfjs: any = await loadPdfJs();
-
-  if (typeof pdfjs?.getDocument !== "function") {
-    throw new Error("pdfjs-dist loaded but getDocument() was not found");
-  }
-
-  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buffer) });
-  const pdf = await loadingTask.promise;
-
-  let fullText = "";
-
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum);
-    const content = await page.getTextContent();
-
-    const strings = (content.items as any[])
-      .map((it) => (typeof it.str === "string" ? it.str : ""))
-      .filter(Boolean);
-
-    fullText += strings.join(" ") + "\n";
-  }
-
-  return fullText.trim();
-}
-
-async function extractTextFromUpload(
-  file: Express.Multer.File,
-): Promise<string> {
-  const ext = fileExt(file.originalname);
-
-  if (ext === "txt") {
-    return file.buffer.toString("utf8");
-  }
-
-  if (ext === "pdf") {
-    try {
-      const text = await extractPdfTextWithPdfJs(file.buffer);
-
-      if (!text) {
-        throw new Error(
-          "This PDF appears to have no selectable text (likely scanned/image-only). Please upload a .txt/.docx or paste the job description text.",
-        );
-      }
-
-      return text;
-    } catch (e: any) {
-      throw new Error(
-        `PDF parse failed: ${e?.message ?? "Unknown error"}. If the PDF is scanned/image-only, it won't extract.`,
-      );
-    }
-  }
-
-  if (ext === "docx") {
-    // mammoth
-    const mod = await import("mammoth");
-    const mammoth = (mod as any).default ?? (mod as any);
-    const result = await mammoth.extractRawText({ buffer: file.buffer });
-    return String(result?.value ?? "");
-  }
-
-  throw new Error("Unsupported file type. Please upload .txt, .pdf, or .docx");
-}
-
-async function startFitSessionFromText(text: string) {
-  const id = randomUUID();
-  const now = Date.now();
-
-  const session: FitSession = {
-    id,
-    createdAt: now,
-    lastActiveAt: now,
-    jdText: text,
-    stage: 1,
-    userTurns: 0,
-    messages: [],
-    verdict: null,
-    report: null,
-  };
-
-  fitSessions.set(id, session);
-
-  // ✅ AI-generated first step (question + choices)
-  // Fallback: stage 1 question list if AI fails
-  let firstQuestion = STAGE_1_QUESTIONS[0];
-  let choices: any[] | undefined = undefined;
-
-  try {
-    const step = await aiGenerateNextStep({
-      // We’re still using jdText as the starting context for now.
-      // Later you’ll rename this to problemStatement and shift the UI copy.
-      jdText: session.jdText,
-      stage: session.stage as any,
-      userTurns: session.userTurns,
-      messages: session.messages,
-    });
-
-    firstQuestion = step.question || firstQuestion;
-    choices = step.choices;
-  } catch (err) {
-    console.error("AI start step failed, using fallback:", err);
-  }
-
-  session.messages.push({ role: "assistant", content: firstQuestion });
-
-  return {
-    sessionId: id,
-    stage: session.stage,
-    role: "assistant" as const,
-    content: firstQuestion,
-    choices, // ✅ NEW: UI can render buttons if present
-    message: "Fit conversation started.",
-  };
+function computeStage(userTurns: number): FitStage {
+  if (userTurns >= 8) return 3;
+  if (userTurns >= 4) return 2;
+  return 1;
 }
 
 export async function registerRoutes(
@@ -382,12 +91,10 @@ export async function registerRoutes(
   });
 
   // ======================
-  // Fit Routes
+  // Fit Routes (stateless - context passed by client)
   // ======================
 
   app.post(api.fit.start.path, async (req, res) => {
-    cleanupExpiredFitSessions();
-
     const parsed = fitStartSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
@@ -395,23 +102,9 @@ export async function registerRoutes(
       });
     }
 
-    const jdText = parsed.data.jdText || parsed.data.text || "";
+    const jdText = parsed.data.jdText || "";
 
-    const sessionId = crypto.randomUUID();
-
-    fitSessions.set(sessionId, {
-      id: sessionId,
-      jdText,
-      stage: 1,
-      userTurns: 0,
-      messages: [],
-      createdAt: Date.now(),
-      lastActiveAt: Date.now(),
-      verdict: null,
-      report: null,
-    });
-
-    // 🔌 AI-generated FIRST question (with fallback)
+    // AI-generated first question (with fallback)
     let firstPrompt = "";
     try {
       firstPrompt = await aiGenerateNextPrompt({
@@ -422,14 +115,10 @@ export async function registerRoutes(
       });
     } catch (err) {
       console.error("AI start prompt failed, using fallback:", err);
-      firstPrompt = STAGE_1_QUESTIONS[0];
+      firstPrompt = "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
     }
 
-    const session = fitSessions.get(sessionId)!;
-    session.messages.push({ role: "assistant", content: firstPrompt });
-
     return res.json({
-      sessionId,
       stage: 1,
       role: "assistant",
       content: firstPrompt,
@@ -437,8 +126,6 @@ export async function registerRoutes(
   });
 
   app.post(api.fit.message.path, async (req, res) => {
-    cleanupExpiredFitSessions();
-
     const parsed = fitMessageSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
@@ -446,122 +133,72 @@ export async function registerRoutes(
       });
     }
 
-    const { sessionId, message } = parsed.data;
+    const { userMessage, jdText, messages, userTurns } = parsed.data;
 
-    const session = fitSessions.get(sessionId);
-    if (!session) {
-      return res.status(404).json({ message: "Session not found (expired?)" });
-    }
+    // Add the new user message to history
+    const fullMessages: FitMessage[] = [
+      ...messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      { role: "user" as const, content: userMessage },
+    ];
 
-    session.lastActiveAt = Date.now();
+    const stage = computeStage(userTurns);
 
-    // If verdict already reached, return it
-    if (session.stage === 3 && session.report) {
-      return res.json({
-        stage: 3,
-        verdict: session.report.verdict,
-        report: session.report,
-        role: "assistant",
-        content: "Verdict already reached.",
-      });
-    }
-
-    // Record user turn
-    session.userTurns += 1;
-    session.messages.push({ role: "user", content: message });
-
-    // Deterministic stage transitions (guardrails)
-    if (session.userTurns >= 6) {
-      session.stage = 3;
-
-      // AI report with fallback
+    // Generate report after 8 user turns
+    if (userTurns >= 8) {
       let report: FitReport;
       try {
         report = await aiGenerateReport({
-          jdText: session.jdText ?? "",
-          messages: session.messages,
+          jdText: jdText ?? "",
+          messages: fullMessages,
         });
       } catch (err) {
-        console.error("AI report failed, using stub fallback:", err);
-        report = buildVerdictStub(session);
+        console.error("AI report failed, using fallback:", err);
+        report = {
+          verdict: "YES",
+          roleAlignment: ["Systems thinking approach aligns with operational bottlenecks", "AI/automation skills relevant to improving information flow"],
+          environmentCompatibility: ["Adaptable to environments in transition", "Comfortable working across multiple stakeholders"],
+          structuralRisks: ["Improvement initiatives need clear ownership", "Capacity constraints may limit change"],
+          successConditions: ["Clear mandate to address bottlenecks", "Access to key stakeholders"],
+          gapPlan: ["Map current information flows in first 30 days", "Identify 2-3 quick wins that demonstrate value"],
+        };
       }
-
-      session.verdict = report.verdict;
-      session.report = report;
-
-      session.messages.push({
-        role: "assistant",
-        content: `Verdict: ${report.verdict}`,
-      });
 
       return res.json({
         stage: 3,
         verdict: report.verdict,
         report,
         role: "assistant",
-        content: "Verdict reached.",
+        content: "Thank you for sharing all of that. I have enough context now to put together a FitReport for you. Here's what I'm seeing...",
       });
     }
 
-    // Stage boundary: after 3 user turns, move from Stage 1 -> Stage 2
-    if (session.userTurns >= 3 && session.stage === 1) {
-      session.stage = 2;
-    }
-
-    // AI next prompt with fallback to the hardcoded questions
+    // AI next prompt with fallback
     let nextPrompt = "";
     try {
       nextPrompt = await aiGenerateNextPrompt({
-        jdText: session.jdText,
-        stage: session.stage,
-        userTurns: session.userTurns,
-        messages: session.messages,
+        jdText: jdText || "",
+        stage,
+        userTurns,
+        messages: fullMessages,
       });
     } catch (err) {
-      console.error("AI next prompt failed, using fallback question:", err);
-
-      if (session.stage === 1) {
-        const idx = session.userTurns; // after user message, next question index aligns to turns
-        nextPrompt = STAGE_1_QUESTIONS[idx] ?? STAGE_1_QUESTIONS[0];
-      } else {
-        const idx = session.userTurns - 3;
-        nextPrompt = STAGE_2_QUESTIONS[idx] ?? STAGE_2_QUESTIONS[0];
-      }
+      console.error("AI next prompt failed, using fallback:", err);
+      nextPrompt = "That's interesting context. Can you tell me more about how that plays out day-to-day?";
     }
 
-    session.messages.push({ role: "assistant", content: nextPrompt });
-
     return res.json({
-      stage: session.stage,
+      stage,
       role: "assistant",
       content: nextPrompt,
     });
   });
 
-  // Upload endpoint (multipart file -> extracted text -> start session)
-  app.post(api.fit.upload.path, upload.single("file"), async (req, res) => {
-    try {
-      cleanupExpiredFitSessions();
-
-      const file = req.file;
-      if (!file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const extracted = (await extractTextFromUpload(file)).trim();
-      if (!extracted) {
-        return res
-          .status(400)
-          .json({ message: "Could not extract any text from file" });
-      }
-
-      const payload = await startFitSessionFromText(extracted);
-      return res.json(payload);
-    } catch (err: any) {
-      return res.status(400).json({
-        message: err?.message ?? "Upload failed",
-      });
-    }
+  // Upload endpoint - now handled client-side for .txt files
+  // Keep route for backwards compatibility but simplified
+  app.post(api.fit.upload.path, async (req, res) => {
+    return res.status(400).json({
+      message: "File upload is now handled client-side. Please use the chat interface to paste text directly.",
+    });
   });
 
   // ======================

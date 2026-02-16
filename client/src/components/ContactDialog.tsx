@@ -48,10 +48,11 @@ export function ContactDialog({
 
             <DialogPrimitive.Content asChild forceMount>
               <motion.div
-                className="fixed left-1/2 top-1/2 z-[9999] w-[92vw] max-w-[860px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-surface-line/40 bg-surface-ink shadow-[0_22px_80px_rgba(15,23,42,0.75)] focus:outline-none"
-                initial={{ opacity: 0, y: 18, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                className="fixed inset-0 z-[9999] m-auto w-[92vw] max-w-[860px] max-h-[90vh] overflow-y-auto rounded-2xl border border-surface-line/40 bg-surface-ink shadow-[0_22px_80px_rgba(15,23,42,0.75)] focus:outline-none"
+                style={{ height: "fit-content" }}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.18 }}
               >
                 {/* Close button (top-right) */}

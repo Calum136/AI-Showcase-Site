@@ -204,6 +204,20 @@ export default function FitLanding() {
             <span className="text-surface-line">•</span>
             <span>Built by Calum Kershaw</span>
           </motion.div>
+
+          {/* Back to chooser */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <Link href="/fit">
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm text-brand-brown/50 hover:text-brand-brown/70 transition-colors">
+                <ArrowRight className="w-3 h-3 rotate-180" />
+                Back to evaluation options
+              </button>
+            </Link>
+          </motion.div>
         </div>
 
         {/* Video/Image Placeholder - for future use */}
