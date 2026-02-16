@@ -41,20 +41,25 @@ export const fitReportSchema = z.object({
 });
 
 export const fitStartInputSchema = z.object({
-  text: z.string().min(1).max(50_000),
+  action: z.literal("start"),
+  jdText: z.string().max(50_000).optional(),
 });
 
 export const fitStartResponseSchema = z.object({
-  sessionId: z.string(),
   stage: fitStageSchema,
   role: z.literal("assistant"),
   content: z.string(),
-  message: z.string(),
 });
 
 export const fitMessageInputSchema = z.object({
-  sessionId: z.string().min(1),
-  message: z.string().min(1).max(20_000),
+  action: z.literal("message"),
+  userMessage: z.string().min(1).max(20_000),
+  jdText: z.string().max(50_000).optional(),
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+  })).max(30),
+  userTurns: z.number().int().min(0),
 });
 
 export const fitMessageResponseSchema = z.object({

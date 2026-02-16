@@ -24,7 +24,6 @@ type FitReport = {
 };
 
 export default function FitChat() {
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [draft, setDraft] = useState("");
@@ -32,6 +31,7 @@ export default function FitChat() {
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<FitReport | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [jdText, setJdText] = useState<string>("");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -48,11 +48,16 @@ export default function FitChat() {
     }
   }, []);
 
-  async function startConversation(jdText?: string) {
+  async function startConversation(initialJdText?: string) {
     setIsBusy(true);
     setError(null);
     setReport(null);
     setHasStarted(true);
+
+    const contextText = initialJdText || "";
+    if (initialJdText) {
+      setJdText(initialJdText);
+    }
 
     // Show typing indicator immediately
     const typingId = crypto.randomUUID();
@@ -62,8 +67,8 @@ export default function FitChat() {
 
     try {
       const payload = {
-        text: jdText || "",
-        jdText: jdText || "",
+        action: "start" as const,
+        jdText: contextText,
       };
 
       const r = await fetch(api.fit.start.path, {
@@ -78,7 +83,6 @@ export default function FitChat() {
         throw new Error(data?.message ?? `Start failed (${r.status})`);
       }
 
-      setSessionId(data.sessionId);
       setStage(data.stage);
 
       const first = String(data.content ?? "").trim();
@@ -107,42 +111,22 @@ export default function FitChat() {
     setError(null);
 
     try {
-      const form = new FormData();
-      form.append("file", file);
-
-      const r = await fetch(api.fit.upload.path, {
-        method: "POST",
-        body: form,
-      });
-
-      const data = await r.json().catch(() => null);
-
-      if (!r.ok) {
-        throw new Error(data?.message ?? `Upload failed (${r.status})`);
-      }
-
-      setSessionId(data.sessionId);
-      setStage(data.stage);
-
-      const aiMsg: ChatMsg = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content:
-          String(data.content ?? "").trim() ||
-          "Thanks for sharing that context. Let me ask you some questions about this role.",
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
+      const text = await file.text();
+      if (!text.trim()) throw new Error("File appears to be empty.");
+      setJdText(text);
+      await startConversation(text);
     } catch (e: any) {
-      setError(e?.message ?? "Upload failed.");
-    } finally {
+      setError(
+        e?.message ||
+          "Could not read file. Please paste the text directly instead.",
+      );
       setIsBusy(false);
     }
   }
 
   async function sendMessage() {
     const text = (draft ?? "").trim();
-    if (!text || !sessionId) return;
+    if (!text || !hasStarted) return;
 
     const userMsg: ChatMsg = {
       id: crypto.randomUUID(),
@@ -163,10 +147,25 @@ export default function FitChat() {
     ]);
 
     try {
+      // Build message history (excluding typing indicators)
+      const currentMessages = [...messages, userMsg];
+      const historyForServer = currentMessages
+        .filter((m) => !m.isTyping)
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      const userTurnCount =
+        currentMessages.filter((m) => m.role === "user").length;
+
       const r = await fetch(api.fit.message.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: text }),
+        body: JSON.stringify({
+          action: "message",
+          userMessage: text,
+          jdText,
+          messages: historyForServer,
+          userTurns: userTurnCount,
+        }),
       });
 
       const data = await r.json().catch(() => null);
@@ -190,7 +189,7 @@ export default function FitChat() {
             id: crypto.randomUUID(),
             role: "assistant",
             content: aiText || "Let me think about that...",
-          })
+          }),
       );
 
       if (data.report) {
@@ -236,7 +235,7 @@ export default function FitChat() {
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".txt,.pdf,.docx"
+              accept=".txt"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) uploadFile(f);
@@ -250,7 +249,7 @@ export default function FitChat() {
               className="rounded-xl"
               onClick={() => fileInputRef.current?.click()}
               disabled={isBusy}
-              title="Upload job description for context"
+              title="Upload job description (.txt) for context"
             >
               <Upload className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Upload JD</span>
@@ -337,14 +336,14 @@ export default function FitChat() {
                     sendMessage();
                   }
                 }}
-                disabled={isBusy || !sessionId}
+                disabled={isBusy || !hasStarted}
               />
               <Button
                 data-testid="button-send-message"
                 size="icon"
                 className="h-12 w-12 rounded-xl"
                 onClick={sendMessage}
-                disabled={!(draft ?? "").trim() || isBusy || !sessionId}
+                disabled={!(draft ?? "").trim() || isBusy || !hasStarted}
               >
                 <Send className="h-5 w-5" />
               </Button>

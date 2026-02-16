@@ -9,9 +9,13 @@ import {
   CheckCircle2,
   Clock,
   Code2,
+  Cpu,
   Database,
   FileText,
   Lightbulb,
+  MessageCircle,
+  Search,
+  Settings,
   Target,
   Users,
   Zap,
@@ -32,7 +36,7 @@ const fadeIn = {
 export default function CaseStudy() {
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-12">
+      <div className="max-w-6xl mx-auto space-y-10">
         {/* Hero Section */}
         <motion.div {...fadeIn} className="text-center space-y-4">
           <Badge variant="secondary" className="mb-4">
@@ -110,36 +114,11 @@ export default function CaseStudy() {
           </div>
         </motion.div>
 
-        {/* Table of Contents */}
-        <motion.div
-          {...fadeIn}
-          transition={{ delay: 0.15 }}
-          className="bg-brand-stone/50 rounded-2xl p-6 border border-surface-line/50"
-        >
-          <h3 className="font-semibold mb-3 flex items-center gap-2 text-brand-charcoal">
-            <BookOpen className="w-4 h-4" />
-            Contents
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            {[
-              "The Problem",
-              "Analysis",
-              "Solution Design",
-              "Implementation",
-              "Results",
-              "Lessons Learned",
-              "Tech Stack",
-            ].map((item, i) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                className="text-brand-brown/70 hover:text-brand-copper transition-colors"
-              >
-                {i + 1}. {item}
-              </a>
-            ))}
-          </div>
-        </motion.div>
+        {/* Two-column body: main content left, sidebar right */}
+        <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+
+          {/* ===== LEFT COLUMN: Main content ===== */}
+          <div className="space-y-10">
 
         {/* The Problem */}
         <motion.section
@@ -304,19 +283,19 @@ export default function CaseStudy() {
                   <td className="p-3 font-medium text-brand-charcoal">Wiki/Docs System</td>
                   <td className="p-3 text-brand-brown/80">Low cost, full control</td>
                   <td className="p-3 text-brand-brown/80">Still requires manual search</td>
-                  <td className="p-3 text-center">❌</td>
+                  <td className="p-3 text-center text-brand-red font-bold">No</td>
                 </tr>
                 <tr className="border-t border-surface-line">
                   <td className="p-3 font-medium text-brand-charcoal">Fine-tuned Model</td>
                   <td className="p-3 text-brand-brown/80">Highly customized</td>
                   <td className="p-3 text-brand-brown/80">Expensive, needs labeled data</td>
-                  <td className="p-3 text-center">❌</td>
+                  <td className="p-3 text-center text-brand-red font-bold">No</td>
                 </tr>
                 <tr className="border-t border-surface-line bg-brand-moss/10">
-                  <td className="p-3 font-medium text-brand-moss">RAG System ✓</td>
+                  <td className="p-3 font-medium text-brand-moss">RAG System</td>
                   <td className="p-3 text-brand-brown/80">Cost-effective, real-time updates</td>
                   <td className="p-3 text-brand-brown/80">Requires embedding infrastructure</td>
-                  <td className="p-3 text-center">✅</td>
+                  <td className="p-3 text-center text-brand-moss font-bold">Yes</td>
                 </tr>
               </tbody>
             </table>
@@ -357,43 +336,43 @@ export default function CaseStudy() {
               <div className="bg-brand-stone/50 rounded-xl p-6 font-mono text-sm">
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
                   <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                    📄 Documents<br />
+                    <FileText className="w-4 h-4 text-brand-copper mx-auto mb-1" /> Documents<br />
                     <span className="text-xs text-brand-brown/70">(Word, PDF)</span>
                   </div>
                   <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                   <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                    🔧 Chunking<br />
+                    <Settings className="w-4 h-4 text-brand-copper mx-auto mb-1" /> Chunking<br />
                     <span className="text-xs text-brand-brown/70">(~500 tokens)</span>
                   </div>
                   <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                   <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                    🧠 Embeddings<br />
+                    <Cpu className="w-4 h-4 text-brand-copper mx-auto mb-1" /> Embeddings<br />
                     <span className="text-xs text-brand-brown/70">(OpenAI)</span>
                   </div>
                   <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                   <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                    💾 Vector DB<br />
+                    <Database className="w-4 h-4 text-brand-copper mx-auto mb-1" /> Vector DB<br />
                     <span className="text-xs text-brand-brown/70">(PostgreSQL)</span>
                   </div>
                 </div>
                 <div className="mt-6 pt-4 border-t border-surface-line">
                   <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
                     <div className="bg-brand-copper/10 p-3 rounded-lg border border-brand-copper/30">
-                      💬 User Query
+                      <MessageCircle className="w-4 h-4 text-brand-copper mx-auto mb-1" /> User Query
                     </div>
                     <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                     <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                      🔍 Similarity Search<br />
+                      <Search className="w-4 h-4 text-brand-copper mx-auto mb-1" /> Similarity Search<br />
                       <span className="text-xs text-brand-brown/70">(Top 5 chunks)</span>
                     </div>
                     <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                     <div className="bg-surface-paper p-3 rounded-lg border border-surface-line">
-                      🤖 LLM + Context<br />
+                      <Cpu className="w-4 h-4 text-brand-copper mx-auto mb-1" /> LLM + Context<br />
                       <span className="text-xs text-brand-brown/70">(GPT-4)</span>
                     </div>
                     <ArrowRight className="w-4 h-4 rotate-90 md:rotate-0 text-brand-copper" />
                     <div className="bg-brand-moss/10 p-3 rounded-lg border border-brand-moss/30">
-                      ✅ Answer
+                      <CheckCircle2 className="w-4 h-4 text-brand-moss mx-auto mb-1" /> Answer
                     </div>
                   </div>
                 </div>
@@ -455,64 +434,6 @@ export default function CaseStudy() {
           </div>
         </motion.section>
 
-        {/* Constraints & Tradeoffs - Senior Signal */}
-        <motion.section
-          {...fadeIn}
-          transition={{ delay: 0.55 }}
-          className="space-y-6"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-charcoal/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-brand-charcoal" />
-            </div>
-            <h2 className="text-2xl font-bold text-brand-charcoal">Constraints & Tradeoffs</h2>
-          </div>
-
-          <Card className="border-surface-line/50">
-            <CardContent className="pt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-brand-charcoal mb-3">Accuracy Concerns</h4>
-                  <p className="text-sm text-brand-brown/80 mb-3">
-                    LLMs can hallucinate. For operational procedures, wrong answers could cause real problems.
-                  </p>
-                  <p className="text-sm text-brand-brown/80">
-                    <strong className="text-brand-charcoal">Mitigation:</strong> Source citations on every answer,
-                    confidence thresholds, and clear "I don't know" responses when retrieval scores are low.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-brand-charcoal mb-3">Evaluation Approach</h4>
-                  <p className="text-sm text-brand-brown/80 mb-3">
-                    Tested with 50 real questions from staff. Measured retrieval accuracy (correct docs found)
-                    and answer quality (human rating 1-5).
-                  </p>
-                  <p className="text-sm text-brand-brown/80">
-                    <strong className="text-brand-charcoal">Result:</strong> 92% retrieval accuracy, 4.2/5 average
-                    answer quality before launch.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-brand-charcoal mb-3">Maintenance Plan</h4>
-                  <p className="text-sm text-brand-brown/80">
-                    Documents change. Built simple re-indexing pipeline triggered by file updates.
-                    New SOPs can be added without touching code. Usage analytics flag frequently-asked
-                    questions with low confidence for manual review.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-brand-charcoal mb-3">Cost Control</h4>
-                  <p className="text-sm text-brand-brown/80">
-                    Pro-bono project with real ongoing costs. Chose embedding model (ada-002) and LLM
-                    (GPT-3.5-turbo for most queries, GPT-4 fallback) to keep monthly costs under $20
-                    for expected usage.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.section>
-
         {/* Results */}
         <motion.section
           {...fadeIn}
@@ -527,7 +448,7 @@ export default function CaseStudy() {
             <h2 className="text-2xl font-bold text-brand-charcoal">Results & Impact</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             <Card className="border-surface-line/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -568,11 +489,11 @@ export default function CaseStudy() {
                 <div className="space-y-3 text-sm">
                   <blockquote className="border-l-2 border-brand-copper pl-3 italic text-brand-brown/80">
                     "I can actually find what I need now without bothering management."
-                    <span className="block mt-1 text-xs not-italic text-brand-brown/60">— New Hire</span>
+                    <span className="block mt-1 text-xs not-italic text-brand-brown/60">-- New Hire</span>
                   </blockquote>
                   <blockquote className="border-l-2 border-brand-copper pl-3 italic text-brand-brown/80">
                     "Training time is noticeably shorter. Staff are more confident."
-                    <span className="block mt-1 text-xs not-italic text-brand-brown/60">— Operations Manager</span>
+                    <span className="block mt-1 text-xs not-italic text-brand-brown/60">-- Operations Manager</span>
                   </blockquote>
                 </div>
               </CardContent>
@@ -580,100 +501,162 @@ export default function CaseStudy() {
           </div>
         </motion.section>
 
-        {/* Lessons Learned */}
-        <motion.section
-          {...fadeIn}
-          transition={{ delay: 0.7 }}
-          id="lessons-learned"
-          className="space-y-6"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-copper/10 flex items-center justify-center">
-              <Lightbulb className="w-5 h-5 text-brand-copper" />
-            </div>
-            <h2 className="text-2xl font-bold text-brand-charcoal">Lessons Learned</h2>
-          </div>
+          </div>{/* end left column */}
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <Card className="border-brand-moss/30 bg-brand-moss/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-brand-moss">What Worked</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-brand-brown/80">
-                <ul className="space-y-2">
-                  <li>• Simple UI with single search box</li>
-                  <li>• Source citations for trust</li>
-                  <li>• Incremental document updates</li>
-                  <li>• Real user testing throughout</li>
-                </ul>
-              </CardContent>
-            </Card>
+          {/* ===== RIGHT COLUMN: Sidebar ===== */}
+          <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
 
-            <Card className="border-brand-copper/30 bg-brand-copper/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-brand-copper">What I'd Change</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-brand-brown/80">
-                <ul className="space-y-2">
-                  <li>• Add feedback loop for answer quality</li>
-                  <li>• Build admin UI for doc management</li>
-                  <li>• Implement usage analytics earlier</li>
-                </ul>
-              </CardContent>
-            </Card>
+            {/* Table of Contents */}
+            <motion.div
+              {...fadeIn}
+              transition={{ delay: 0.15 }}
+              className="bg-brand-stone/50 rounded-2xl p-5 border border-surface-line/50"
+            >
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-brand-charcoal text-sm">
+                <BookOpen className="w-4 h-4" />
+                Contents
+              </h3>
+              <nav className="flex flex-col gap-1.5 text-sm">
+                {[
+                  "The Problem",
+                  "Analysis",
+                  "Solution Design",
+                  "Implementation",
+                  "Results",
+                  "Constraints",
+                  "Lessons Learned",
+                  "Tech Stack",
+                ].map((item, i) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    className="text-brand-brown/70 hover:text-brand-copper transition-colors"
+                  >
+                    {i + 1}. {item}
+                  </a>
+                ))}
+              </nav>
+            </motion.div>
 
-            <Card className="border-brand-charcoal/30 bg-brand-charcoal/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-brand-charcoal">Surprises</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-brand-brown/80">
-                <ul className="space-y-2">
-                  <li>• Users preferred answers over docs</li>
-                  <li>• Conflicting SOPs revealed by AI</li>
-                  <li>• Mobile use higher than expected</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </motion.section>
+            {/* Constraints & Tradeoffs */}
+            <motion.div
+              {...fadeIn}
+              transition={{ delay: 0.55 }}
+              id="constraints"
+            >
+              <Card className="border-surface-line/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-brand-charcoal" />
+                    Constraints & Tradeoffs
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs text-brand-brown/80 space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-brand-charcoal mb-1">Accuracy</h4>
+                    <p>Source citations, confidence thresholds, and clear "I don't know" responses mitigate hallucination risk.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-brand-charcoal mb-1">Evaluation</h4>
+                    <p>50 real questions tested. 92% retrieval accuracy, 4.2/5 answer quality.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-brand-charcoal mb-1">Maintenance</h4>
+                    <p>Re-indexing pipeline triggered by file updates. New SOPs added without code changes.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-brand-charcoal mb-1">Cost</h4>
+                    <p>ada-002 + GPT-3.5-turbo (GPT-4 fallback) keeps monthly costs under $20.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-        {/* Tech Stack */}
-        <motion.section
-          {...fadeIn}
-          transition={{ delay: 0.8 }}
-          id="tech-stack"
-          className="space-y-6"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-copper/10 flex items-center justify-center">
-              <Database className="w-5 h-5 text-brand-copper" />
-            </div>
-            <h2 className="text-2xl font-bold text-brand-charcoal">Tech Stack</h2>
-          </div>
+            {/* Lessons Learned */}
+            <motion.div
+              {...fadeIn}
+              transition={{ delay: 0.7 }}
+              id="lessons-learned"
+            >
+              <Card className="border-surface-line/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-brand-copper" />
+                    Lessons Learned
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs text-brand-brown/80 space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-brand-moss mb-1">What Worked</h4>
+                    <ul className="space-y-0.5">
+                      <li>Simple UI with single search box</li>
+                      <li>Source citations for trust</li>
+                      <li>Real user testing throughout</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-brand-copper mb-1">What I'd Change</h4>
+                    <ul className="space-y-0.5">
+                      <li>Add feedback loop for quality</li>
+                      <li>Build admin UI for doc mgmt</li>
+                      <li>Implement analytics earlier</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-brand-charcoal mb-1">Surprises</h4>
+                    <ul className="space-y-0.5">
+                      <li>Users preferred answers over docs</li>
+                      <li>Conflicting SOPs revealed by AI</li>
+                      <li>Mobile use higher than expected</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-          <div className="flex flex-wrap gap-2">
-            {[
-              "TypeScript",
-              "React",
-              "Node.js",
-              "Express",
-              "PostgreSQL",
-              "pgvector",
-              "OpenAI API",
-              "Embeddings",
-              "Tailwind CSS",
-              "Vite",
-            ].map((tech) => (
-              <Badge
-                key={tech}
-                variant="outline"
-                className="px-3 py-1.5 text-sm border-surface-line text-brand-brown hover:border-brand-copper/50 hover:text-brand-copper transition-colors"
-              >
-                {tech}
-              </Badge>
-            ))}
-          </div>
-        </motion.section>
+            {/* Tech Stack */}
+            <motion.div
+              {...fadeIn}
+              transition={{ delay: 0.8 }}
+              id="tech-stack"
+            >
+              <Card className="border-surface-line/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Database className="w-4 h-4 text-brand-copper" />
+                    Tech Stack
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "TypeScript",
+                      "React",
+                      "Node.js",
+                      "Express",
+                      "PostgreSQL",
+                      "pgvector",
+                      "OpenAI API",
+                      "Embeddings",
+                      "Tailwind CSS",
+                      "Vite",
+                    ].map((tech) => (
+                      <Badge
+                        key={tech}
+                        variant="outline"
+                        className="px-2 py-0.5 text-xs border-surface-line text-brand-brown"
+                      >
+                        {tech}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+          </div>{/* end right column */}
+
+        </div>{/* end two-column grid */}
 
         {/* Closing CTA */}
         <motion.div

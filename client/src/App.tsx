@@ -21,6 +21,7 @@ import About from "@/pages/About";
 import Resume from "@/pages/Resume";
 import Portfolio from "@/pages/Portfolio";
 import References from "@/pages/References";
+import FitEvaluate from "@/pages/FitEvaluate";
 import FitLanding from "@/pages/FitLanding";
 import FitChat from "@/pages/FitChat";
 import CaseStudy from "@/pages/CaseStudy";
@@ -34,7 +35,8 @@ function Router() {
       <Route path="/resume" component={Resume} />
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/references" component={References} />
-      <Route path="/fit" component={FitLanding} />
+      <Route path="/fit" component={FitEvaluate} />
+      <Route path="/fit/assess" component={FitLanding} />
       <Route path="/fit/chat" component={FitChat} />
       <Route path="/case-study" component={CaseStudy} />
       <Route path="/case-study/jollytails" component={CaseStudy} />

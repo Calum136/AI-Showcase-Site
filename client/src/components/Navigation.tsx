@@ -24,7 +24,7 @@ export function Navigation() {
             <img
               src="/CalumHeadshot.png"
               alt="Calum Kershaw"
-              className="w-9 h-9 rounded-full object-cover ring-1 ring-inset ring-surface-paper/15 shadow-[0_10px_30px_rgba(15,23,42,0.35)]"
+              className="w-11 h-11 rounded-full object-cover ring-1 ring-inset ring-surface-paper/15 shadow-[0_10px_30px_rgba(15,23,42,0.35)]"
               draggable={false}
               loading="lazy"
             />
