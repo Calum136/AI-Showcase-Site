@@ -11,12 +11,12 @@ const professionalProjects = [
   {
     title: "Blackbird Brewing — AI Email Automation",
     description:
-      "Paid client project: End-to-end AI email automation system with 17-category classifier, brand-voice response matching, escalation rules, and Make.com integration. Delivered on budget in 3 weeks.",
+      "End-to-end AI email automation system with 17-category classifier, brand-voice response matching, escalation rules, and Make.com integration. Delivered on budget in 3 weeks.",
     tags: ["AI Systems", "Automation", "OpenAI", "Make.com"],
     category: "Automation",
     image: "/blackbird-email.png",
     link: "#",
-    impact: "~120 emails/week automated, $1,100 paid engagement",
+    impact: "~120 emails/week automated for client",
   },
   {
     title: "JollyTails Staff Assistant (DogBot)",

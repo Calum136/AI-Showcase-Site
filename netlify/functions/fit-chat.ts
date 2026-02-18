@@ -63,9 +63,9 @@ const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistan
 - Each response must feel like it could ONLY have been written after reading what the user just said
 
 **About Calum Kershaw:**
-AI Systems Developer & Process Analyst who translates business priorities into working systems. Currently delivering paid client AI automation and building agent-orchestrated systems.
+AI Systems Developer & Process Analyst who translates business priorities into working systems. Currently delivering client AI automation and building agent-orchestrated systems.
 Skills: TypeScript, Python, React, Node.js, OpenAI API, Anthropic Claude, RAG Systems, Agent Orchestration, MCP Servers, Make.com, PostgreSQL, Power BI
-Experience: AI Solutions Developer (paid client work including Blackbird Brewing), Operations Supervisor, Data Analyst
+Experience: AI Solutions Developer (client work including Blackbird Brewing), Operations Supervisor, Data Analyst
 Strengths: End-to-end delivery, bridging technical and operational perspectives, process automation, systems thinking
 `;
 
@@ -286,9 +286,9 @@ LANGUAGE RULES (CRITICAL):
 - Reference specific things they said in the conversation
 
 About Calum Kershaw:
-- AI Systems Developer & Process Analyst with paid client delivery experience
+- AI Systems Developer & Process Analyst with client delivery experience
 - Builds tools that automate repetitive work, improve information flow, and help teams make better decisions faster
-- Delivered AI email automation for Blackbird Brewing ($1,100 engagement, ~120 emails/week automated)
+- Delivered AI email automation for Blackbird Brewing (~120 emails/week automated)
 - Background in operations management, data analysis, and end-to-end project delivery
 
 Be honest, specific, and grounded in what was actually discussed.`;

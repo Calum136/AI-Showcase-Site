@@ -60,7 +60,7 @@ const CALUM_RESUME: ResumeData = {
     name: "Calum Kershaw",
     title: "AI Systems Developer & Process Analyst",
     summary:
-      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering paid client AI automation and building agent-orchestrated systems for real businesses.",
+      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering client AI automation and building agent-orchestrated systems for real businesses.",
     email: "calum@nineroads.com",
     phone: "727-900-4878",
     location: "Truro, NS",
@@ -69,7 +69,7 @@ const CALUM_RESUME: ResumeData = {
   },
 
   impactSummary: [
-    "Delivered paid AI email automation system processing ~120 emails/week for hospitality client",
+    "Delivered AI email automation system processing ~120 emails/week for hospitality client",
     "Built RAG knowledge base consolidating 20+ SOPs — ~70% faster procedure lookup",
     "Designed multi-agent workflows for parallel frontend, backend, and documentation tasks",
     "End-to-end delivery: requirements gathering through deployment and handoff",
@@ -101,7 +101,7 @@ const CALUM_RESUME: ResumeData = {
       period: "2025 – Present",
       scope: "Delivering AI-powered automation systems for business clients. Translating operational pain points into structured technology solutions.",
       highlights: [
-        "Blackbird Brewing (Paid Client): Built end-to-end AI email automation — 17-category classifier with escalation rules, brand-voice matching, $1,100 project delivered on budget",
+        "Blackbird Brewing: Built end-to-end AI email automation — 17-category classifier with escalation rules and brand-voice matching, delivered on budget",
         "JollyTails Resort: Built RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard",
         "Built MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex",
         "Developed multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks",
@@ -173,7 +173,7 @@ const CALUM_RESUME: ResumeData = {
     {
       name: "Blackbird Brewing — Email Automation",
       description:
-        "Paid client project: AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing ~120 emails/week.",
+        "AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing ~120 emails/week.",
     },
     {
       name: "JollyTails Staff Assistant (DogBot)",

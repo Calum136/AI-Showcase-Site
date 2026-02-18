@@ -17,7 +17,7 @@ Title: AI Systems Developer & Process Analyst
 Location: Truro, Nova Scotia
 
 SUMMARY:
-Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering paid client AI automation and building agent-orchestrated systems for real businesses.
+Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering client AI automation and building agent-orchestrated systems for real businesses.
 
 TECHNICAL SKILLS:
 - AI & Automation: OpenAI API, Anthropic Claude, RAG Systems, Vector DBs, Embeddings, Agent Orchestration, MCP Servers, Make.com
@@ -27,7 +27,7 @@ TECHNICAL SKILLS:
 
 KEY EXPERIENCE:
 1. AI Solutions Developer (Independent Practice, 2025-Present)
-   - Blackbird Brewing (Paid Client): End-to-end AI email automation — 17-category classifier, ~120 emails/week, $1,100 delivered on budget
+   - Blackbird Brewing: End-to-end AI email automation — 17-category classifier, ~120 emails/week, delivered on budget
    - JollyTails Resort: RAG-powered Q&A system consolidating 20+ fragmented SOPs
    - Built MCP server for cross-tool project memory
    - Multi-agent workflows for parallel task execution
