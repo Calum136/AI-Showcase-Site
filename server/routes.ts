@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import { aiGenerateNextPrompt, aiGenerateReport } from "./ai/fitPrompt";
+import { aiGenerateNextResponse, aiGenerateReport } from "./ai/fitPrompt";
 import { generateFitAssessment } from "./ai/fitAssessment";
 import { fitAssessmentInputSchema } from "@shared/fitAssessmentSchema";
 
@@ -10,8 +10,6 @@ import { z } from "zod";
 // -----------------------------
 // Fit (stateless architecture - context passed by client each request)
 // -----------------------------
-type FitStage = 1 | 2 | 3;
-
 type FitMessage = {
   role: "user" | "assistant";
   content: string;
@@ -27,6 +25,7 @@ type FitReport = {
     phase2: { label: string; action: string };
     phase3: { label: string; action: string };
   };
+  scores?: Array<{ label: string; current: number; projected: number }>;
   fitSignals: string[];
   risks: string[];
 };
@@ -47,12 +46,6 @@ const fitMessageSchema = z.object({
   })).max(30),
   userTurns: z.number().int().min(0),
 });
-
-function computeStage(userTurns: number): FitStage {
-  if (userTurns >= 8) return 3;
-  if (userTurns >= 4) return 2;
-  return 1;
-}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -110,17 +103,18 @@ export async function registerRoutes(
     const jdText = parsed.data.jdText || "";
 
     // AI-generated first question (with fallback)
-    let firstPrompt = "";
+    let firstPrompt = "What's the thing that's eating the most time at work right now?";
     try {
-      firstPrompt = await aiGenerateNextPrompt({
-        jdText,
-        stage: 1,
-        userTurns: 0,
-        messages: [],
-      });
+      if (jdText) {
+        const result = await aiGenerateNextResponse({
+          jdText,
+          userTurns: 0,
+          messages: [],
+        });
+        firstPrompt = result.message || firstPrompt;
+      }
     } catch (err) {
       console.error("AI start prompt failed, using fallback:", err);
-      firstPrompt = "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
     }
 
     return res.json({
@@ -146,39 +140,65 @@ export async function registerRoutes(
       { role: "user" as const, content: userMessage },
     ];
 
-    const stage = computeStage(userTurns);
+    // AI decides when it has enough info for a report
+    let aiResponse: { message: string; readyForReport: boolean };
+    try {
+      aiResponse = await aiGenerateNextResponse({
+        jdText: jdText || "",
+        userTurns,
+        messages: fullMessages,
+      });
+    } catch (err) {
+      console.error("AI next response failed:", err);
+      aiResponse = {
+        message: "I'm having trouble connecting right now — could you try that again?",
+        readyForReport: false,
+      };
+    }
 
-    // Generate report after 8 user turns
-    if (userTurns >= 8) {
+    // If AI says ready, generate the report
+    if (aiResponse.readyForReport) {
+      const reportMessages: FitMessage[] = [
+        ...fullMessages,
+        { role: "assistant" as const, content: aiResponse.message },
+      ];
+
       let report: FitReport;
       try {
         report = await aiGenerateReport({
           jdText: jdText ?? "",
-          messages: fullMessages,
+          messages: reportMessages,
         });
       } catch (err) {
         console.error("AI report failed, using fallback:", err);
         report = {
           verdict: "YES",
-          heroRecommendation: "Get your team unstuck by clearing the bottlenecks that slow down every decision",
-          approachSummary: "The biggest drag on your team is waiting — waiting for approvals, waiting for information, waiting for decisions that should be straightforward. The fix is identifying the specific handoff points where things stall, and making them flow.",
+          heroRecommendation: "Free your team from the repetitive tasks that eat their day so they can focus on work that actually matters",
+          approachSummary: "The biggest drain is repetitive manual work — the same questions, the same sorting, the same requests over and over. The fix is automating the predictable parts so your team gets their time back.",
           keyInsights: [
-            { label: "The Problem", detail: "Work gets stuck between people, not inside their work. The team knows what to do but can't move." },
-            { label: "Where the Fix Lives", detail: "The handoff points between teams or between a team and leadership — that's where days get lost." },
-            { label: "First Win", detail: "Map where things stall and remove one unnecessary approval step. The team feels the difference immediately." },
+            { label: "The Root Problem", detail: "Your team spends hours on tasks that follow the same pattern every time — time they can't spend on work that needs a human." },
+            { label: "Where the Fix Lives", detail: "The handoff point where requests come in and someone has to manually sort, respond, or route them." },
+            { label: "First Win", detail: "Automate the most common request type — the one that eats the most time. The team feels the difference immediately." },
           ],
           timeline: {
-            phase1: { label: "First 30 Days", action: "Observe and map where work actually stalls — talk to the people doing the work" },
-            phase2: { label: "Days 30-60", action: "Fix the worst bottleneck with a simple, visible change the team can feel" },
-            phase3: { label: "Days 60-90", action: "Build on momentum — automate the repetitive parts and set up a rhythm so improvements stick" },
+            phase1: { label: "First 30 Days", action: "Map the top 5 repetitive tasks and measure how much time each one takes" },
+            phase2: { label: "Days 30-60", action: "Automate the #1 time sink — build it, test it, get the team using it" },
+            phase3: { label: "Days 60-90", action: "Expand to the next 2-3 tasks and set up a rhythm so improvements stick" },
           },
+          scores: [
+            { label: "Information Flow", current: 4, projected: 7 },
+            { label: "Staff Capacity", current: 3, projected: 7 },
+            { label: "Process Clarity", current: 5, projected: 7 },
+            { label: "Response Time", current: 4, projected: 8 },
+            { label: "Automation Level", current: 2, projected: 7 },
+          ],
           fitSignals: [
-            "The challenges described are exactly the kind of systems problems Calum solves",
-            "The team is ready to move faster — they just need the blockers removed",
+            "The challenges match Calum's track record of automating repetitive workflows",
+            "The team is ready to move faster — they just need the repetitive parts handled",
           ],
           risks: [
-            "If leadership isn't ready to let go of some approval steps, even the best fixes won't stick",
-            "The team needs to see early wins to stay bought in",
+            "If the team is too stretched to participate in the transition, automation can stall",
+            "Early wins are critical to keep momentum",
           ],
         };
       }
@@ -188,28 +208,14 @@ export async function registerRoutes(
         verdict: report.verdict,
         report,
         role: "assistant",
-        content: "Thank you for sharing all of that. I have enough context now to put together a FitReport for you. Here's what I'm seeing...",
+        content: aiResponse.message,
       });
-    }
-
-    // AI next prompt with fallback
-    let nextPrompt = "";
-    try {
-      nextPrompt = await aiGenerateNextPrompt({
-        jdText: jdText || "",
-        stage,
-        userTurns,
-        messages: fullMessages,
-      });
-    } catch (err) {
-      console.error("AI next prompt failed, using fallback:", err);
-      nextPrompt = "That's interesting context. Can you tell me more about how that plays out day-to-day?";
     }
 
     return res.json({
-      stage,
+      stage: 1,
       role: "assistant",
-      content: nextPrompt,
+      content: aiResponse.message,
     });
   });
 

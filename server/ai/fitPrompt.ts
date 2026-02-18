@@ -1,8 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
-
-export type FitStage = 0 | 1 | 2 | 3;
-
 export type FitMessage = {
   role: "user" | "assistant";
   content: string;
@@ -18,18 +13,9 @@ export type FitReport = {
     phase2: { label: string; action: string };
     phase3: { label: string; action: string };
   };
+  scores?: Array<{ label: string; current: number; projected: number }>;
   fitSignals: string[];
   risks: string[];
-};
-
-export type FitChoice = {
-  id: string;
-  label: string;
-};
-
-export type FitStep = {
-  question: string;
-  choices?: FitChoice[];
 };
 
 type AiOptions = {
@@ -39,16 +25,13 @@ type AiOptions = {
   provider?: "anthropic" | "openai";
 };
 
-type NextStepInput = {
-  problemStatement?: string;
+type NextResponseInput = {
   jdText?: string;
-  stage: FitStage;
   userTurns: number;
   messages: FitMessage[];
 };
 
 type ReportInput = {
-  problemStatement?: string;
   jdText?: string;
   messages: FitMessage[];
 };
@@ -78,15 +61,13 @@ KEY EXPERIENCE:
 2. Operations Supervisor - Jolly Tails Pet Resort (2022, 2025-Present)
    - Improved operational KPIs by ~10% through data profiling and process optimization
    - Technology liaison translating operational needs into system requirements
-   - Built cross-system validation workflows catching data quality issues
 
 3. Data Analyst - St. Francis Xavier University, Advancement Office (2024-2025)
    - Power BI dashboards with rule-based quality checks
-   - SQL queries for complex data extraction, transformation, and reporting
-   - Root cause analysis on data inconsistencies across legacy systems
+   - SQL queries for complex data extraction and reporting
 
 4. Student Manager - Kevin's Corner Food Bank, StFX (2023-2024)
-   - Scaled operations to support 140+ additional users during rapid growth
+   - Scaled operations to support 140+ additional users
    - Designed workflows enabling 300% increase in operational hours
 
 EDUCATION:
@@ -97,22 +78,39 @@ CERTIFICATIONS:
 - AI & Agentic Workflows - Maven (2025)
 - Generative AI Leader - Google Cloud (2025)
 - AI Mastery Program - Marketing AI Institute (2024-Present)
-
-STRENGTHS:
-- End-to-end delivery: requirements gathering through deployment and client handoff
-- Bridging technical implementation and operational strategy
-- Building AI systems that solve real, measurable business problems
-- Translating messy workflows into structured, automated systems
-- Data quality focus and systematic root cause analysis
-
-AREAS OF GROWTH:
-- Enterprise-scale system architecture
-- Team leadership in technical roles
-- Deepening ML/AI theoretical foundations
 `;
 
+const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to have a real conversation that finds the ONE biggest operational pain point and drills into the root cause.
+
+${CALUM_RESUME_CONTEXT}
+
+**Your Persona:**
+- Systems-thinking consultant who actually listens
+- Genuinely curious, not interrogating
+- Grounded, professional, unhurried
+
+**Your Goal:**
+Find the ONE root cause bottleneck. Start with a symptom, dig until you hit the actual problem.
+
+**How to respond:**
+- Every response is 1-2 sentences max
+- First sentence: synthesize what they said using THEIR words
+- Second sentence: one question that follows directly from what they told you
+
+**CRITICAL RULES:**
+- Quote or paraphrase their specific words
+- NEVER give generic responses
+- NEVER ask checklist questions
+- If the user gives garbage input, respond: "I want to give you something actually useful — could you share what's taking up the most time or causing the most friction in your day-to-day?"
+- Keep drilling into ONE thread
+- Never sell Calum directly
+
+**RESPONSE FORMAT:**
+Return ONLY valid JSON: { "message": "your response", "readyForReport": false }
+Set readyForReport to true when you can name the root pain point. Typically 3-5 exchanges.`;
+
 // -----------------------------
-// Anthropic Claude API call
+// Anthropic Claude API call (single turn)
 // -----------------------------
 async function callAnthropicText(
   systemPrompt: string,
@@ -138,18 +136,55 @@ async function callAnthropicText(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `Anthropic API error (${response.status}): ${errorText || response.statusText}`
-    );
+    throw new Error(`Anthropic API error (${response.status}): ${errorText || response.statusText}`);
   }
 
   const data: any = await response.json();
   const content = data?.content?.[0]?.text;
-
   if (typeof content !== "string" || !content.trim()) {
     throw new Error("Anthropic returned an empty response.");
   }
+  return content.trim();
+}
 
+// -----------------------------
+// Anthropic multi-turn call
+// -----------------------------
+async function callAnthropicMultiTurn(
+  systemPrompt: string,
+  messages: Array<{ role: string; content: string }>,
+  opts: { apiKey: string; model: string }
+): Promise<string> {
+  const { apiKey, model } = opts;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(`Anthropic API error (${response.status}): ${errorText || response.statusText}`);
+  }
+
+  const data: any = await response.json();
+  const content = data?.content?.[0]?.text;
+  if (typeof content !== "string" || !content.trim()) {
+    throw new Error("Anthropic returned an empty response.");
+  }
   return content.trim();
 }
 
@@ -191,135 +226,121 @@ async function callOpenAiText(
   return out.trim();
 }
 
-function getAiOpts(overrides?: AiOptions): {
-  provider: "anthropic" | "openai";
-  apiKey: string;
-  model: string;
-  baseUrl: string;
-} {
-  // Check for Anthropic first (preferred)
+function getAiOpts(overrides?: AiOptions) {
   const anthropicKey = overrides?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "";
   if (anthropicKey) {
     return {
-      provider: "anthropic",
+      provider: "anthropic" as const,
       apiKey: anthropicKey,
       model: overrides?.model ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
       baseUrl: "https://api.anthropic.com",
     };
   }
 
-  // Fallback to OpenAI
   const openaiKey = process.env.OPENAI_API_KEY ?? "";
   if (openaiKey) {
     return {
-      provider: "openai",
+      provider: "openai" as const,
       apiKey: openaiKey,
       model: overrides?.model ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       baseUrl: overrides?.baseUrl ?? process.env.OPENAI_BASE_URL ?? "https://api.openai.com",
     };
   }
 
-  throw new Error(
-    "Missing API key. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment variables."
-  );
+  throw new Error("Missing API key. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.");
+}
+
+function parseAiResponse(raw: string): { message: string; readyForReport: boolean } {
+  try {
+    const jsonStart = raw.indexOf("{");
+    const jsonEnd = raw.lastIndexOf("}");
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+      return {
+        message: String(parsed.message || "").trim(),
+        readyForReport: Boolean(parsed.readyForReport),
+      };
+    }
+  } catch {}
+  return { message: raw.trim(), readyForReport: false };
 }
 
 // -----------------------------
-// Generate next step as JSON { question, choices[] }
+// Generate next response (AI-driven readiness)
 // -----------------------------
-export async function aiGenerateNextStep(
-  input: NextStepInput,
+export async function aiGenerateNextResponse(
+  input: NextResponseInput,
   overrides?: AiOptions
-): Promise<FitStep> {
+): Promise<{ message: string; readyForReport: boolean }> {
   const opts = getAiOpts(overrides);
   const jd = String(input.jdText ?? "").trim();
 
-  const systemPrompt = `You are an AI career advisor helping evaluate job fit for Calum Kershaw.
+  const chatMessages: Array<{ role: string; content: string }> = [];
 
-${CALUM_RESUME_CONTEXT}
+  if (jd) {
+    chatMessages.push({
+      role: "user",
+      content: `Context about my business:\n"""\n${jd.slice(0, 6000)}\n"""`,
+    });
+    chatMessages.push({
+      role: "assistant",
+      content: '{"message": "Thanks for sharing that context. Let me ask you about it.", "readyForReport": false}',
+    });
+  }
 
-Your role is to ask clarifying questions about the job to better understand fit. Be conversational but focused.`;
+  for (const msg of input.messages) {
+    chatMessages.push({ role: msg.role, content: msg.content });
+  }
 
-  const userPrompt = `
-Job Description:
-"""
-${jd.slice(0, 30000)}
-"""
+  let turnGuidance = "";
+  if (input.userTurns <= 2) {
+    turnGuidance = "Early in the conversation. Understand the symptom, ask what the current process looks like. Do NOT set readyForReport to true.";
+  } else if (input.userTurns <= 4) {
+    turnGuidance = "Mid-conversation. Drill into the root cause. If you can name it clearly, set readyForReport to true.";
+  } else {
+    turnGuidance = "Several exchanges done. Summarize the root pain point and set readyForReport to true.";
+  }
 
-Conversation so far:
-${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+  chatMessages.push({
+    role: "user",
+    content: `[SYSTEM INSTRUCTION - NOT A USER MESSAGE]
+${turnGuidance}
+User turn count: ${input.userTurns}
 
-Current stage: ${input.stage} (0=intake, 1=narrowing, 2=deep dive, 3=report)
-User turns: ${input.userTurns}
-
-Generate the next question to ask about this job opportunity. Focus on understanding:
-- Stage 0-1: Role responsibilities, team structure, key challenges
-- Stage 2: Growth opportunities, decision-making authority, success metrics
-
-Return ONLY valid JSON in this exact format (no markdown):
-{
-  "question": "Your question here",
-  "choices": [
-    { "id": "a", "label": "Choice 1" },
-    { "id": "b", "label": "Choice 2" },
-    { "id": "c", "label": "Choice 3" },
-    { "id": "other", "label": "Other (I'll type my own)" }
-  ]
-}
-`;
+Generate your next response. Follow the thread.
+Return ONLY valid JSON: { "message": "your response", "readyForReport": true/false }`,
+  });
 
   let raw: string;
   if (opts.provider === "anthropic") {
-    raw = await callAnthropicText(systemPrompt, userPrompt, opts);
+    raw = await callAnthropicMultiTurn(DIAGNOSTIC_SYSTEM_PROMPT, chatMessages, opts);
   } else {
-    raw = await callOpenAiText(systemPrompt + "\n\n" + userPrompt, opts);
+    const prompt = `${DIAGNOSTIC_SYSTEM_PROMPT}\n\nConversation:\n${chatMessages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}`;
+    raw = await callOpenAiText(prompt, opts);
   }
 
-  // Extract JSON
-  const jsonStart = raw.indexOf("{");
-  const jsonEnd = raw.lastIndexOf("}");
-  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+  const parsed = parseAiResponse(raw);
+
+  if (!parsed.message) {
     return {
-      question: "What aspects of this role interest you most?",
-      choices: [{ id: "other", label: "Type your answer" }],
+      message: "I want to make sure I understand — could you tell me a bit more about how that plays out day-to-day?",
+      readyForReport: false,
     };
   }
 
-  try {
-    const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
-    const question = String(parsed?.question ?? "").trim();
-    const choicesRaw = Array.isArray(parsed?.choices) ? parsed.choices : [];
-
-    const choices: FitChoice[] = choicesRaw
-      .map((c: any) => ({
-        id: String(c?.id ?? "").trim(),
-        label: String(c?.label ?? "").trim(),
-      }))
-      .filter((c: FitChoice) => c.id && c.label);
-
-    return {
-      question: question || "What aspects of this role interest you most?",
-      choices: choices.length ? choices : [{ id: "other", label: "Type your answer" }],
-    };
-  } catch {
-    return {
-      question: "What aspects of this role interest you most?",
-      choices: [{ id: "other", label: "Type your answer" }],
-    };
+  // Safety rails
+  if (parsed.readyForReport && input.userTurns < 3) {
+    parsed.readyForReport = false;
   }
-}
+  if (input.userTurns >= 6 && !parsed.readyForReport) {
+    parsed.readyForReport = true;
+  }
 
-// Backwards-compatible helper
-export async function aiGenerateNextPrompt(
-  input: NextStepInput,
-  overrides?: AiOptions
-) {
-  const step = await aiGenerateNextStep(input, overrides);
-  return step.question;
+  return parsed;
 }
 
 // -----------------------------
-// Report generation
+// Report generation (with scores)
 // -----------------------------
 export async function aiGenerateReport(
   input: ReportInput,
@@ -328,48 +349,50 @@ export async function aiGenerateReport(
   const opts = getAiOpts(overrides);
   const jd = String(input.jdText ?? "").trim();
 
-  const systemPrompt = `You are producing a FitReport based on a diagnostic conversation about operational challenges.
+  const systemPrompt = `You are producing a FitReport based on a diagnostic conversation where you identified a specific operational pain point.
 
 ${CALUM_RESUME_CONTEXT}
 
 LANGUAGE RULES (CRITICAL):
 - Write EVERYTHING in plain language a non-technical business owner would understand
-- NO tech jargon: no "AI-powered", "RAG system", "pipeline", "API", "integration layer"
-- INSTEAD use: "automate the repetitive part", "sort incoming requests automatically", "give your team one place to see everything"
-- The hero recommendation should describe the OUTCOME for the user's team, not the technology
+- NO tech jargon
+- The hero recommendation should describe the OUTCOME for the team
 - Reference specific things from the conversation
-- Be honest and balanced.`;
+
+SCORING RULES:
+- Score 5-6 operational dimensions on a 0-10 scale based on what was discussed
+- Pick dimensions RELEVANT to what came up
+- Be honest — a 3→7 jump is more credible than 2→9`;
 
   const userPrompt = `
-Job Description / Context:
-"""
-${jd.slice(0, 30000)}
-"""
-
-Conversation transcript:
+${jd ? `Context:\n"""\n${jd.slice(0, 30000)}\n"""\n\n` : ""}Conversation:
 ${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
-Generate a FitReport. The heroRecommendation should be a single bold sentence describing the outcome — what changes for the team.
+Generate a FitReport focused on the ONE pain point identified.
 
-Return ONLY valid JSON (no markdown):
+Return ONLY valid JSON:
 {
   "verdict": "YES" or "NO",
-  "heroRecommendation": "One bold sentence describing the outcome for the team",
-  "approachSummary": "2-3 plain-language sentences: what the problem is, what the fix looks like, what changes day-to-day",
+  "heroRecommendation": "One bold sentence — the outcome",
+  "approachSummary": "2-3 plain sentences",
   "keyInsights": [
-    { "label": "The Problem", "detail": "plain language description" },
-    { "label": "Where the Fix Lives", "detail": "plain language description" },
-    { "label": "First Win", "detail": "one concrete thing that improves within weeks" }
+    { "label": "The Root Problem", "detail": "..." },
+    { "label": "Where the Fix Lives", "detail": "..." },
+    { "label": "First Win", "detail": "..." }
   ],
   "timeline": {
-    "phase1": { "label": "First 30 Days", "action": "plain language action" },
-    "phase2": { "label": "Days 30-60", "action": "plain language action" },
-    "phase3": { "label": "Days 60-90", "action": "plain language action" }
+    "phase1": { "label": "First 30 Days", "action": "..." },
+    "phase2": { "label": "Days 30-60", "action": "..." },
+    "phase3": { "label": "Days 60-90", "action": "..." }
   },
-  "fitSignals": ["2-3 plain-language reasons this is a good fit"],
-  "risks": ["1-2 honest risks to flag"]
+  "scores": [
+    { "label": "Dimension", "current": 4, "projected": 8 }
+  ],
+  "fitSignals": ["..."],
+  "risks": ["..."]
 }
-`;
+
+Pick 5-6 dimensions most relevant to THIS conversation.`;
 
   let raw: string;
   if (opts.provider === "anthropic") {
@@ -378,41 +401,40 @@ Return ONLY valid JSON (no markdown):
     raw = await callOpenAiText(systemPrompt + "\n\n" + userPrompt, opts);
   }
 
-  // Extract JSON
   const jsonStart = raw.indexOf("{");
   const jsonEnd = raw.lastIndexOf("}");
   if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
     throw new Error("AI report did not contain valid JSON.");
   }
 
-  const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+  const p = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
 
-  const verdict = parsed?.verdict === "YES" ? "YES" : "NO";
   const toStringArray = (v: any) =>
     Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [];
   const toInsightArray = (v: any) =>
+    Array.isArray(v) ? v.map((x: any) => ({ label: String(x?.label ?? ""), detail: String(x?.detail ?? "") })) : [];
+  const toPhase = (v: any) => ({ label: String(v?.label ?? ""), action: String(v?.action ?? "") });
+  const toScores = (v: any) =>
     Array.isArray(v)
       ? v.map((x: any) => ({
           label: String(x?.label ?? ""),
-          detail: String(x?.detail ?? ""),
+          current: Math.min(10, Math.max(0, Number(x?.current ?? 5))),
+          projected: Math.min(10, Math.max(0, Number(x?.projected ?? 7))),
         }))
       : [];
-  const toPhase = (v: any) => ({
-    label: String(v?.label ?? ""),
-    action: String(v?.action ?? ""),
-  });
 
   return {
-    verdict,
-    heroRecommendation: String(parsed.heroRecommendation ?? ""),
-    approachSummary: String(parsed.approachSummary ?? ""),
-    keyInsights: toInsightArray(parsed.keyInsights),
+    verdict: p?.verdict === "YES" ? "YES" : "NO",
+    heroRecommendation: String(p.heroRecommendation ?? ""),
+    approachSummary: String(p.approachSummary ?? ""),
+    keyInsights: toInsightArray(p.keyInsights),
     timeline: {
-      phase1: toPhase(parsed.timeline?.phase1),
-      phase2: toPhase(parsed.timeline?.phase2),
-      phase3: toPhase(parsed.timeline?.phase3),
+      phase1: toPhase(p.timeline?.phase1),
+      phase2: toPhase(p.timeline?.phase2),
+      phase3: toPhase(p.timeline?.phase3),
     },
-    fitSignals: toStringArray(parsed.fitSignals),
-    risks: toStringArray(parsed.risks),
+    scores: toScores(p.scores),
+    fitSignals: toStringArray(p.fitSignals),
+    risks: toStringArray(p.risks),
   };
 }

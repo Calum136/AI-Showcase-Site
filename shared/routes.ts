@@ -43,6 +43,11 @@ export const fitReportSchema = z.object({
     phase2: z.object({ label: z.string(), action: z.string() }),
     phase3: z.object({ label: z.string(), action: z.string() }),
   }),
+  scores: z.array(z.object({
+    label: z.string(),
+    current: z.number().min(0).max(10),
+    projected: z.number().min(0).max(10),
+  })).optional(),
   fitSignals: z.array(z.string()),
   risks: z.array(z.string()),
 });

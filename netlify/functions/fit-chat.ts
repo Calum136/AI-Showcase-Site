@@ -24,106 +24,65 @@ const fitChatSchema = z.discriminatedUnion("action", [
 ]);
 
 // ---------------------
-// System Prompt
+// System Prompt — Natural Diagnostic Conversation
 // ---------------------
-const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to conduct a calm, systems-focused conversation that reveals operational bottlenecks in the user's organization.
+const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to have a real conversation that finds the ONE biggest operational pain point and drills into the root cause.
 
 **Your Persona:**
-- Systems-thinking consultant
+- Systems-thinking consultant who actually listens
 - Genuinely curious, not interrogating
 - Grounded, professional, unhurried
+- You sound like a person, not a chatbot
 
-**Conversation Goals:**
-1. Identify energy drains (what's consuming capacity)
-2. Diagnose bottlenecks (approval delays, coordination gaps, unclear ownership)
-3. Explore workaround behavior (reveals misalignment)
-4. Map improvement opportunities (where leverage lives)
-5. Understand resource constraints (capacity vs running)
+**Your Goal:**
+Find the ONE root cause bottleneck. NOT survey the whole business. Start with a symptom, dig until you hit the actual problem.
 
-**Conversation Structure (3 Stages, 8-12 Total Exchanges):**
+**Example of a good conversation:**
+- User: "Too many customer complaints about finding info online"
+- You: "And how is that information structured right now?"
+- User: "Hierarchical menus on our website"
+- You: "So likely a navigation issue — are customers calling in when they can't find things?"
+- User: "Yeah, staff spend half their day answering calls, emails, and sorting files"
+- You: "That's the real problem — your staff are burning hours on repetitive information requests instead of doing their actual work."
 
-**Stage 1 - Opening & Energy Mapping (3-4 exchanges)**
-- Listen for: Projects, approvals, coordination, delivery pressure
-- Dig into their specific situation using THEIR words
-
-**Stage 2 - Bottleneck Diagnosis (3-4 exchanges)**
-- Impact, behavior, workarounds, process maturity
-- Go deeper on what THEY brought up, don't introduce new topics
-
-**Stage 3 - Improvement & Ownership (3-4 exchanges)**
-- Opportunity, ownership, resources, capacity for change
+**How to respond:**
+- Every response is 1-2 sentences max
+- First sentence: synthesize what they said using THEIR words
+- Second sentence: one question that follows directly from what they told you
+- Every question must ONLY make sense as a response to what they just said
+- Never ask a question that could apply to any business — it must be specific to their situation
 
 **CRITICAL RULES:**
-- You MUST use specific words, phrases, or details from the user's last message in your synthesis. Quote or paraphrase them directly. Example: if they say "micromanagement", you say "You mentioned micromanagement — when that pressure shows up..."
-- NEVER give generic acknowledgements like "That's interesting context" or "I hear you" or "That makes sense" without immediately connecting to something specific they said
-- Never use corporate jargon ("synergy", "bandwidth", "touch base")
-- Never sell Calum directly ("I can help with that")
-- Keep responses 2-3 sentences max. One sentence of synthesis using their words, one question that digs deeper
-- Be warm and human, not robotic
-- Each response must feel like it could ONLY have been written after reading what the user just said
+- Quote or paraphrase their specific words. If they say "emails", you say "emails"
+- NEVER give generic responses ("That's interesting", "I hear you", "That makes sense")
+- NEVER ask checklist questions ("What about your team structure?", "How do you handle approvals?")
+- If the user gives garbage input (single words, "test", "asdf", nonsense), respond: "I want to give you something actually useful — could you share what's taking up the most time or causing the most friction in your day-to-day?"
+- Keep drilling into ONE thread. Don't branch to new topics
+- Never sell Calum directly
 
 **About Calum Kershaw:**
-AI Systems Developer & Process Analyst who translates business priorities into working systems. Currently delivering client AI automation and building agent-orchestrated systems.
-Skills: TypeScript, Python, React, Node.js, OpenAI API, Anthropic Claude, RAG Systems, Agent Orchestration, MCP Servers, Make.com, PostgreSQL, Power BI
-Experience: AI Solutions Developer (client work including Blackbird Brewing), Operations Supervisor, Data Analyst
-Strengths: End-to-end delivery, bridging technical and operational perspectives, process automation, systems thinking
-`;
+AI Systems Developer & Process Analyst who translates business priorities into working systems.
+Builds tools that automate repetitive work, improve information flow, and help teams make decisions faster.
+Client experience includes Blackbird Brewing (~120 emails/week automated), JollyTails (20+ SOPs consolidated).
+Background in operations management, data analysis, and end-to-end project delivery.
 
-const DEFAULT_OPENING =
-  "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
-
-// ---------------------
-// Fallback Questions (templated with user context)
-// ---------------------
-// Templates use {topic} which gets replaced with a keyword from the user's last message
-const FALLBACK_TEMPLATES = {
-  stage1: [
-    "You brought up {topic} — when that tension shows up, does it tend to slow things down for just your team, or does it ripple across the organization?",
-    "That point about {topic} stands out. Is that something that's been building over time, or did it surface recently?",
-    "When you think about {topic}, is the core issue about how decisions get made, or about how information moves between people?",
-    "{topic} — is that something people have tried to fix before, or is it one of those things everyone just works around?",
-    "You mentioned {topic}. When that creates friction, where do you feel it first — in delivery timelines, in team energy, or somewhere else?",
-    "Interesting that {topic} came up. Is the team aware that's a drag, or is it one of those invisible costs nobody talks about?",
-  ],
-  stage2: [
-    "So when {topic} hits, what usually gives first — the timeline, the quality, or the team's focus?",
-    "With {topic} being a factor, have people started building their own workarounds, or do they wait for the bottleneck to clear?",
-    "On the {topic} side — does the right information exist but not reach the right people, or is it never captured in the first place?",
-    "When {topic} creates delays, is it because someone specific needs to approve, or because nobody's sure who owns the decision?",
-    "You're describing {topic} as a recurring issue. Has the team tried changing the process around it, or has it just become 'how things work here'?",
-    "With {topic} in the picture — if you could wave a wand and fix one piece of how work flows, what would have the most immediate impact?",
-  ],
-  stage3: [
-    "Given everything around {topic}, if one part of how work moves got noticeably smoother, where would you feel the biggest relief?",
-    "When it comes to fixing {topic}, is that something someone owns, or does it fall between the cracks because everyone's busy keeping things running?",
-    "On {topic} — does your team have breathing room to change how they work, or is most capacity locked into keeping today's plates spinning?",
-    "If you solved the {topic} issue, what would that actually look like day-to-day for your team?",
-    "You've painted a clear picture around {topic}. What would 'good' look like in 90 days if things started moving in the right direction?",
-    "Last question on {topic} — is the organization ready to invest in fixing this, or is it still in the 'we know it's a problem but...' stage?",
-  ],
-};
-
-/**
- * Extract a meaningful topic phrase from the user's last message.
- * Grabs the longest noun-phrase-ish chunk, or falls back to first several words.
- */
-function extractTopic(userMessage: string): string {
-  const cleaned = userMessage.trim().replace(/[.!?]+$/g, "");
-  // If short enough, just use it
-  if (cleaned.split(/\s+/).length <= 5) return cleaned.toLowerCase();
-  // Take first meaningful clause (before first comma or period)
-  const clause = cleaned.split(/[,.\n]/)[0].trim();
-  if (clause.split(/\s+/).length <= 6) return clause.toLowerCase();
-  // Last resort: first 5 words
-  return clause.split(/\s+/).slice(0, 5).join(" ").toLowerCase();
+**RESPONSE FORMAT:**
+You MUST return valid JSON (no markdown, no code blocks):
+{
+  "message": "Your conversational response here",
+  "readyForReport": false
 }
 
+Set readyForReport to true ONLY when you can name the root pain point in one sentence. This typically takes 3-5 exchanges.`;
+
+const DEFAULT_OPENING = "What's the thing that's eating the most time at work right now?";
+
 // ---------------------
-// OpenAI Helpers
+// OpenAI Helper
 // ---------------------
 async function callOpenAI(
   messages: Array<{ role: string; content: string }>,
-  temperature = 0.3,
+  temperature = 0.4,
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
@@ -147,32 +106,22 @@ async function callOpenAI(
 }
 
 // ---------------------
-// Stage Logic
+// Parse AI JSON response safely
 // ---------------------
-function computeStage(userTurns: number): 1 | 2 | 3 {
-  if (userTurns >= 8) return 3;
-  if (userTurns >= 4) return 2;
-  return 1;
-}
-
-function getFallbackQuestion(
-  stage: number,
-  userTurns: number,
-  lastUserMessage?: string,
-): string {
-  const templates =
-    stage === 1
-      ? FALLBACK_TEMPLATES.stage1
-      : stage === 2
-        ? FALLBACK_TEMPLATES.stage2
-        : FALLBACK_TEMPLATES.stage3;
-
-  // Pick a random template (not sequential — feels less scripted)
-  const template = templates[Math.floor(Math.random() * templates.length)];
-  const topic = lastUserMessage
-    ? extractTopic(lastUserMessage)
-    : "what you described";
-  return template.replace(/\{topic\}/g, topic);
+function parseAiResponse(raw: string): { message: string; readyForReport: boolean } {
+  try {
+    const jsonStart = raw.indexOf("{");
+    const jsonEnd = raw.lastIndexOf("}");
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+      return {
+        message: String(parsed.message || "").trim(),
+        readyForReport: Boolean(parsed.readyForReport),
+      };
+    }
+  } catch {}
+  // If not valid JSON, treat the whole response as the message
+  return { message: raw.trim(), readyForReport: false };
 }
 
 // ---------------------
@@ -188,41 +137,32 @@ async function generateFirstQuestion(jdText: string): Promise<string> {
       { role: "system", content: DIAGNOSTIC_SYSTEM_PROMPT },
       {
         role: "user",
-        content: `The user has provided this context (likely a job description):
+        content: `The user has provided this context about their business or role:
 """
 ${jdText.slice(0, 10000)}
 """
 
-Based on this context, generate an appropriate opening question that acknowledges you've seen their context and asks about their current operational challenges or energy drains.
+Based on this context, ask ONE specific opening question about what's causing the most friction in their day-to-day operations. Reference something specific from what they shared.
 
-Keep it 1-2 sentences. Be warm but professional. Don't use corporate jargon.
-Return ONLY the question text, nothing else.`,
+Return ONLY valid JSON: { "message": "your question", "readyForReport": false }`,
       },
     ]);
-    return result || DEFAULT_OPENING;
+    const parsed = parseAiResponse(result);
+    return parsed.message || DEFAULT_OPENING;
   } catch (err) {
-    console.error("AI failed for first question, using fallback:", err);
+    console.error("AI failed for first question:", err);
     return DEFAULT_OPENING;
   }
 }
 
 // ---------------------
-// Generate Next Question
+// Generate Next Response
 // ---------------------
-async function generateNextQuestion(
+async function generateNextResponse(
   jdText: string,
   messages: Array<{ role: string; content: string }>,
-  stage: number,
   userTurns: number,
-): Promise<string> {
-  const stageGuidance =
-    stage === 1
-      ? "You are in Stage 1 (Energy Mapping). Focus on understanding what's consuming their capacity, where friction lives, and what patterns they're seeing."
-      : stage === 2
-        ? "You are in Stage 2 (Bottleneck Diagnosis). Focus on impact of bottlenecks, workaround behaviors, and whether information flows properly."
-        : "You are in Stage 3 (Improvement & Ownership). Focus on where leverage lives, who owns improvement, and whether teams have capacity to change.";
-
-  // Build proper multi-turn messages for OpenAI
+): Promise<{ message: string; readyForReport: boolean }> {
   const chatMessages: Array<{ role: string; content: string }> = [
     { role: "system", content: DIAGNOSTIC_SYSTEM_PROMPT },
   ];
@@ -230,7 +170,7 @@ async function generateNextQuestion(
   if (jdText) {
     chatMessages.push({
       role: "system",
-      content: `Context provided by the user:\n"""\n${jdText.slice(0, 6000)}\n"""`,
+      content: `Context the user provided about their business:\n"""\n${jdText.slice(0, 6000)}\n"""`,
     });
   }
 
@@ -239,55 +179,84 @@ async function generateNextQuestion(
     chatMessages.push({ role: msg.role, content: msg.content });
   }
 
-  // Add generation instruction
+  // Add turn-count guidance
+  let turnGuidance = "";
+  if (userTurns <= 2) {
+    turnGuidance = "You are early in the conversation. Focus on understanding the symptom and asking what the current process looks like. Do NOT set readyForReport to true yet.";
+  } else if (userTurns <= 4) {
+    turnGuidance = "You are mid-conversation. You should be drilling into the root cause — who feels it, what breaks when it piles up. If you can name the root pain point clearly, you can set readyForReport to true.";
+  } else {
+    turnGuidance = "You've had several exchanges. You should have enough context now. Summarize the root pain point back to them and set readyForReport to true. If you genuinely don't have enough info, ask one final clarifying question.";
+  }
+
   chatMessages.push({
     role: "user",
     content: `[SYSTEM INSTRUCTION - NOT A USER MESSAGE]
-${stageGuidance}
+${turnGuidance}
 User turn count: ${userTurns}
 
-Based on the user's LAST response, generate your next message. You MUST:
-1. Reference a specific word, phrase, or idea from what they just said (not a generic "that's interesting")
-2. Ask one diagnostic question that digs deeper into THEIR specific situation
+Based on the conversation, generate your next response. Follow the thread — don't introduce new topics.
 
-Keep it to 2-3 sentences total. The response must feel like it could only exist because of what they just told you.
-Return ONLY your response text.`,
+Return ONLY valid JSON (no markdown): { "message": "your response", "readyForReport": true/false }`,
   });
 
-  // Extract last user message for fallback context
-  const lastUserMsg = [...messages]
-    .reverse()
-    .find((m) => m.role === "user")?.content;
-
   try {
-    const response = await callOpenAI(chatMessages);
-    return response || getFallbackQuestion(stage, userTurns, lastUserMsg);
-  } catch {
-    return getFallbackQuestion(stage, userTurns, lastUserMsg);
+    const raw = await callOpenAI(chatMessages);
+    const parsed = parseAiResponse(raw);
+
+    if (!parsed.message) {
+      return {
+        message: "I want to make sure I understand — could you tell me a bit more about how that plays out day-to-day?",
+        readyForReport: false,
+      };
+    }
+
+    // Safety rails: minimum 3 turns before report, force report at 6
+    if (parsed.readyForReport && userTurns < 3) {
+      parsed.readyForReport = false;
+    }
+    if (userTurns >= 6 && !parsed.readyForReport) {
+      parsed.readyForReport = true;
+    }
+
+    return parsed;
+  } catch (err) {
+    console.error("AI call failed:", err);
+    return {
+      message: "I'm having trouble connecting right now — could you try that again?",
+      readyForReport: false,
+    };
   }
 }
 
 // ---------------------
-// Generate Report
+// Generate Report (with operational scores)
 // ---------------------
 async function generateReport(
   jdText: string,
   messages: Array<{ role: string; content: string }>,
 ): Promise<any> {
-  const reportSystemPrompt = `You are producing a FitReport based on a diagnostic conversation about operational bottlenecks and organizational challenges.
+  const reportSystemPrompt = `You are producing a FitReport based on a diagnostic conversation where you identified a specific operational pain point.
 
-Your job is to synthesize the conversation into ONE clear, actionable recommendation — not a generic assessment.
+Your job is to synthesize the conversation into ONE clear, actionable recommendation focused on the root cause you discovered.
 
 LANGUAGE RULES (CRITICAL):
 - Write EVERYTHING in plain language a non-technical business owner would understand
 - NO tech jargon: no "AI-powered", "RAG system", "pipeline", "API", "integration layer"
-- INSTEAD use: "automate the repetitive part", "sort incoming requests automatically", "give your team one place to see everything", "stop things from falling through the cracks"
-- The hero recommendation should describe the OUTCOME for the user's team, not the technology
+- INSTEAD use: "automate the repetitive part", "sort incoming requests automatically", "give your team one place to find everything", "stop things from falling through the cracks"
+- The hero recommendation should describe the OUTCOME for the team, not the technology
 - Reference specific things they said in the conversation
+
+SCORING RULES:
+- Score 5-6 operational dimensions on a 0-10 scale based on what was discussed
+- Pick dimensions RELEVANT to what came up (not a generic set for every business)
+- "current" = where they are now based on the conversation
+- "projected" = realistic expected improvement if the recommended solution is implemented
+- Be honest — don't inflate projected scores unrealistically. A 3→7 jump is more credible than 2→9
 
 About Calum Kershaw:
 - AI Systems Developer & Process Analyst with client delivery experience
-- Builds tools that automate repetitive work, improve information flow, and help teams make better decisions faster
+- Builds tools that automate repetitive work, improve information flow, and help teams make decisions faster
 - Delivered AI email automation for Blackbird Brewing (~120 emails/week automated)
 - Background in operations management, data analysis, and end-to-end project delivery
 
@@ -300,32 +269,41 @@ Be honest, specific, and grounded in what was actually discussed.`;
   const userPrompt = `${jdText ? `Context provided:\n"""\n${jdText.slice(0, 6000)}\n"""\n\n` : ""}Diagnostic Conversation:
 ${conversation}
 
-Based on this conversation, generate a FitReport. The heroRecommendation should be a single bold sentence describing the outcome — what changes for the team. NOT a technology pitch.
+Based on this conversation, generate a FitReport focused on the ONE pain point you identified.
 
 Return ONLY valid JSON (no markdown, no code blocks):
 {
   "verdict": "YES" or "NO",
-  "heroRecommendation": "One bold sentence describing the outcome — e.g. 'Free your team from the approval bottleneck so they can move at the speed they want to'",
-  "approachSummary": "2-3 plain-language sentences: what the problem is, what the fix looks like, and what changes day-to-day for the team",
+  "heroRecommendation": "One bold sentence describing the outcome — what changes for the team",
+  "approachSummary": "2-3 plain-language sentences: what the root problem is, what the fix looks like, and what changes day-to-day",
   "keyInsights": [
-    { "label": "The Problem", "detail": "plain language — what's actually slowing things down, referencing what they said" },
-    { "label": "Where the Fix Lives", "detail": "plain language — what part of the system to change" },
-    { "label": "First Win", "detail": "one concrete thing that would visibly improve within weeks" }
+    { "label": "The Root Problem", "detail": "plain language — the one thing causing the most pain, using their words" },
+    { "label": "Where the Fix Lives", "detail": "plain language — what part of the workflow to change" },
+    { "label": "First Win", "detail": "one concrete thing that improves within weeks" }
   ],
   "timeline": {
     "phase1": { "label": "First 30 Days", "action": "plain language action step" },
     "phase2": { "label": "Days 30-60", "action": "plain language action step" },
     "phase3": { "label": "Days 60-90", "action": "plain language action step" }
   },
-  "fitSignals": ["2-3 plain-language reasons this is a good fit, referencing the conversation"],
+  "scores": [
+    { "label": "Information Flow", "current": 4, "projected": 8 },
+    { "label": "Staff Capacity", "current": 3, "projected": 7 },
+    { "label": "Process Clarity", "current": 5, "projected": 8 },
+    { "label": "Response Time", "current": 3, "projected": 7 },
+    { "label": "Automation Level", "current": 2, "projected": 7 }
+  ],
+  "fitSignals": ["2-3 plain-language reasons this is a good fit"],
   "risks": ["1-2 honest risks or things to watch for"]
-}`;
+}
+
+Pick 5-6 dimensions most relevant to THIS conversation. Don't use the example dimensions if they don't fit — choose ones that reflect what was actually discussed.`;
 
   try {
     const raw = await callOpenAI([
       { role: "system", content: reportSystemPrompt },
       { role: "user", content: userPrompt },
-    ]);
+    ], 0.3);
     const jsonStart = raw.indexOf("{");
     const jsonEnd = raw.lastIndexOf("}");
     if (jsonStart >= 0 && jsonEnd > jsonStart) {
@@ -335,55 +313,55 @@ Return ONLY valid JSON (no markdown, no code blocks):
     console.error("Report generation failed:", err);
   }
 
-  // Fallback report — plain language, matches new schema
+  // Fallback report
   return {
     verdict: "YES",
     heroRecommendation:
-      "Get your team unstuck by clearing the bottlenecks that slow down every decision",
+      "Free your team from the repetitive tasks that eat their day so they can focus on work that actually matters",
     approachSummary:
-      "Based on our conversation, the biggest drag on your team is waiting — waiting for approvals, waiting for information, waiting for decisions that should be straightforward. The fix isn't more meetings or more tools. It's identifying the 2-3 specific handoff points where things stall, and making them flow.",
+      "Based on our conversation, the biggest drain is repetitive manual work — answering the same questions, sorting the same files, handling the same requests over and over. The fix is identifying those repeating patterns and automating the predictable parts so your team gets their time back.",
     keyInsights: [
       {
-        label: "The Problem",
-        detail:
-          "Work gets stuck between people, not inside their work. The team knows what to do but can't move until someone else weighs in.",
+        label: "The Root Problem",
+        detail: "Your team is spending hours on tasks that follow the same pattern every time — that's time they can't spend on the work that actually needs a human.",
       },
       {
         label: "Where the Fix Lives",
-        detail:
-          "The handoff points between teams or between a team and leadership. That's where days get lost.",
+        detail: "The handoff point where requests come in and someone has to manually sort, respond, or route them. That's where automation has the biggest impact.",
       },
       {
         label: "First Win",
-        detail:
-          "Map out exactly where things stall and remove one unnecessary approval step. The team feels the difference immediately.",
+        detail: "Automate the most common request type — the one that eats the most time. The team feels the difference immediately.",
       },
     ],
     timeline: {
       phase1: {
         label: "First 30 Days",
-        action:
-          "Observe and map where work actually stalls — talk to the people doing the work, not just leadership",
+        action: "Map the top 5 repetitive tasks and measure how much time each one takes",
       },
       phase2: {
         label: "Days 30-60",
-        action:
-          "Fix the worst bottleneck with a simple, visible change that the team can feel immediately",
+        action: "Automate the #1 time sink — build it, test it, get the team using it",
       },
       phase3: {
         label: "Days 60-90",
-        action:
-          "Build on the momentum — automate the repetitive parts and set up a rhythm so improvements stick",
+        action: "Expand to the next 2-3 tasks and set up a rhythm so improvements stick",
       },
     },
+    scores: [
+      { label: "Information Flow", current: 4, projected: 7 },
+      { label: "Staff Capacity", current: 3, projected: 7 },
+      { label: "Process Clarity", current: 5, projected: 7 },
+      { label: "Response Time", current: 4, projected: 8 },
+      { label: "Automation Level", current: 2, projected: 7 },
+    ],
     fitSignals: [
-      "The challenges described match Calum's track record of delivering working automation for real businesses",
-      "The team is ready to move faster — they just need the blockers removed",
-      "This is an operations-first problem, which matches Calum's background in process analysis and end-to-end delivery",
+      "The challenges described match Calum's track record of automating repetitive workflows for real businesses",
+      "The team is ready to move faster — they just need the repetitive parts handled",
     ],
     risks: [
-      "If leadership isn't ready to let go of some approval steps, even the best fixes won't stick",
-      "Change takes time — the team needs to see early wins to stay bought in",
+      "If the team is too stretched to participate in the transition, even good automation can stall",
+      "Change takes time — early wins are critical to keep momentum",
     ],
   };
 }
@@ -449,21 +427,23 @@ export const handler: Handler = async (
     if (data.action === "message") {
       const { userMessage, jdText, messages, userTurns } = data;
 
-      // Add the new user message to the history
       const fullMessages = [
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user" as const, content: userMessage },
       ];
 
-      const currentTurns = userTurns;
-      const stage = computeStage(currentTurns);
+      // Get AI's next response (AI decides readiness)
+      const aiResponse = await generateNextResponse(jdText, fullMessages, userTurns);
 
-      // Generate report after 8 user turns
-      if (currentTurns >= 8) {
-        const report = await generateReport(jdText, fullMessages);
+      // If AI says ready for report, generate it
+      if (aiResponse.readyForReport) {
+        // Add the AI's closing synthesis to the conversation before generating report
+        const reportMessages = [
+          ...fullMessages,
+          { role: "assistant" as const, content: aiResponse.message },
+        ];
 
-        const closingMessage =
-          "Thank you for sharing all of that. I have enough context now to put together a FitReport for you. Here's what I'm seeing...";
+        const report = await generateReport(jdText, reportMessages);
 
         return {
           statusCode: 200,
@@ -473,26 +453,18 @@ export const handler: Handler = async (
             verdict: report.verdict,
             report,
             role: "assistant",
-            content: closingMessage,
+            content: aiResponse.message,
           }),
         };
       }
-
-      // Generate next question
-      const nextPrompt = await generateNextQuestion(
-        jdText,
-        fullMessages,
-        stage,
-        currentTurns,
-      );
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          stage,
+          stage: 1,
           role: "assistant",
-          content: nextPrompt,
+          content: aiResponse.message,
         }),
       };
     }

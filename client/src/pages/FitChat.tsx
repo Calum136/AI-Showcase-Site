@@ -15,12 +15,27 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { api } from "@shared/routes";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 type ChatMsg = {
   id: string;
   role: "user" | "assistant";
   content: string;
   isTyping?: boolean;
+};
+
+type ScoreDimension = {
+  label: string;
+  current: number;
+  projected: number;
 };
 
 type FitReport = {
@@ -33,12 +48,13 @@ type FitReport = {
     phase2: { label: string; action: string };
     phase3: { label: string; action: string };
   };
+  scores?: ScoreDimension[];
   fitSignals: string[];
   risks: string[];
 };
 
 export default function FitChat() {
-  const [stage, setStage] = useState<1 | 2 | 3>(1);
+  const [complete, setComplete] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [draft, setDraft] = useState("");
   const [isBusy, setIsBusy] = useState(false);
@@ -66,6 +82,7 @@ export default function FitChat() {
     setIsBusy(true);
     setError(null);
     setReport(null);
+    setComplete(false);
     setHasStarted(true);
 
     const contextText = initialJdText || "";
@@ -97,8 +114,6 @@ export default function FitChat() {
         throw new Error(data?.message ?? `Start failed (${r.status})`);
       }
 
-      setStage(data.stage);
-
       const first = String(data.content ?? "").trim();
 
       // Replace typing indicator with actual message
@@ -108,7 +123,7 @@ export default function FitChat() {
           role: "assistant",
           content:
             first ||
-            "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?",
+            "What's the thing that's eating the most time at work right now?",
         },
       ]);
     } catch (e: any) {
@@ -188,8 +203,6 @@ export default function FitChat() {
         throw new Error(data?.message ?? `Message failed (${r.status})`);
       }
 
-      setStage(data.stage);
-
       const aiText = String(data.content ?? "").trim();
 
       // Small delay for natural feel
@@ -208,6 +221,7 @@ export default function FitChat() {
 
       if (data.report) {
         setReport(data.report as FitReport);
+        setComplete(true);
       }
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== typingId));
@@ -238,8 +252,7 @@ export default function FitChat() {
                 Fit Lab Diagnostic
               </h1>
               <p className="text-sm text-surface-line">
-                Stage {stage} of 3
-                {stage === 3 && " — Complete"}
+                {complete ? "Diagnostic Complete" : "Finding your biggest bottleneck"}
               </p>
             </div>
           </div>
@@ -337,7 +350,7 @@ export default function FitChat() {
           </div>
 
           {/* Input Area — pinned to bottom of chat container */}
-          {stage !== 3 && (
+          {!complete && (
             <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50 shrink-0">
               <input
                 data-testid="input-chat-message"
@@ -366,7 +379,7 @@ export default function FitChat() {
           )}
         </motion.div>
 
-        {/* Report — replaces chat input when stage 3 */}
+        {/* Report — appears when diagnostic is complete */}
         {report && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -400,6 +413,97 @@ export default function FitChat() {
                 {report.approachSummary}
               </p>
             </div>
+
+            {/* Operational Scores — Radar Chart */}
+            {report.scores && report.scores.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide text-center">
+                  Operational Impact
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  {/* Radar chart */}
+                  <div className="w-full h-[300px] md:h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart
+                        data={report.scores.map((s) => ({
+                          dimension: s.label,
+                          current: s.current,
+                          projected: s.projected,
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius="70%"
+                      >
+                        <PolarGrid stroke="hsl(var(--brand-stone))" />
+                        <PolarAngleAxis
+                          dataKey="dimension"
+                          tick={{ fontSize: 11, fill: "hsl(var(--brand-brown))" }}
+                        />
+                        <PolarRadiusAxis
+                          angle={90}
+                          domain={[0, 10]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--brand-brown))" }}
+                          tickCount={6}
+                        />
+                        <Radar
+                          name="Current"
+                          dataKey="current"
+                          stroke="hsl(var(--brand-red))"
+                          fill="hsl(var(--brand-red))"
+                          fillOpacity={0.15}
+                          strokeWidth={2}
+                        />
+                        <Radar
+                          name="After Implementation"
+                          dataKey="projected"
+                          stroke="hsl(var(--brand-moss))"
+                          fill="hsl(var(--brand-moss))"
+                          fillOpacity={0.2}
+                          strokeWidth={2}
+                        />
+                        <Legend
+                          wrapperStyle={{ fontSize: "12px" }}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Score breakdown */}
+                  <div className="space-y-3">
+                    {report.scores.map((s, i) => (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-brand-brown font-medium">{s.label}</span>
+                          <span className="text-brand-brown/60">
+                            {s.current} → {s.projected}
+                          </span>
+                        </div>
+                        <div className="relative h-2 bg-brand-stone rounded-full overflow-hidden">
+                          <div
+                            className="absolute inset-y-0 left-0 bg-brand-red/40 rounded-full"
+                            style={{ width: `${s.current * 10}%` }}
+                          />
+                          <div
+                            className="absolute inset-y-0 left-0 bg-brand-moss/60 rounded-full"
+                            style={{ width: `${s.projected * 10}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-4 pt-2 text-xs text-brand-brown/50">
+                      <div className="flex items-center gap-1">
+                        <span className="w-3 h-2 bg-brand-red/40 rounded" />
+                        Current
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-3 h-2 bg-brand-moss/60 rounded" />
+                        Projected
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Key Insights — 3 cards */}
             {report.keyInsights && report.keyInsights.length > 0 && (
@@ -528,4 +632,3 @@ function TypingIndicator() {
     </span>
   );
 }
-
