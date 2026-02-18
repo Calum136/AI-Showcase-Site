@@ -33,11 +33,18 @@ export const fitStageSchema = z.union([
 
 export const fitReportSchema = z.object({
   verdict: z.union([z.literal("YES"), z.literal("NO")]),
-  roleAlignment: z.array(z.string()),
-  environmentCompatibility: z.array(z.string()),
-  structuralRisks: z.array(z.string()),
-  successConditions: z.array(z.string()),
-  gapPlan: z.array(z.string()),
+  heroRecommendation: z.string(),
+  approachSummary: z.string(),
+  keyInsights: z.array(
+    z.object({ label: z.string(), detail: z.string() })
+  ),
+  timeline: z.object({
+    phase1: z.object({ label: z.string(), action: z.string() }),
+    phase2: z.object({ label: z.string(), action: z.string() }),
+    phase3: z.object({ label: z.string(), action: z.string() }),
+  }),
+  fitSignals: z.array(z.string()),
+  risks: z.array(z.string()),
 });
 
 export const fitStartInputSchema = z.object({

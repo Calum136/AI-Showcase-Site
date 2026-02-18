@@ -3,7 +3,16 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Send, Upload, CheckCircle, AlertTriangle, ArrowLeft } from "lucide-react";
+import {
+  Send,
+  Upload,
+  CheckCircle,
+  AlertTriangle,
+  ArrowLeft,
+  Target,
+  Lightbulb,
+  Zap,
+} from "lucide-react";
 import { Link } from "wouter";
 import { api } from "@shared/routes";
 
@@ -16,11 +25,16 @@ type ChatMsg = {
 
 type FitReport = {
   verdict: "YES" | "NO";
-  roleAlignment: string[];
-  environmentCompatibility: string[];
-  structuralRisks: string[];
-  successConditions: string[];
-  gapPlan: string[];
+  heroRecommendation: string;
+  approachSummary: string;
+  keyInsights: Array<{ label: string; detail: string }>;
+  timeline: {
+    phase1: { label: string; action: string };
+    phase2: { label: string; action: string };
+    phase3: { label: string; action: string };
+  };
+  fitSignals: string[];
+  risks: string[];
 };
 
 export default function FitChat() {
@@ -205,12 +219,13 @@ export default function FitChat() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto py-8 space-y-6">
-        {/* Header */}
+      {/* Full-height flex container — chat stays in viewport */}
+      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-128px)] md:h-[calc(100dvh-144px)]">
+        {/* Header — compact, no extra vertical space */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
+          className="flex items-center justify-between py-3 shrink-0"
         >
           <div className="flex items-center gap-4">
             <Link href="/fit">
@@ -224,7 +239,7 @@ export default function FitChat() {
               </h1>
               <p className="text-sm text-surface-line">
                 Stage {stage} of 3
-                {stage === 3 && " - Complete"}
+                {stage === 3 && " — Complete"}
               </p>
             </div>
           </div>
@@ -262,7 +277,7 @@ export default function FitChat() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3"
+            className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3 shrink-0"
           >
             {error}
             {!hasStarted && (
@@ -277,15 +292,15 @@ export default function FitChat() {
           </motion.div>
         )}
 
-        {/* Chat Container */}
+        {/* Chat Container — fills remaining viewport */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-surface-line bg-surface-paper overflow-hidden"
+          className="rounded-2xl border border-surface-line bg-surface-paper overflow-hidden flex flex-col flex-1 min-h-0"
         >
-          {/* Messages Area */}
-          <div className="h-[450px] md:h-[500px] overflow-y-auto p-4 md:p-6 space-y-4">
+          {/* Messages Area — scrollable, fills available space */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-h-0">
             {messages.length === 0 && !isBusy && (
               <p className="text-surface-line text-center py-8">
                 Starting conversation...
@@ -321,9 +336,9 @@ export default function FitChat() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input Area */}
+          {/* Input Area — pinned to bottom of chat container */}
           {stage !== 3 && (
-            <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50">
+            <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50 shrink-0">
               <input
                 data-testid="input-chat-message"
                 className="flex-1 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
@@ -351,18 +366,16 @@ export default function FitChat() {
           )}
         </motion.div>
 
-        {/* Report */}
+        {/* Report — replaces chat input when stage 3 */}
         {report && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-2xl border border-surface-line bg-surface-paper p-6 space-y-6"
+            className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8 space-y-8 overflow-y-auto mt-4"
           >
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-xl font-semibold text-brand-brown">
-                FitReport
-              </h2>
+            {/* Hero Recommendation */}
+            <div className="text-center space-y-4">
               <Badge
                 className={
                   report.verdict === "YES"
@@ -380,35 +393,119 @@ export default function FitChat() {
                   </>
                 )}
               </Badge>
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-brown leading-snug">
+                {report.heroRecommendation}
+              </h2>
+              <p className="text-brand-brown/70 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                {report.approachSummary}
+              </p>
             </div>
 
-            <Section
-              title="Role Alignment"
-              items={report.roleAlignment}
-              borderColor="border-brand-moss"
-            />
-            <Section
-              title="Environment Compatibility"
-              items={report.environmentCompatibility}
-              borderColor="border-brand-copper"
-            />
-            <Section
-              title="Structural Risk Factors"
-              items={report.structuralRisks}
-              borderColor="border-brand-red"
-            />
-            <Section
-              title="Success Conditions Observed"
-              items={report.successConditions}
-              borderColor="border-brand-moss"
-            />
-            <Section
-              title="30-90 Day Gap Plan"
-              items={report.gapPlan}
-              borderColor="border-brand-copper"
-            />
+            {/* Key Insights — 3 cards */}
+            {report.keyInsights && report.keyInsights.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {report.keyInsights.map((insight, idx) => {
+                  const icons = [Target, Lightbulb, Zap];
+                  const Icon = icons[idx % icons.length];
+                  const colors = [
+                    "text-brand-red",
+                    "text-brand-copper",
+                    "text-brand-moss",
+                  ];
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-brand-stone/40 rounded-xl p-4 space-y-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${colors[idx % colors.length]}`} />
+                        <span className="font-semibold text-sm text-brand-brown">
+                          {insight.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-brand-brown/75 leading-relaxed">
+                        {insight.detail}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-            <div className="pt-4 flex gap-4">
+            {/* Timeline — 30/60/90 */}
+            {report.timeline && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide">
+                  Suggested Timeline
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    report.timeline.phase1,
+                    report.timeline.phase2,
+                    report.timeline.phase3,
+                  ].map((phase, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 bg-brand-stone/30 rounded-xl p-4"
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-copper/10 text-brand-copper text-xs font-bold shrink-0">
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-brand-copper">
+                          {phase.label}
+                        </div>
+                        <p className="text-sm text-brand-brown/75 mt-1">
+                          {phase.action}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fit Signals & Risks — subtle footer */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-surface-line/50">
+              {report.fitSignals && report.fitSignals.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-brand-moss uppercase tracking-wide">
+                    Why This Fits
+                  </h4>
+                  <ul className="space-y-1">
+                    {report.fitSignals.map((s, i) => (
+                      <li
+                        key={i}
+                        className="text-sm text-brand-brown/70 flex items-start gap-2"
+                      >
+                        <CheckCircle className="w-3 h-3 text-brand-moss mt-1 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {report.risks && report.risks.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-brand-red/80 uppercase tracking-wide">
+                    Watch For
+                  </h4>
+                  <ul className="space-y-1">
+                    {report.risks.map((r, i) => (
+                      <li
+                        key={i}
+                        className="text-sm text-brand-brown/70 flex items-start gap-2"
+                      >
+                        <AlertTriangle className="w-3 h-3 text-brand-red/60 mt-1 shrink-0" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex gap-4">
               <Link href="/fit">
                 <Button variant="outline" className="rounded-xl">
                   Start New Diagnostic
@@ -432,25 +529,3 @@ function TypingIndicator() {
   );
 }
 
-function Section({
-  title,
-  items,
-  borderColor = "border-surface-line",
-}: {
-  title: string;
-  items: string[];
-  borderColor?: string;
-}) {
-  return (
-    <div
-      className={`space-y-2 border-l-4 ${borderColor} pl-4 bg-brand-stone/30 py-3 pr-3 rounded-r-lg`}
-    >
-      <div className="font-semibold text-brand-brown">{title}</div>
-      <ul className="list-disc pl-5 text-sm text-brand-brown/80 space-y-1">
-        {(items || []).map((x, idx) => (
-          <li key={`${title}-${idx}`}>{x}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
