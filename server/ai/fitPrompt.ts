@@ -56,38 +56,37 @@ type ReportInput = {
 // Calum's resume context for fit analysis
 const CALUM_RESUME_CONTEXT = `
 CANDIDATE PROFILE: Calum Kershaw
-Title: AI Solutions Developer & Systems Thinker
+Title: AI Systems Developer & Process Analyst
 Location: Truro, Nova Scotia
 
 SUMMARY:
-Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation. Combines data analysis background with modern AI development.
+Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering paid client AI automation and building agent-orchestrated systems for real businesses.
 
 TECHNICAL SKILLS:
-- Languages: TypeScript, Python, JavaScript, SQL
-- Frameworks: React, Node.js, Express
-- AI/ML: OpenAI API, Anthropic Claude, RAG Systems, Vector Databases, Embeddings
-- Data: PostgreSQL, Power BI, Data Analysis, ETL
-- Other: Systems Design, Process Automation, API Development
+- AI & Automation: OpenAI API, Anthropic Claude, RAG Systems, Vector DBs, Embeddings, Agent Orchestration, MCP Servers, Make.com
+- Development: TypeScript, Python, React, Node.js, Express, PostgreSQL, SQLite, REST APIs
+- Data & Analytics: Power BI, SQL, ETL Pipelines, Data Profiling, Root Cause Analysis, Dashboard Design
+- Process & Delivery: Systems Thinking, Process Automation, Workflow Design, Stakeholder Management, Requirements Translation
 
 KEY EXPERIENCE:
-1. AI Systems Developer (Independent, 2025-Present)
-   - Built JollyTails Staff Assistant: RAG-based knowledge system consolidating 20+ SOPs
-   - Developed Fit Check AI using Claude API for job evaluation
-   - Created MCP server integrations for workflow automation
-   - Full-stack TypeScript applications
+1. AI Solutions Developer (Independent Practice, 2025-Present)
+   - Blackbird Brewing (Paid Client): End-to-end AI email automation — 17-category classifier with escalation rules, brand-voice matching, ~120 emails/week, $1,100 delivered on budget in 3 weeks
+   - JollyTails Resort: RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard
+   - Built MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex
+   - Multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks
 
 2. Operations Supervisor - Jolly Tails Pet Resort (2022, 2025-Present)
-   - Improved operational KPIs by ~10% through data profiling
-   - Built cross-system validation workflows
-   - Technology liaison role
+   - Improved operational KPIs by ~10% through data profiling and process optimization
+   - Technology liaison translating operational needs into system requirements
+   - Built cross-system validation workflows catching data quality issues
 
-3. Data Analyst - STFX Advancement (2024-2025)
+3. Data Analyst - St. Francis Xavier University, Advancement Office (2024-2025)
    - Power BI dashboards with rule-based quality checks
-   - SQL data extraction and transformation
-   - Root cause analysis
+   - SQL queries for complex data extraction, transformation, and reporting
+   - Root cause analysis on data inconsistencies across legacy systems
 
-4. Student Manager - Kevin's Corner Food Bank (2023-2024)
-   - Scaled operations supporting 140+ additional users
+4. Student Manager - Kevin's Corner Food Bank, StFX (2023-2024)
+   - Scaled operations to support 140+ additional users during rapid growth
    - Designed workflows enabling 300% increase in operational hours
 
 EDUCATION:
@@ -97,13 +96,14 @@ EDUCATION:
 CERTIFICATIONS:
 - AI & Agentic Workflows - Maven (2025)
 - Generative AI Leader - Google Cloud (2025)
-- AI Mastery - Marketing AI Institute (2024-Present)
+- AI Mastery Program - Marketing AI Institute (2024-Present)
 
 STRENGTHS:
-- Bridging technical and operational perspectives
-- Building AI systems that solve real business problems
-- Data quality and systems thinking
-- Quick learning and practical implementation
+- End-to-end delivery: requirements gathering through deployment and client handoff
+- Bridging technical implementation and operational strategy
+- Building AI systems that solve real, measurable business problems
+- Translating messy workflows into structured, automated systems
+- Data quality focus and systematic root cause analysis
 
 AREAS OF GROWTH:
 - Enterprise-scale system architecture

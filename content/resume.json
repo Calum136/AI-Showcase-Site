@@ -1,39 +1,52 @@
 {
   "personalInfo": {
     "name": "Calum Kershaw",
-    "title": "AI Solutions Developer & Systems Thinker",
-    "email": "calum.kershaw@example.com",
+    "title": "AI Systems Developer & Process Analyst",
+    "email": "calum@nineroads.com",
     "location": "Truro, Nova Scotia",
-    "summary": "Systems-focused technologist who helps organizations reduce operational friction using AI, automation, and decision-support tools. I translate messy real-world workflows into structured systems — connecting people, processes, and data to produce measurable outcomes."
+    "summary": "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster."
   },
-  "skills": ["TypeScript", "React", "Python", "Node.js", "OpenAI API", "RAG Systems", "PostgreSQL", "Systems Design", "AI Integration", "Automation"],
+  "skills": ["TypeScript", "Python", "React", "Node.js", "OpenAI API", "Claude API", "RAG Systems", "Agent Orchestration", "MCP Servers", "Make.com", "PostgreSQL", "Power BI", "SQL", "Systems Thinking", "Process Automation"],
   "experience": [
     {
-      "company": "JollyTails Resort",
-      "position": "Operations & Systems (Pro-Bono Project)",
-      "period": "2025 - 2026",
-      "description": "Built AI-powered knowledge base consolidating fragmented SOPs into searchable system with training tracking.",
-      "highlights": ["Implemented RAG with OpenAI embeddings", "Processed 20-30+ operational documents", "Deployed full-stack TypeScript application", "Demonstrated real-world AI problem solving"]
-    },
-    {
-      "company": "Independent Projects",
-      "position": "AI Systems Developer",
+      "company": "Independent Practice",
+      "position": "AI Solutions Developer",
       "period": "2025 - Present",
-      "description": "Building AI-powered tools and automation systems focused on decision support and operational efficiency.",
-      "highlights": ["FitTest AI: Hiring evaluation system", "MCP server integrations", "Process automation tools"]
+      "description": "Delivering AI-powered automation systems for business clients. Translating operational pain points into structured technology solutions.",
+      "highlights": ["Blackbird Brewing: AI email automation with 17-category classifier, ~120 emails/week", "JollyTails Resort: RAG knowledge base consolidating 20+ SOPs", "Multi-agent workflows for parallel task execution", "MCP server for cross-tool project memory"]
     },
     {
-      "company": "Staples",
-      "position": "Sales Associate",
-      "period": "2026 - Present",
-      "description": "Customer service and retail operations while building technical portfolio."
+      "company": "Jolly Tails Pet Resort",
+      "position": "Operations Supervisor",
+      "period": "2022 & 2025 - Present",
+      "description": "Systematic data profiling and process analysis for high-capacity pet care operations.",
+      "highlights": ["Improved KPIs ~10% through data profiling and process optimization", "Built cross-system validation workflows", "Technology liaison translating operational needs to system requirements"]
+    },
+    {
+      "company": "St. Francis Xavier University, Advancement Office",
+      "position": "Data Analyst",
+      "period": "2024 - 2025",
+      "description": "Designed dashboards and data quality checks for donor and alumni data systems.",
+      "highlights": ["Power BI dashboards with rule-based quality checks", "SQL queries for data extraction and reporting", "Root cause analysis on legacy system inconsistencies"]
+    },
+    {
+      "company": "Kevin's Corner Food Bank, StFX",
+      "position": "Student Manager",
+      "period": "2023 - 2024",
+      "description": "Scaled operations and designed workflows for campus food bank during rapid growth.",
+      "highlights": ["Scaled operations to support 140+ additional users", "300% increase in operational hours through workflow design"]
     }
   ],
   "education": [
     {
-      "institution": "Self-Directed Learning",
-      "degree": "AI Systems & Full-Stack Development",
-      "year": "2025-2026"
+      "institution": "St. Francis Xavier University",
+      "degree": "Post-Baccalaureate Diploma — Enterprise IT Management",
+      "year": "2024"
+    },
+    {
+      "institution": "Dalhousie University",
+      "degree": "BSc — Biology & Psychology",
+      "year": "2022"
     }
   ]
 }

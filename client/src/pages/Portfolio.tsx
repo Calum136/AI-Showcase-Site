@@ -9,9 +9,19 @@ import { customGPTs, claudeSkills, miniProjects } from "@/data/skillsData";
 
 const professionalProjects = [
   {
-    title: "JollyTails Staff Assistant",
+    title: "Blackbird Brewing — AI Email Automation",
     description:
-      "AI-powered knowledge base for pet care operations using RAG and OpenAI embeddings. Consolidates fragmented SOPs into a searchable system with training tracking and admin analytics.",
+      "Paid client project: End-to-end AI email automation system with 17-category classifier, brand-voice response matching, escalation rules, and Make.com integration. Delivered on budget in 3 weeks.",
+    tags: ["AI Systems", "Automation", "OpenAI", "Make.com"],
+    category: "Automation",
+    image: "/blackbird-email.png",
+    link: "#",
+    impact: "~120 emails/week automated, $1,100 paid engagement",
+  },
+  {
+    title: "JollyTails Staff Assistant (DogBot)",
+    description:
+      "RAG-powered Q&A system consolidating 20+ fragmented SOPs into searchable AI knowledge base with admin analytics dashboard, training compliance tracking, and knowledge gap identification.",
     tags: ["AI Systems", "RAG", "TypeScript", "React", "OpenAI"],
     category: "AI Systems",
     image: "/jollytails-staff-assistant.png",
@@ -19,20 +29,25 @@ const professionalProjects = [
     impact: "~70% faster procedure lookup, 20+ docs unified",
   },
   {
-    title: "AI Showcase Site (This Site)",
+    title: "AI Portfolio & Diagnostic Platform",
     description:
-      "Portfolio and hiring evaluation system built with content-driven architecture. Demonstrates AI integration, systems thinking, and modern full-stack development.",
-    tags: ["AI Systems", "TypeScript", "React", "PostgreSQL"],
+      "Full-stack portfolio with AI-powered diagnostic chat that generates plain-language fit reports with actionable recommendations. Multi-agent architecture with dual deployment paths.",
+    tags: ["AI Systems", "TypeScript", "React", "Claude API"],
     category: "AI Systems",
     image: "/AIShowCase.png",
     link: "#",
-    impact: "Live demo of AI-assisted evaluation workflow",
+    impact: "Live AI diagnostic generating personalized hiring reports",
   },
 ];
 
 type FilterCategory = "All" | "AI Systems" | "Automation" | "Analytics";
 
-const filterCategories: FilterCategory[] = ["All", "AI Systems", "Automation", "Analytics"];
+const filterCategories: FilterCategory[] = [
+  "All",
+  "AI Systems",
+  "Automation",
+  "Analytics",
+];
 
 export default function Portfolio() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("All");

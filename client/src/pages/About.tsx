@@ -29,7 +29,7 @@ export default function About() {
               Calum Kershaw
             </h1>
             <p className="text-xl text-brand-copper font-medium mb-4">
-              AI Solutions Developer & Systems Thinker
+              AI Systems Developer & Process Analyst
             </p>
             <p className="text-brand-brown/80 max-w-xl leading-relaxed">
               I build AI systems that solve real operational problems—not demos,

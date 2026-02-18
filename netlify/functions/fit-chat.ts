@@ -63,10 +63,10 @@ const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistan
 - Each response must feel like it could ONLY have been written after reading what the user just said
 
 **About Calum Kershaw:**
-AI Solutions Developer & Systems Thinker focused on AI systems integration, automation, and decision support tools.
-Skills: TypeScript, Python, React, Node.js, OpenAI API, Anthropic Claude, RAG Systems, PostgreSQL
-Experience: AI Systems Developer, Operations Supervisor, Data Analyst
-Strengths: Systems thinking, AI integration, data quality, quick learning
+AI Systems Developer & Process Analyst who translates business priorities into working systems. Currently delivering paid client AI automation and building agent-orchestrated systems.
+Skills: TypeScript, Python, React, Node.js, OpenAI API, Anthropic Claude, RAG Systems, Agent Orchestration, MCP Servers, Make.com, PostgreSQL, Power BI
+Experience: AI Solutions Developer (paid client work including Blackbird Brewing), Operations Supervisor, Data Analyst
+Strengths: End-to-end delivery, bridging technical and operational perspectives, process automation, systems thinking
 `;
 
 const DEFAULT_OPENING =
@@ -286,10 +286,10 @@ LANGUAGE RULES (CRITICAL):
 - Reference specific things they said in the conversation
 
 About Calum Kershaw:
-- AI Solutions Developer & Systems Thinker
+- AI Systems Developer & Process Analyst with paid client delivery experience
 - Builds tools that automate repetitive work, improve information flow, and help teams make better decisions faster
-- Background in operations management and data analysis
-- Quickly learns new domains and finds the leverage points
+- Delivered AI email automation for Blackbird Brewing ($1,100 engagement, ~120 emails/week automated)
+- Background in operations management, data analysis, and end-to-end project delivery
 
 Be honest, specific, and grounded in what was actually discussed.`;
 
@@ -377,9 +377,9 @@ Return ONLY valid JSON (no markdown, no code blocks):
       },
     },
     fitSignals: [
-      "The challenges described are exactly the kind of systems problems Calum is built to solve",
+      "The challenges described match Calum's track record of delivering working automation for real businesses",
       "The team is ready to move faster — they just need the blockers removed",
-      "This is an operations-first problem, which matches Calum's background in operations and systems thinking",
+      "This is an operations-first problem, which matches Calum's background in process analysis and end-to-end delivery",
     ],
     risks: [
       "If leadership isn't ready to let go of some approval steps, even the best fixes won't stick",

@@ -58,9 +58,9 @@ type ResumeData = {
 const CALUM_RESUME: ResumeData = {
   personalInfo: {
     name: "Calum Kershaw",
-    title: "AI Solutions Developer & Systems Thinker",
+    title: "AI Systems Developer & Process Analyst",
     summary:
-      "Developer focused on AI systems integration, automation, and decision support tools. Building practical solutions that solve real operational problems through strategic AI implementation.",
+      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering paid client AI automation and building agent-orchestrated systems for real businesses.",
     email: "calum@nineroads.com",
     phone: "727-900-4878",
     location: "Truro, NS",
@@ -69,84 +69,84 @@ const CALUM_RESUME: ResumeData = {
   },
 
   impactSummary: [
-    "Reduced staff knowledge lookup time by ~70% with AI knowledge base",
-    "Built RAG system consolidating 20+ SOPs into searchable answers",
-    "Analytics background driving data-informed operational decisions",
-    "Shipped usable systems for real workflows, not just prototypes",
+    "Delivered paid AI email automation system processing ~120 emails/week for hospitality client",
+    "Built RAG knowledge base consolidating 20+ SOPs — ~70% faster procedure lookup",
+    "Designed multi-agent workflows for parallel frontend, backend, and documentation tasks",
+    "End-to-end delivery: requirements gathering through deployment and handoff",
   ],
 
   skillGroups: [
     {
-      category: "AI Systems",
-      skills: ["RAG Architecture", "Prompt Engineering", "OpenAI API", "Claude API", "Embeddings", "Vector DBs"],
+      category: "AI & Automation",
+      skills: ["OpenAI API", "Anthropic Claude", "RAG Systems", "Vector DBs", "Embeddings", "Agent Orchestration", "MCP Servers", "Make.com"],
+    },
+    {
+      category: "Development",
+      skills: ["TypeScript", "Python", "React", "Node.js", "Express", "PostgreSQL", "SQLite", "REST APIs"],
     },
     {
       category: "Data & Analytics",
-      skills: ["SQL", "Python", "Power BI", "Data Profiling", "ETL", "Root Cause Analysis"],
+      skills: ["Power BI", "SQL", "ETL Pipelines", "Data Profiling", "Root Cause Analysis", "Dashboard Design"],
     },
     {
-      category: "Engineering",
-      skills: ["TypeScript", "React", "Node.js", "Express", "PostgreSQL", "REST APIs"],
-    },
-    {
-      category: "Operations",
-      skills: ["Workflow Design", "Process Improvement", "SOP Development", "Systems Thinking"],
+      category: "Process & Delivery",
+      skills: ["Systems Thinking", "Process Automation", "Workflow Design", "Stakeholder Management", "Requirements Translation"],
     },
   ],
 
   experience: [
     {
-      position: "AI Systems Developer",
-      company: "Independent Projects",
-      period: "2025 - Present",
-      scope: "Building AI-powered tools focused on decision support and operational efficiency.",
+      position: "AI Solutions Developer",
+      company: "Independent Practice",
+      period: "2025 – Present",
+      scope: "Delivering AI-powered automation systems for business clients. Translating operational pain points into structured technology solutions.",
       highlights: [
-        "Built RAG-based knowledge system reducing procedure lookup time by ~70%",
-        "Developed job fit evaluation tool using Claude API for structured analysis",
-        "Implemented MCP server integrations for workflow automation",
-        "Shipped full-stack TypeScript applications with React + Express",
+        "Blackbird Brewing (Paid Client): Built end-to-end AI email automation — 17-category classifier with escalation rules, brand-voice matching, $1,100 project delivered on budget",
+        "JollyTails Resort: Built RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard",
+        "Built MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex",
+        "Developed multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks",
       ],
-      techStack: ["TypeScript", "React", "OpenAI", "Claude", "PostgreSQL", "pgvector"],
-      keyAchievement: "JollyTails Staff Assistant: 20+ SOPs → searchable AI knowledge base",
+      techStack: ["TypeScript", "React", "Node.js", "OpenAI API", "Claude API", "Make.com", "Render"],
+      keyAchievement: "Blackbird Brewing: AI email system processing ~120 emails/week — delivered in 3 weeks",
     },
     {
       position: "Operations Supervisor",
-      company: "Jolly Tails Pet Resort • Halifax, NS",
-      period: "2022 & Jan 2025 – Present",
-      scope: "Analyzed and optimized operational data processes for high-capacity pet care facility.",
+      company: "Jolly Tails Pet Resort",
+      period: "2022 & 2025 – Present",
+      scope: "Systematic data profiling and process analysis for high-capacity pet care operations.",
       highlights: [
-        "Improved key operational KPIs by ~10% through data profiling and process optimization",
-        "Built cross-system validation workflows ensuring data integrity",
-        "Acted as technology liaison troubleshooting data inconsistencies",
-        "Developed SOPs and data-quality protocols adopted by team",
+        "Improved operational KPIs by ~10% through data profiling and process optimization",
+        "Built cross-system validation workflows catching data quality issues before impact",
+        "Technology liaison between staff and management — translated operational needs into system requirements",
+        "Identified process bottlenecks and designed workflow improvements adopted by team",
       ],
-      techStack: ["Excel", "Data Analysis", "Process Design"],
+      techStack: ["Data Analysis", "Process Design", "Systems Thinking"],
     },
     {
       position: "Data Analyst",
-      company: "STFX Advancement Department",
-      period: "Apr 2024 – Feb 2025",
-      scope: "Profiled donor datasets and built dashboards to surface data-quality issues.",
+      company: "St. Francis Xavier University, Advancement Office",
+      period: "2024 – 2025",
+      scope: "Designed dashboards and data quality checks for donor and alumni data systems.",
       highlights: [
-        "Identified misclassifications and duplicate records across fragmented sources",
-        "Implemented rule-based quality checks in Power BI dashboards",
-        "Used SQL for data extraction, transformation, and validation",
-        "Performed root cause analysis improving reporting accuracy",
+        "Built Power BI dashboards with rule-based data quality checks",
+        "Wrote SQL queries for complex data extraction, transformation, and reporting",
+        "Conducted root cause analysis on data inconsistencies across legacy systems",
+        "Delivered actionable insights to leadership for fundraising strategy",
       ],
       techStack: ["SQL", "Power BI", "Excel"],
       keyAchievement: "Surfaced data quality issues impacting donor reporting accuracy",
     },
     {
       position: "Student Manager",
-      company: "Kevin's Corner Food Bank • Antigonish, NS",
-      period: "Sep 2023 – Dec 2024",
-      scope: "Owned systems and operations scaling for campus food bank.",
+      company: "Kevin's Corner Food Bank, StFX",
+      period: "2023 – 2024",
+      scope: "Scaled operations and designed workflows for campus food bank during rapid growth.",
       highlights: [
-        "Implemented data quality controls supporting ~140 additional regular users",
-        "Designed volunteer management workflows enabling ~300% increase in operational hours",
-        "Analysis contributed to ~45% increase in food donations",
+        "Scaled operations to support 140+ additional users during rapid growth",
+        "Designed workflows enabling a 300% increase in operational hours",
+        "Managed team scheduling, resource allocation, and process documentation",
       ],
-      keyAchievement: "Scaled operations 300% through systematic workflow improvements",
+      keyAchievement: "Built systems under resource constraints — 300% operational scaling",
     },
   ],
 
@@ -164,21 +164,26 @@ const CALUM_RESUME: ResumeData = {
   ],
 
   certifications: [
-    "How To Scale a Business with AI & Agentic Workflows — Maven (2025)",
-    "Generative AI Leader — Google Cloud Skills Boost (2025)",
-    "AI Mastery Membership — Marketing AI Institute (2024–Present)",
+    "AI & Agentic Workflows — Maven (2025)",
+    "Generative AI Leader — Google Cloud (2025)",
+    "AI Mastery Program — Marketing AI Institute (2024–Present)",
   ],
 
   projects: [
     {
-      name: "JollyTails Staff Assistant",
+      name: "Blackbird Brewing — Email Automation",
       description:
-        "AI-powered knowledge base using RAG with OpenAI embeddings, consolidating 20+ SOPs into a searchable system.",
+        "Paid client project: AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing ~120 emails/week.",
     },
     {
-      name: "Evaluate AI",
+      name: "JollyTails Staff Assistant (DogBot)",
       description:
-        "Job fit evaluation system using Claude API to analyze role alignment and provide structured recommendations.",
+        "RAG-powered Q&A system consolidating 20+ SOPs with admin analytics dashboard, training compliance tracking, and knowledge gap identification.",
+    },
+    {
+      name: "AI Portfolio & Diagnostic Platform",
+      description:
+        "Full-stack portfolio with AI-powered diagnostic chat generating plain-language fit reports with actionable recommendations.",
     },
   ],
 };
