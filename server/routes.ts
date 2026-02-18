@@ -19,11 +19,16 @@ type FitMessage = {
 
 type FitReport = {
   verdict: "YES" | "NO";
-  roleAlignment: string[];
-  environmentCompatibility: string[];
-  structuralRisks: string[];
-  successConditions: string[];
-  gapPlan: string[];
+  heroRecommendation: string;
+  approachSummary: string;
+  keyInsights: Array<{ label: string; detail: string }>;
+  timeline: {
+    phase1: { label: string; action: string };
+    phase2: { label: string; action: string };
+    phase3: { label: string; action: string };
+  };
+  fitSignals: string[];
+  risks: string[];
 };
 
 // Zod request schemas (stateless)
@@ -155,11 +160,26 @@ export async function registerRoutes(
         console.error("AI report failed, using fallback:", err);
         report = {
           verdict: "YES",
-          roleAlignment: ["Systems thinking approach aligns with operational bottlenecks", "AI/automation skills relevant to improving information flow"],
-          environmentCompatibility: ["Adaptable to environments in transition", "Comfortable working across multiple stakeholders"],
-          structuralRisks: ["Improvement initiatives need clear ownership", "Capacity constraints may limit change"],
-          successConditions: ["Clear mandate to address bottlenecks", "Access to key stakeholders"],
-          gapPlan: ["Map current information flows in first 30 days", "Identify 2-3 quick wins that demonstrate value"],
+          heroRecommendation: "Get your team unstuck by clearing the bottlenecks that slow down every decision",
+          approachSummary: "The biggest drag on your team is waiting — waiting for approvals, waiting for information, waiting for decisions that should be straightforward. The fix is identifying the specific handoff points where things stall, and making them flow.",
+          keyInsights: [
+            { label: "The Problem", detail: "Work gets stuck between people, not inside their work. The team knows what to do but can't move." },
+            { label: "Where the Fix Lives", detail: "The handoff points between teams or between a team and leadership — that's where days get lost." },
+            { label: "First Win", detail: "Map where things stall and remove one unnecessary approval step. The team feels the difference immediately." },
+          ],
+          timeline: {
+            phase1: { label: "First 30 Days", action: "Observe and map where work actually stalls — talk to the people doing the work" },
+            phase2: { label: "Days 30-60", action: "Fix the worst bottleneck with a simple, visible change the team can feel" },
+            phase3: { label: "Days 60-90", action: "Build on momentum — automate the repetitive parts and set up a rhythm so improvements stick" },
+          },
+          fitSignals: [
+            "The challenges described are exactly the kind of systems problems Calum solves",
+            "The team is ready to move faster — they just need the blockers removed",
+          ],
+          risks: [
+            "If leadership isn't ready to let go of some approval steps, even the best fixes won't stick",
+            "The team needs to see early wins to stay bought in",
+          ],
         };
       }
 

@@ -10,11 +10,16 @@ export type FitMessage = {
 
 export type FitReport = {
   verdict: "YES" | "NO";
-  roleAlignment: string[];
-  environmentCompatibility: string[];
-  structuralRisks: string[];
-  successConditions: string[];
-  gapPlan: string[];
+  heroRecommendation: string;
+  approachSummary: string;
+  keyInsights: Array<{ label: string; detail: string }>;
+  timeline: {
+    phase1: { label: string; action: string };
+    phase2: { label: string; action: string };
+    phase3: { label: string; action: string };
+  };
+  fitSignals: string[];
+  risks: string[];
 };
 
 export type FitChoice = {
@@ -323,14 +328,20 @@ export async function aiGenerateReport(
   const opts = getAiOpts(overrides);
   const jd = String(input.jdText ?? "").trim();
 
-  const systemPrompt = `You are an AI career advisor producing a fit analysis report for Calum Kershaw.
+  const systemPrompt = `You are producing a FitReport based on a diagnostic conversation about operational challenges.
 
 ${CALUM_RESUME_CONTEXT}
 
-Be honest and balanced. If something is a weak fit, say so. If there are gaps, acknowledge them with suggested mitigation strategies.`;
+LANGUAGE RULES (CRITICAL):
+- Write EVERYTHING in plain language a non-technical business owner would understand
+- NO tech jargon: no "AI-powered", "RAG system", "pipeline", "API", "integration layer"
+- INSTEAD use: "automate the repetitive part", "sort incoming requests automatically", "give your team one place to see everything"
+- The hero recommendation should describe the OUTCOME for the user's team, not the technology
+- Reference specific things from the conversation
+- Be honest and balanced.`;
 
   const userPrompt = `
-Job Description:
+Job Description / Context:
 """
 ${jd.slice(0, 30000)}
 """
@@ -338,18 +349,26 @@ ${jd.slice(0, 30000)}
 Conversation transcript:
 ${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
-Analyze the fit between Calum's profile and this role. Return ONLY valid JSON (no markdown):
+Generate a FitReport. The heroRecommendation should be a single bold sentence describing the outcome — what changes for the team.
+
+Return ONLY valid JSON (no markdown):
 {
   "verdict": "YES" or "NO",
-  "roleAlignment": ["2-5 specific ways Calum's experience aligns with role requirements"],
-  "environmentCompatibility": ["2-5 observations about work environment fit"],
-  "structuralRisks": ["2-5 potential challenges or risks to flag"],
-  "successConditions": ["2-5 conditions that would help Calum succeed"],
-  "gapPlan": ["2-5 specific actions to address any gaps or prepare for the role"]
+  "heroRecommendation": "One bold sentence describing the outcome for the team",
+  "approachSummary": "2-3 plain-language sentences: what the problem is, what the fix looks like, what changes day-to-day",
+  "keyInsights": [
+    { "label": "The Problem", "detail": "plain language description" },
+    { "label": "Where the Fix Lives", "detail": "plain language description" },
+    { "label": "First Win", "detail": "one concrete thing that improves within weeks" }
+  ],
+  "timeline": {
+    "phase1": { "label": "First 30 Days", "action": "plain language action" },
+    "phase2": { "label": "Days 30-60", "action": "plain language action" },
+    "phase3": { "label": "Days 60-90", "action": "plain language action" }
+  },
+  "fitSignals": ["2-3 plain-language reasons this is a good fit"],
+  "risks": ["1-2 honest risks to flag"]
 }
-
-Verdict should be YES if there's reasonable alignment and growth potential, NO if fundamental mismatches exist.
-Be specific and reference actual details from the job description and Calum's background.
 `;
 
   let raw: string;
@@ -371,13 +390,29 @@ Be specific and reference actual details from the job description and Calum's ba
   const verdict = parsed?.verdict === "YES" ? "YES" : "NO";
   const toStringArray = (v: any) =>
     Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [];
+  const toInsightArray = (v: any) =>
+    Array.isArray(v)
+      ? v.map((x: any) => ({
+          label: String(x?.label ?? ""),
+          detail: String(x?.detail ?? ""),
+        }))
+      : [];
+  const toPhase = (v: any) => ({
+    label: String(v?.label ?? ""),
+    action: String(v?.action ?? ""),
+  });
 
   return {
     verdict,
-    roleAlignment: toStringArray(parsed.roleAlignment),
-    environmentCompatibility: toStringArray(parsed.environmentCompatibility),
-    structuralRisks: toStringArray(parsed.structuralRisks),
-    successConditions: toStringArray(parsed.successConditions),
-    gapPlan: toStringArray(parsed.gapPlan),
+    heroRecommendation: String(parsed.heroRecommendation ?? ""),
+    approachSummary: String(parsed.approachSummary ?? ""),
+    keyInsights: toInsightArray(parsed.keyInsights),
+    timeline: {
+      phase1: toPhase(parsed.timeline?.phase1),
+      phase2: toPhase(parsed.timeline?.phase2),
+      phase3: toPhase(parsed.timeline?.phase3),
+    },
+    fitSignals: toStringArray(parsed.fitSignals),
+    risks: toStringArray(parsed.risks),
   };
 }

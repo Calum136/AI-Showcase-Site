@@ -31,8 +31,6 @@ const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistan
 **Your Persona:**
 - Systems-thinking consultant
 - Genuinely curious, not interrogating
-- Synthesize before asking next question
-- Focus on operations, not emotions
 - Grounded, professional, unhurried
 
 **Conversation Goals:**
@@ -46,28 +44,23 @@ const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistan
 
 **Stage 1 - Opening & Energy Mapping (3-4 exchanges)**
 - Listen for: Projects, approvals, coordination, delivery pressure
-- Synthesize: "That tension between [X] and [Y] shows up a lot once organizations grow..."
-- Dig: "When [bottleneck] happens, does it feel like [root cause A] or [root cause B]?"
+- Dig into their specific situation using THEIR words
 
 **Stage 2 - Bottleneck Diagnosis (3-4 exchanges)**
-- Impact: "When [bottleneck] happens, what gives first—speed, focus, or team capacity?"
-- Behavior: "Do teams wait it out, or find ways around it?"
-- Synthesize: "Workaround behavior tells you where the real flow wants to be."
-- Process maturity: "Does the information exist but not travel well, or is it never captured?"
+- Impact, behavior, workarounds, process maturity
+- Go deeper on what THEY brought up, don't introduce new topics
 
 **Stage 3 - Improvement & Ownership (3-4 exchanges)**
-- Opportunity: "If one part of how work moves felt noticeably smoother, where would you feel the biggest difference?"
-- Ownership: "Is that something people are expected to improve in their regular roles, or does it not have a clear owner?"
-- Resources: "Do teams have room to improve how they work, or is most capacity tied up keeping things running?"
-- Synthesize: "Sounds like the organization has strong capabilities, but the flow between pieces is where leverage lives."
+- Opportunity, ownership, resources, capacity for change
 
 **CRITICAL RULES:**
+- You MUST use specific words, phrases, or details from the user's last message in your synthesis. Quote or paraphrase them directly. Example: if they say "micromanagement", you say "You mentioned micromanagement — when that pressure shows up..."
+- NEVER give generic acknowledgements like "That's interesting context" or "I hear you" or "That makes sense" without immediately connecting to something specific they said
 - Never use corporate jargon ("synergy", "bandwidth", "touch base")
 - Never sell Calum directly ("I can help with that")
-- Always synthesize what they said before asking next question
-- Stay diagnostic, not prescriptive
-- Keep responses 2-4 sentences max (this is conversation, not essay)
+- Keep responses 2-3 sentences max. One sentence of synthesis using their words, one question that digs deeper
 - Be warm and human, not robotic
+- Each response must feel like it could ONLY have been written after reading what the user just said
 
 **About Calum Kershaw:**
 AI Solutions Developer & Systems Thinker focused on AI systems integration, automation, and decision support tools.
@@ -80,25 +73,50 @@ const DEFAULT_OPENING =
   "I appreciate you making the time. From your perspective, what's been taking up most of your energy lately?";
 
 // ---------------------
-// Fallback Questions
+// Fallback Questions (templated with user context)
 // ---------------------
-const FALLBACK_QUESTIONS = {
+// Templates use {topic} which gets replaced with a keyword from the user's last message
+const FALLBACK_TEMPLATES = {
   stage1: [
-    "That's interesting context. When that tension comes up, does it feel more like a communication gap or a structural one?",
-    "I hear you. When things slow down, is it usually waiting on decisions, or waiting on information?",
-    "That makes sense. Does the team have clarity on what 'done' looks like, or does that shift mid-stream?",
+    "You brought up {topic} — when that tension shows up, does it tend to slow things down for just your team, or does it ripple across the organization?",
+    "That point about {topic} stands out. Is that something that's been building over time, or did it surface recently?",
+    "When you think about {topic}, is the core issue about how decisions get made, or about how information moves between people?",
+    "{topic} — is that something people have tried to fix before, or is it one of those things everyone just works around?",
+    "You mentioned {topic}. When that creates friction, where do you feel it first — in delivery timelines, in team energy, or somewhere else?",
+    "Interesting that {topic} came up. Is the team aware that's a drag, or is it one of those invisible costs nobody talks about?",
   ],
   stage2: [
-    "When that happens, what gives first—speed, focus, or team capacity?",
-    "Do people tend to wait it out, or find ways around the bottleneck?",
-    "Does the information exist somewhere but not travel well, or is it never captured in the first place?",
+    "So when {topic} hits, what usually gives first — the timeline, the quality, or the team's focus?",
+    "With {topic} being a factor, have people started building their own workarounds, or do they wait for the bottleneck to clear?",
+    "On the {topic} side — does the right information exist but not reach the right people, or is it never captured in the first place?",
+    "When {topic} creates delays, is it because someone specific needs to approve, or because nobody's sure who owns the decision?",
+    "You're describing {topic} as a recurring issue. Has the team tried changing the process around it, or has it just become 'how things work here'?",
+    "With {topic} in the picture — if you could wave a wand and fix one piece of how work flows, what would have the most immediate impact?",
   ],
   stage3: [
-    "If one part of how work moves felt noticeably smoother, where would you feel the biggest difference?",
-    "Is improving that something people are expected to do in their regular roles, or does it not have a clear owner?",
-    "Do teams have room to improve how they work, or is most capacity tied up keeping things running?",
+    "Given everything around {topic}, if one part of how work moves got noticeably smoother, where would you feel the biggest relief?",
+    "When it comes to fixing {topic}, is that something someone owns, or does it fall between the cracks because everyone's busy keeping things running?",
+    "On {topic} — does your team have breathing room to change how they work, or is most capacity locked into keeping today's plates spinning?",
+    "If you solved the {topic} issue, what would that actually look like day-to-day for your team?",
+    "You've painted a clear picture around {topic}. What would 'good' look like in 90 days if things started moving in the right direction?",
+    "Last question on {topic} — is the organization ready to invest in fixing this, or is it still in the 'we know it's a problem but...' stage?",
   ],
 };
+
+/**
+ * Extract a meaningful topic phrase from the user's last message.
+ * Grabs the longest noun-phrase-ish chunk, or falls back to first several words.
+ */
+function extractTopic(userMessage: string): string {
+  const cleaned = userMessage.trim().replace(/[.!?]+$/g, "");
+  // If short enough, just use it
+  if (cleaned.split(/\s+/).length <= 5) return cleaned.toLowerCase();
+  // Take first meaningful clause (before first comma or period)
+  const clause = cleaned.split(/[,.\n]/)[0].trim();
+  if (clause.split(/\s+/).length <= 6) return clause.toLowerCase();
+  // Last resort: first 5 words
+  return clause.split(/\s+/).slice(0, 5).join(" ").toLowerCase();
+}
 
 // ---------------------
 // OpenAI Helpers
@@ -137,14 +155,24 @@ function computeStage(userTurns: number): 1 | 2 | 3 {
   return 1;
 }
 
-function getFallbackQuestion(stage: number, userTurns: number): string {
-  const questions =
+function getFallbackQuestion(
+  stage: number,
+  userTurns: number,
+  lastUserMessage?: string,
+): string {
+  const templates =
     stage === 1
-      ? FALLBACK_QUESTIONS.stage1
+      ? FALLBACK_TEMPLATES.stage1
       : stage === 2
-        ? FALLBACK_QUESTIONS.stage2
-        : FALLBACK_QUESTIONS.stage3;
-  return questions[userTurns % questions.length];
+        ? FALLBACK_TEMPLATES.stage2
+        : FALLBACK_TEMPLATES.stage3;
+
+  // Pick a random template (not sequential — feels less scripted)
+  const template = templates[Math.floor(Math.random() * templates.length)];
+  const topic = lastUserMessage
+    ? extractTopic(lastUserMessage)
+    : "what you described";
+  return template.replace(/\{topic\}/g, topic);
 }
 
 // ---------------------
@@ -218,19 +246,24 @@ async function generateNextQuestion(
 ${stageGuidance}
 User turn count: ${userTurns}
 
-Based on the last user response, generate your next message. Remember to:
-1. Briefly synthesize or acknowledge what they shared (1 sentence)
-2. Ask your next diagnostic question (1-2 sentences)
+Based on the user's LAST response, generate your next message. You MUST:
+1. Reference a specific word, phrase, or idea from what they just said (not a generic "that's interesting")
+2. Ask one diagnostic question that digs deeper into THEIR specific situation
 
-Keep the total response to 2-4 sentences. Be conversational and curious, not interrogating.
+Keep it to 2-3 sentences total. The response must feel like it could only exist because of what they just told you.
 Return ONLY your response text.`,
   });
 
+  // Extract last user message for fallback context
+  const lastUserMsg = [...messages]
+    .reverse()
+    .find((m) => m.role === "user")?.content;
+
   try {
     const response = await callOpenAI(chatMessages);
-    return response || getFallbackQuestion(stage, userTurns);
+    return response || getFallbackQuestion(stage, userTurns, lastUserMsg);
   } catch {
-    return getFallbackQuestion(stage, userTurns);
+    return getFallbackQuestion(stage, userTurns, lastUserMsg);
   }
 }
 
@@ -243,19 +276,22 @@ async function generateReport(
 ): Promise<any> {
   const reportSystemPrompt = `You are producing a FitReport based on a diagnostic conversation about operational bottlenecks and organizational challenges.
 
-Your job is to synthesize the conversation into actionable insights about:
-1. Where leverage lives in their organization
-2. What bottlenecks were identified
-3. How Calum Kershaw's skills could address these challenges
-4. What conditions would need to be true for success
+Your job is to synthesize the conversation into ONE clear, actionable recommendation — not a generic assessment.
+
+LANGUAGE RULES (CRITICAL):
+- Write EVERYTHING in plain language a non-technical business owner would understand
+- NO tech jargon: no "AI-powered", "RAG system", "pipeline", "API", "integration layer"
+- INSTEAD use: "automate the repetitive part", "sort incoming requests automatically", "give your team one place to see everything", "stop things from falling through the cracks"
+- The hero recommendation should describe the OUTCOME for the user's team, not the technology
+- Reference specific things they said in the conversation
 
 About Calum Kershaw:
 - AI Solutions Developer & Systems Thinker
-- Skills: TypeScript, Python, React, Node.js, OpenAI API, RAG Systems
-- Strengths: Systems thinking, process optimization, AI integration, data quality
-- Experience: Building AI tools, operations management, data analysis
+- Builds tools that automate repetitive work, improve information flow, and help teams make better decisions faster
+- Background in operations management and data analysis
+- Quickly learns new domains and finds the leverage points
 
-Be honest and specific. Reference actual points from the conversation.`;
+Be honest, specific, and grounded in what was actually discussed.`;
 
   const conversation = messages
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
@@ -264,14 +300,25 @@ Be honest and specific. Reference actual points from the conversation.`;
   const userPrompt = `${jdText ? `Context provided:\n"""\n${jdText.slice(0, 6000)}\n"""\n\n` : ""}Diagnostic Conversation:
 ${conversation}
 
-Based on this diagnostic conversation, generate a FitReport. Return ONLY valid JSON (no markdown, no code blocks):
+Based on this conversation, generate a FitReport. The heroRecommendation should be a single bold sentence describing the outcome — what changes for the team. NOT a technology pitch.
+
+Return ONLY valid JSON (no markdown, no code blocks):
 {
-  "verdict": "YES" or "NO" (based on whether Calum's skills match the identified needs),
-  "roleAlignment": ["2-4 specific points about how Calum's skills align with the challenges discussed"],
-  "environmentCompatibility": ["2-4 observations about organizational fit based on what was revealed"],
-  "structuralRisks": ["2-4 potential challenges or red flags identified in the conversation"],
-  "successConditions": ["2-4 conditions that would need to be true for success"],
-  "gapPlan": ["2-4 specific actions for the first 30-90 days to address gaps"]
+  "verdict": "YES" or "NO",
+  "heroRecommendation": "One bold sentence describing the outcome — e.g. 'Free your team from the approval bottleneck so they can move at the speed they want to'",
+  "approachSummary": "2-3 plain-language sentences: what the problem is, what the fix looks like, and what changes day-to-day for the team",
+  "keyInsights": [
+    { "label": "The Problem", "detail": "plain language — what's actually slowing things down, referencing what they said" },
+    { "label": "Where the Fix Lives", "detail": "plain language — what part of the system to change" },
+    { "label": "First Win", "detail": "one concrete thing that would visibly improve within weeks" }
+  ],
+  "timeline": {
+    "phase1": { "label": "First 30 Days", "action": "plain language action step" },
+    "phase2": { "label": "Days 30-60", "action": "plain language action step" },
+    "phase3": { "label": "Days 60-90", "action": "plain language action step" }
+  },
+  "fitSignals": ["2-3 plain-language reasons this is a good fit, referencing the conversation"],
+  "risks": ["1-2 honest risks or things to watch for"]
 }`;
 
   try {
@@ -288,34 +335,55 @@ Based on this diagnostic conversation, generate a FitReport. Return ONLY valid J
     console.error("Report generation failed:", err);
   }
 
-  // Fallback report
+  // Fallback report — plain language, matches new schema
   return {
     verdict: "YES",
-    roleAlignment: [
-      "Systems thinking approach aligns with identifying operational bottlenecks",
-      "AI/automation skills relevant to improving information flow",
-      "Data analysis background supports evidence-based improvement",
+    heroRecommendation:
+      "Get your team unstuck by clearing the bottlenecks that slow down every decision",
+    approachSummary:
+      "Based on our conversation, the biggest drag on your team is waiting — waiting for approvals, waiting for information, waiting for decisions that should be straightforward. The fix isn't more meetings or more tools. It's identifying the 2-3 specific handoff points where things stall, and making them flow.",
+    keyInsights: [
+      {
+        label: "The Problem",
+        detail:
+          "Work gets stuck between people, not inside their work. The team knows what to do but can't move until someone else weighs in.",
+      },
+      {
+        label: "Where the Fix Lives",
+        detail:
+          "The handoff points between teams or between a team and leadership. That's where days get lost.",
+      },
+      {
+        label: "First Win",
+        detail:
+          "Map out exactly where things stall and remove one unnecessary approval step. The team feels the difference immediately.",
+      },
     ],
-    environmentCompatibility: [
-      "Adaptable to environments in transition",
-      "Comfortable working across multiple stakeholders",
-      "Quick learner in new domains",
+    timeline: {
+      phase1: {
+        label: "First 30 Days",
+        action:
+          "Observe and map where work actually stalls — talk to the people doing the work, not just leadership",
+      },
+      phase2: {
+        label: "Days 30-60",
+        action:
+          "Fix the worst bottleneck with a simple, visible change that the team can feel immediately",
+      },
+      phase3: {
+        label: "Days 60-90",
+        action:
+          "Build on the momentum — automate the repetitive parts and set up a rhythm so improvements stick",
+      },
+    },
+    fitSignals: [
+      "The challenges described are exactly the kind of systems problems Calum is built to solve",
+      "The team is ready to move faster — they just need the blockers removed",
+      "This is an operations-first problem, which matches Calum's background in operations and systems thinking",
     ],
-    structuralRisks: [
-      "Improvement initiatives need clear ownership to succeed",
-      "Capacity constraints may limit ability to drive change",
-      "Scope clarity important for early wins",
-    ],
-    successConditions: [
-      "Clear mandate to identify and address bottlenecks",
-      "Access to key stakeholders and decision-makers",
-      "Time allocated for improvement work, not just maintenance",
-    ],
-    gapPlan: [
-      "Map current information flows in first 30 days",
-      "Identify 2-3 quick wins that demonstrate value",
-      "Build relationships with process owners early",
-      "Document baseline metrics to show improvement",
+    risks: [
+      "If leadership isn't ready to let go of some approval steps, even the best fixes won't stick",
+      "Change takes time — the team needs to see early wins to stay bought in",
     ],
   };
 }
