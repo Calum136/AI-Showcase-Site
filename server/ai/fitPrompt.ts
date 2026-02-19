@@ -365,6 +365,10 @@ LANGUAGE RULES (CRITICAL):
 SCORING RULES:
 - Score 5-6 operational dimensions on a 0-10 scale based on what was discussed
 - Pick dimensions RELEVANT to what came up
+- Labels must be action-oriented and specific — describe what gets better, not abstract categories
+  GOOD: "Time Freed Up", "Customer Self-Service", "Info Findability", "Manual Work Reduced", "Response Speed"
+  BAD: "Staff Capacity", "Process Clarity", "Automation Level" (too vague)
+- Keep labels SHORT (2-3 words max) so they display well on charts
 - Be honest — a 3→7 jump is more credible than 2→9`;
 
   const userPrompt = `
@@ -389,13 +393,17 @@ Return ONLY valid JSON:
     "phase3": { "label": "Days 60-90", "action": "..." }
   },
   "scores": [
-    { "label": "Dimension", "current": 4, "projected": 8 }
+    { "label": "Time Freed Up", "current": 3, "projected": 7 },
+    { "label": "Response Speed", "current": 3, "projected": 7 },
+    { "label": "Info Findability", "current": 4, "projected": 8 },
+    { "label": "Manual Work", "current": 6, "projected": 2 },
+    { "label": "Customer Access", "current": 3, "projected": 8 }
   ],
   "fitSignals": ["..."],
   "risks": ["..."]
 }
 
-Pick 5-6 dimensions most relevant to THIS conversation.`;
+Pick 5-6 dimensions most relevant to THIS conversation. Don't use the examples if they don't fit.`;
 
   let raw: string;
   if (opts.provider === "anthropic") {

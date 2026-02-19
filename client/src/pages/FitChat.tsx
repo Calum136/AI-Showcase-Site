@@ -437,7 +437,7 @@ export default function FitChat() {
             </div>
           </motion.div>
 
-          {/* Operational Scores Card */}
+          {/* Operational Score Card */}
           {report.scores && report.scores.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -446,25 +446,21 @@ export default function FitChat() {
               className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
             >
               <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide text-center mb-6">
-                Operational Impact
+                Operational Score
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                {/* Radar chart */}
-                <div className="w-full h-[320px] md:h-[380px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                {/* Radar chart — full labels, larger text */}
+                <div className="w-full h-[380px] md:h-[440px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart
                       data={report.scores.map((s) => ({
-                        dimension:
-                          s.label.length > 12
-                            ? s.label.slice(0, 10) + "…"
-                            : s.label,
-                        fullLabel: s.label,
+                        dimension: s.label,
                         current: s.current,
                         projected: s.projected,
                       }))}
                       cx="50%"
                       cy="50%"
-                      outerRadius="55%"
+                      outerRadius="65%"
                     >
                       <PolarGrid
                         gridType="polygon"
@@ -473,70 +469,90 @@ export default function FitChat() {
                       />
                       <PolarAngleAxis
                         dataKey="dimension"
-                        tick={{ fontSize: 11, fill: "#4B3428", fontWeight: 500 }}
+                        tick={{ fontSize: 13, fill: "#4B3428", fontWeight: 600 }}
                         tickLine={false}
                       />
                       <PolarRadiusAxis
                         angle={90}
                         domain={[0, 10]}
                         ticks={[2, 4, 6, 8, 10] as any}
-                        tick={{ fontSize: 9, fill: "#4B3428", fillOpacity: 0.4 }}
+                        tick={{ fontSize: 11, fill: "#4B3428", fillOpacity: 0.35 }}
                         axisLine={false}
                       />
                       <Radar
                         name="Current"
                         dataKey="current"
-                        stroke="#8B2E2E"
-                        fill="#8B2E2E"
-                        fillOpacity={0.15}
+                        stroke="#2F2F33"
+                        fill="#2F2F33"
+                        fillOpacity={0.1}
                         strokeWidth={2}
                         strokeDasharray="6 3"
                       />
                       <Radar
                         name="Projected"
                         dataKey="projected"
-                        stroke="#5F6F52"
-                        fill="#5F6F52"
-                        fillOpacity={0.3}
+                        stroke="#B45A3C"
+                        fill="#B45A3C"
+                        fillOpacity={0.25}
                         strokeWidth={2.5}
                       />
                       <Legend
-                        wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                        wrapperStyle={{ fontSize: "14px", paddingTop: "12px", fontWeight: 500 }}
                         iconType="plainline"
                       />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* Score breakdown */}
-                <div className="space-y-4">
+                {/* Score breakdown bars with 1–10 scale */}
+                <div className="space-y-5">
                   {report.scores.map((s, i) => (
                     <div key={i} className="space-y-1.5">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-brand-brown font-medium">{s.label}</span>
-                        <span className="text-brand-brown/60 font-medium">
-                          {s.current} → {s.projected}
-                        </span>
-                      </div>
-                      <div className="relative h-2.5 bg-brand-stone rounded-full overflow-hidden">
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-full"
-                          style={{ width: `${s.projected * 10}%`, backgroundColor: "#5F6F52", opacity: 0.5 }}
-                        />
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-full"
-                          style={{ width: `${s.current * 10}%`, backgroundColor: "#8B2E2E", opacity: 0.7 }}
-                        />
+                      <span className="text-sm text-brand-brown font-semibold">{s.label}</span>
+                      <div className="relative">
+                        {/* Scale markers */}
+                        <div className="flex justify-between text-[10px] text-brand-brown/40 mb-1 px-0.5">
+                          <span>1</span>
+                          <span>10</span>
+                        </div>
+                        {/* Bar track */}
+                        <div className="relative h-4 bg-brand-stone rounded-full overflow-hidden">
+                          {/* Projected (behind — copper) */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full"
+                            style={{ width: `${s.projected * 10}%`, backgroundColor: "#B45A3C", opacity: 0.35 }}
+                          />
+                          {/* Current (front — slate) */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full"
+                            style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
+                          />
+                        </div>
+                        {/* Score numbers positioned over bar ends */}
+                        <div className="relative h-5 mt-0.5">
+                          <span
+                            className="absolute text-xs font-bold"
+                            style={{ left: `${s.current * 10}%`, transform: "translateX(-50%)", color: "#2F2F33" }}
+                          >
+                            {s.current}
+                          </span>
+                          <span
+                            className="absolute text-xs font-bold"
+                            style={{ left: `${s.projected * 10}%`, transform: "translateX(-50%)", color: "#B45A3C" }}
+                          >
+                            {s.projected}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center gap-4 pt-2 text-xs text-brand-brown/50">
+                  <div className="flex items-center gap-5 pt-1 text-xs text-brand-brown/50 font-medium">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-3 h-2.5 rounded" style={{ backgroundColor: "#8B2E2E", opacity: 0.7 }} />
+                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#2F2F33", opacity: 0.55 }} />
                       Current
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-3 h-2.5 rounded" style={{ backgroundColor: "#5F6F52", opacity: 0.5 }} />
+                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#B45A3C", opacity: 0.35 }} />
                       Projected
                     </div>
                   </div>
@@ -583,49 +599,11 @@ export default function FitChat() {
             </motion.div>
           )}
 
-          {/* Timeline Card */}
-          {report.timeline && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
-            >
-              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide mb-5">
-                Suggested Timeline
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  report.timeline.phase1,
-                  report.timeline.phase2,
-                  report.timeline.phase3,
-                ].map((phase, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-3 bg-brand-stone/20 rounded-xl p-5"
-                  >
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-copper/10 text-brand-copper text-sm font-bold shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-brand-copper uppercase tracking-wide">
-                        {phase.label}
-                      </div>
-                      <p className="text-sm text-brand-brown/75 mt-1.5 leading-relaxed">
-                        {phase.action}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
           {/* Fit Signals & Risks Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.25 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             {report.fitSignals && report.fitSignals.length > 0 && (
@@ -666,13 +644,56 @@ export default function FitChat() {
             )}
           </motion.div>
 
-          {/* Action footer */}
+          {/* Timeline Card — at the bottom */}
+          {report.timeline && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
+            >
+              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide mb-5">
+                Suggested Timeline
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  report.timeline.phase1,
+                  report.timeline.phase2,
+                  report.timeline.phase3,
+                ].map((phase, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 bg-brand-stone/20 rounded-xl p-5"
+                  >
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-copper/10 text-brand-copper text-sm font-bold shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-brand-copper uppercase tracking-wide">
+                        {phase.label}
+                      </div>
+                      <p className="text-sm text-brand-brown/75 mt-1.5 leading-relaxed">
+                        {phase.action}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Action footer — Contact Me + Start New */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="flex gap-4 pb-8"
+            className="flex flex-col sm:flex-row gap-4 pb-8"
           >
+            <a href="mailto:calumkershaw@outlook.com">
+              <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-white">
+                Contact Me
+              </Button>
+            </a>
             <Link href="/fit">
               <Button variant="outline" className="rounded-xl">
                 Start New Diagnostic

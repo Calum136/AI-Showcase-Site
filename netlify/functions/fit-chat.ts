@@ -253,6 +253,10 @@ LANGUAGE RULES (CRITICAL):
 SCORING RULES:
 - Score 5-6 operational dimensions on a 0-10 scale based on what was discussed
 - Pick dimensions RELEVANT to what came up (not a generic set for every business)
+- Labels must be action-oriented and specific — describe what gets better, not abstract categories
+  GOOD: "Time Freed Up", "Customer Self-Service", "Info Findability", "Manual Work Reduced", "Response Speed"
+  BAD: "Staff Capacity", "Process Clarity", "Automation Level" (too vague — what does that mean to a business owner?)
+- Keep labels SHORT (2-3 words max) so they display well on charts
 - "current" = where they are now based on the conversation
 - "projected" = realistic expected improvement if the recommended solution is implemented
 - Be honest — don't inflate projected scores unrealistically. A 3→7 jump is more credible than 2→9
@@ -290,11 +294,11 @@ Return ONLY valid JSON (no markdown, no code blocks):
     "phase3": { "label": "Days 60-90", "action": "plain language action step" }
   },
   "scores": [
-    { "label": "Information Flow", "current": 4, "projected": 8 },
-    { "label": "Staff Capacity", "current": 3, "projected": 7 },
-    { "label": "Process Clarity", "current": 5, "projected": 8 },
-    { "label": "Response Time", "current": 3, "projected": 7 },
-    { "label": "Automation Level", "current": 2, "projected": 7 }
+    { "label": "Info Findability", "current": 4, "projected": 8 },
+    { "label": "Time Freed Up", "current": 3, "projected": 7 },
+    { "label": "Response Speed", "current": 3, "projected": 7 },
+    { "label": "Manual Work", "current": 6, "projected": 2 },
+    { "label": "Customer Access", "current": 3, "projected": 8 }
   ],
   "fitSignals": ["2-3 plain-language reasons this is a good fit"],
   "risks": ["1-2 honest risks or things to watch for"]
@@ -352,11 +356,11 @@ Pick 5-6 dimensions most relevant to THIS conversation. Don't use the example di
       },
     },
     scores: [
-      { label: "Information Flow", current: 4, projected: 7 },
-      { label: "Staff Capacity", current: 3, projected: 7 },
-      { label: "Process Clarity", current: 5, projected: 7 },
-      { label: "Response Time", current: 4, projected: 8 },
-      { label: "Automation Level", current: 2, projected: 7 },
+      { label: "Info Findability", current: 4, projected: 7 },
+      { label: "Time Freed Up", current: 3, projected: 7 },
+      { label: "Response Speed", current: 4, projected: 8 },
+      { label: "Manual Work", current: 6, projected: 2 },
+      { label: "Team Focus", current: 3, projected: 7 },
     ],
     fitSignals: [
       "The challenges described match Calum's track record of automating repetitive workflows for real businesses",
