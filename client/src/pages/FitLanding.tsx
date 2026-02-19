@@ -570,7 +570,7 @@ function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
               {/* Why Hire - Top 3 strengths */}
               {data.strengths.length > 0 && (
                 <div className="bg-brand-moss/5 border border-brand-moss/20 rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-brand-moss mb-2">Why Consider Hiring</h4>
+                  <h4 className="text-xs font-semibold text-brand-moss mb-2">Top Match Points</h4>
                   <ul className="space-y-1">
                     {data.strengths.slice(0, 3).map((s, i) => (
                       <li key={i} className="text-xs text-brand-brown flex items-start gap-2">
@@ -582,14 +582,14 @@ function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
                 </div>
               )}
 
-              {/* Honest Risk Flags */}
+              {/* Considerations */}
               {data.risks.length > 0 && (
-                <div className="bg-brand-red/5 border border-brand-red/20 rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-brand-red mb-2">Honest Risk Flags</h4>
+                <div className="bg-brand-stone/30 border border-brand-brown/10 rounded-xl p-4">
+                  <h4 className="text-xs font-semibold text-brand-brown/60 mb-2">Worth Noting</h4>
                   <ul className="space-y-1">
-                    {data.risks.slice(0, 3).map((r, i) => (
-                      <li key={i} className="text-xs text-brand-brown flex items-start gap-2">
-                        <AlertCircle className="w-3 h-3 text-brand-red mt-0.5 shrink-0" />
+                    {data.risks.slice(0, 2).map((r, i) => (
+                      <li key={i} className="text-xs text-brand-brown/70 flex items-start gap-2">
+                        <span className="text-brand-brown/30 mt-0.5">—</span>
                         <span>{r}</span>
                       </li>
                     ))}
@@ -601,32 +601,38 @@ function AssessmentResults({ data }: { data: FitAssessmentOutput }) {
         </CardContent>
       </Card>
 
-      {/* Main sections grid */}
+      {/* Strengths — full width, leading position */}
+      <ResultSection
+        title="Strengths"
+        icon={<TrendingUp className="h-4 w-4 text-brand-moss" />}
+        items={data.strengths}
+        iconColor="text-brand-moss"
+      />
+
+      {/* Interview Strategy — full width */}
+      <ResultSection
+        title="Interview Strategy"
+        icon={<Lightbulb className="h-4 w-4 text-brand-copper" />}
+        items={data.recommendedNextSteps}
+        iconColor="text-brand-copper"
+        numbered
+      />
+
+      {/* Areas to Address + Things to Watch — secondary, side by side */}
       <div className="grid md:grid-cols-2 gap-5">
         <ResultSection
-          title="Strengths"
-          icon={<TrendingUp className="h-4 w-4 text-brand-moss" />}
-          items={data.strengths}
-          iconColor="text-brand-moss"
-        />
-        <ResultSection
-          title="Gaps"
-          icon={<AlertTriangle className="h-4 w-4 text-brand-copper" />}
+          title="Areas to Address"
+          icon={<ArrowRight className="h-4 w-4 text-brand-brown/50" />}
           items={data.gaps}
-          iconColor="text-brand-copper"
+          iconColor="text-brand-brown/50"
+          muted
         />
         <ResultSection
-          title="Risks"
-          icon={<AlertCircle className="h-4 w-4 text-brand-red" />}
+          title="Things to Watch"
+          icon={<Shield className="h-4 w-4 text-brand-brown/50" />}
           items={data.risks}
-          iconColor="text-brand-red"
-        />
-        <ResultSection
-          title="Next Steps"
-          icon={<Lightbulb className="h-4 w-4 text-brand-copper" />}
-          items={data.recommendedNextSteps}
-          iconColor="text-brand-copper"
-          numbered
+          iconColor="text-brand-brown/50"
+          muted
         />
       </div>
 
@@ -710,29 +716,33 @@ function ResultSection({
   items,
   iconColor,
   numbered = false,
+  muted = false,
 }: {
   title: string;
   icon: React.ReactNode;
   items: string[];
   iconColor: string;
   numbered?: boolean;
+  muted?: boolean;
 }) {
   if (items.length === 0) return null;
 
   return (
-    <Card className="rounded-2xl">
+    <Card className={`rounded-2xl ${muted ? "border-surface-line/50" : ""}`}>
       <CardContent className="p-5">
         <div className="flex items-center gap-2 mb-3">
           {icon}
-          <h3 className="font-semibold text-brand-charcoal text-sm">{title}</h3>
+          <h3 className={`font-semibold text-sm ${muted ? "text-brand-brown/60" : "text-brand-charcoal"}`}>{title}</h3>
         </div>
         <ul className="space-y-2">
-          {items.slice(0, 5).map((item, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-brand-brown">
+          {items.slice(0, muted ? 4 : 8).map((item, i) => (
+            <li key={i} className={`flex items-start gap-2 text-sm ${muted ? "text-brand-brown/70" : "text-brand-brown"}`}>
               {numbered ? (
                 <span className={`font-semibold ${iconColor} text-xs`}>
                   {i + 1}.
                 </span>
+              ) : muted ? (
+                <span className="text-brand-brown/30 mt-0.5 text-xs">—</span>
               ) : (
                 <CheckCircle2
                   className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${iconColor}`}

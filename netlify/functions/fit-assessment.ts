@@ -144,18 +144,30 @@ const fitAssessmentOutputSchema = z.object({
 // Assessment Generation
 // ---------------------
 async function generateFitAssessment(inputText: string) {
-  const systemPrompt = `You are an expert career analyst who turns unstructured job descriptions and workflow requirements into structured fit analysis.
+  const systemPrompt = `You are an expert career analyst producing a fit assessment for Calum Kershaw. Your job is to be HONEST but frame things constructively — like a sharp recruiter advocating for a strong candidate, not writing a rejection letter.
 
 ${CALUM_RESUME_CONTEXT}
 
-Your task is to analyze the provided text (job description, workflow description, or requirements) and produce a structured assessment of fit.
+TONE RULES (CRITICAL):
+- This is an ADVOCACY document, not a neutral evaluation. You're answering: "Why should they hire Calum, and what should he be ready to address?"
+- Strengths should be SPECIFIC and CONFIDENT. Don't say "Proficient in data analysis" — say "Built production BI dashboards and automated reporting pipelines, directly matching this role's analytics requirements"
+- Lead every strength with evidence: a project, a result, a concrete skill match
+- Gaps are NOT deal-breakers — frame them as "areas to address in the interview" or "things to proactively demonstrate." Use language like "Could strengthen positioning by..." or "Worth addressing proactively:..."
+- Risks should be HONEST but brief and balanced — always pair with a mitigating factor. "While X could be a concern, Y from his background directly offsets this"
+- Next steps should be ACTIONABLE POSITIONING ADVICE, not homework. Not "Consider gaining experience with..." but "In the interview, lead with the Blackbird Brewing project to demonstrate..."
+- Summary should open with the strongest match point, not a hedge
 
-IMPORTANT RULES:
-1. Return ONLY valid JSON - no markdown, no commentary, no explanations outside the JSON
+SCORING RULES:
+- 75-90 = strong fit (most roles that overlap with his skills)
+- 60-74 = moderate fit (partial overlap, stretch role)
+- Below 60 = weak fit (major skill gaps)
+- An 80+ score should FEEL like a strong match when reading the output
+
+FORMAT RULES:
+1. Return ONLY valid JSON - no markdown, no commentary
 2. Match the schema exactly
-3. Be honest and specific - reference actual details from the input
-4. Fit score should be realistic (70-85 is good fit, 50-70 is moderate, below 50 is weak)
-5. All arrays should have substantive, specific content - not generic filler`;
+3. Reference actual details from the input
+4. All arrays should have substantive, specific content`;
 
   const userPrompt = `Analyze the following input and produce a structured fit assessment:
 
@@ -165,12 +177,12 @@ ${inputText.slice(0, 10000)}
 
 Return ONLY valid JSON matching this exact schema:
 {
-  "summary": "2-4 sentence summary of the fit analysis",
+  "summary": "2-4 sentences. Open with the STRONGEST match point. Frame overall fit confidently if score is 70+.",
   "fitScore": 0-100,
-  "strengths": ["3-8 specific strengths/alignment points"],
-  "gaps": ["3-10 specific gaps or areas of mismatch"],
-  "risks": ["2-8 potential risks or challenges"],
-  "recommendedNextSteps": ["3-8 specific actionable next steps"],
+  "strengths": ["5-8 specific strengths. Each should lead with EVIDENCE: a project name, a metric, a concrete skill. Be confident, not hedging."],
+  "gaps": ["2-5 gaps framed as areas to ADDRESS, not deal-breakers. Use 'Could strengthen by...' or 'Worth addressing:...' Never say 'Limited experience' or 'lacks'."],
+  "risks": ["2-4 honest risks, each paired with a mitigating factor. 'While X, his experience with Y offsets this.'"],
+  "recommendedNextSteps": ["3-6 POSITIONING strategies, not homework. 'In the interview, lead with...' or 'Highlight the X project to demonstrate...'"],
   "keywords": ["8-20 relevant keywords extracted from the input"],
   "roleSignals": {
     "seniority": "e.g., Entry, Mid, Senior, Lead, Manager, Director",
@@ -180,7 +192,7 @@ Return ONLY valid JSON matching this exact schema:
   }
 }
 
-Be specific and reference actual content from the input. Do not use generic filler text.`;
+Be specific and reference actual content from the input.`;
 
   const raw = await callOpenAI(systemPrompt, userPrompt);
 
