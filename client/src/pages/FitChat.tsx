@@ -233,124 +233,123 @@ export default function FitChat() {
 
   return (
     <Layout>
-      {/* Full-height flex container — chat stays in viewport */}
-      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-128px)] md:h-[calc(100dvh-144px)]">
-        {/* Header — compact, no extra vertical space */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between py-3 shrink-0"
-        >
-          <div className="flex items-center gap-4">
-            <Link href="/fit">
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-brand-red">
-                Fit Lab Diagnostic
-              </h1>
-              <p className="text-sm text-surface-line">
-                {complete ? "Diagnostic Complete" : "Finding your biggest bottleneck"}
-              </p>
-            </div>
-          </div>
-
-          {/* Upload button (top-right) */}
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept=".txt"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadFile(f);
-                e.currentTarget.value = "";
-              }}
-              disabled={isBusy}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isBusy}
-              title="Upload job description (.txt) for context"
-            >
-              <Upload className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Upload JD</span>
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Error display */}
-        {error && (
+      {/* Chat phase — viewport-locked */}
+      {!complete && (
+        <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-128px)] md:h-[calc(100dvh-144px)]">
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3 shrink-0"
+            className="flex items-center justify-between py-3 shrink-0"
           >
-            {error}
-            {!hasStarted && (
+            <div className="flex items-center gap-4">
+              <Link href="/fit">
+                <Button variant="ghost" size="icon" className="rounded-xl">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-brand-red">
+                  Fit Lab Diagnostic
+                </h1>
+                <p className="text-sm text-surface-line">
+                  Finding your biggest bottleneck
+                </p>
+              </div>
+            </div>
+
+            {/* Upload button */}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".txt"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadFile(f);
+                  e.currentTarget.value = "";
+                }}
+                disabled={isBusy}
+              />
               <Button
-                variant="link"
-                className="ml-2 text-brand-red underline p-0 h-auto"
-                onClick={() => startConversation()}
+                variant="outline"
+                size="sm"
+                className="rounded-xl"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isBusy}
+                title="Upload job description (.txt) for context"
               >
-                Try again
+                <Upload className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Upload JD</span>
               </Button>
-            )}
+            </div>
           </motion.div>
-        )}
 
-        {/* Chat Container — fills remaining viewport */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-surface-line bg-surface-paper overflow-hidden flex flex-col flex-1 min-h-0"
-        >
-          {/* Messages Area — scrollable, fills available space */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-h-0">
-            {messages.length === 0 && !isBusy && (
-              <p className="text-surface-line text-center py-8">
-                Starting conversation...
-              </p>
-            )}
+          {/* Error display */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3 shrink-0"
+            >
+              {error}
+              {!hasStarted && (
+                <Button
+                  variant="link"
+                  className="ml-2 text-brand-red underline p-0 h-auto"
+                  onClick={() => startConversation()}
+                >
+                  Try again
+                </Button>
+              )}
+            </motion.div>
+          )}
 
-            {messages.map((m) => (
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className={
-                  m.role === "user" ? "flex justify-end" : "flex justify-start"
-                }
-              >
-                <div
+          {/* Chat Container */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-2xl border border-surface-line bg-surface-paper overflow-hidden flex flex-col flex-1 min-h-0"
+          >
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-h-0">
+              {messages.length === 0 && !isBusy && (
+                <p className="text-surface-line text-center py-8">
+                  Starting conversation...
+                </p>
+              )}
+
+              {messages.map((m) => (
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={
-                    m.role === "user"
-                      ? "max-w-[85%] rounded-2xl rounded-br-md px-4 py-3 bg-brand-copper text-surface-paper whitespace-pre-wrap shadow-sm"
-                      : `max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 whitespace-pre-wrap shadow-sm ${
-                          m.isTyping
-                            ? "bg-brand-stone/70 text-brand-brown/60"
-                            : "bg-brand-stone text-brand-brown"
-                        }`
+                    m.role === "user" ? "flex justify-end" : "flex justify-start"
                   }
                 >
-                  {m.isTyping ? <TypingIndicator /> : m.content}
-                </div>
-              </motion.div>
-            ))}
+                  <div
+                    className={
+                      m.role === "user"
+                        ? "max-w-[85%] rounded-2xl rounded-br-md px-4 py-3 bg-brand-copper text-surface-paper whitespace-pre-wrap shadow-sm"
+                        : `max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 whitespace-pre-wrap shadow-sm ${
+                            m.isTyping
+                              ? "bg-brand-stone/70 text-brand-brown/60"
+                              : "bg-brand-stone text-brand-brown"
+                          }`
+                    }
+                  >
+                    {m.isTyping ? <TypingIndicator /> : m.content}
+                  </div>
+                </motion.div>
+              ))}
 
-            <div ref={bottomRef} />
-          </div>
+              <div ref={bottomRef} />
+            </div>
 
-          {/* Input Area — pinned to bottom of chat container */}
-          {!complete && (
+            {/* Input Area */}
             <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50 shrink-0">
               <input
                 data-testid="input-chat-message"
@@ -376,18 +375,41 @@ export default function FitChat() {
                 <Send className="h-5 w-5" />
               </Button>
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+        </div>
+      )}
 
-        {/* Report — appears when diagnostic is complete */}
-        {report && (
+      {/* Report phase — full-width scrollable page with card sections */}
+      {report && (
+        <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
+          {/* Back nav */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8 space-y-8 overflow-y-auto mt-4"
+            className="flex items-center gap-4"
           >
-            {/* Hero Recommendation */}
+            <Link href="/fit">
+              <Button variant="ghost" size="icon" className="rounded-xl">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-brand-red">
+                Diagnostic Report
+              </h1>
+              <p className="text-sm text-surface-line">
+                Diagnostic Complete
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Hero Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-2xl border border-surface-line bg-surface-paper p-8 md:p-10"
+          >
             <div className="text-center space-y-4">
               <Badge
                 className={
@@ -406,228 +428,259 @@ export default function FitChat() {
                   </>
                 )}
               </Badge>
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-brown leading-snug">
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-brown leading-snug max-w-3xl mx-auto">
                 {report.heroRecommendation}
               </h2>
               <p className="text-brand-brown/70 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                 {report.approachSummary}
               </p>
             </div>
+          </motion.div>
 
-            {/* Operational Scores — Radar Chart */}
-            {report.scores && report.scores.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide text-center">
-                  Operational Impact
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  {/* Radar chart */}
-                  <div className="w-full h-[320px] md:h-[360px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart
-                        data={report.scores.map((s) => ({
-                          dimension: s.label.length > 14 ? s.label.slice(0, 12) + "…" : s.label,
-                          fullLabel: s.label,
-                          current: s.current,
-                          projected: s.projected,
-                        }))}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius="60%"
-                      >
-                        <PolarGrid
-                          gridType="polygon"
-                          stroke="hsl(var(--brand-brown))"
-                          strokeOpacity={0.2}
-                        />
-                        <PolarAngleAxis
-                          dataKey="dimension"
-                          tick={{ fontSize: 10, fill: "hsl(var(--brand-brown))", fontWeight: 500 }}
-                          tickLine={false}
-                        />
-                        <PolarRadiusAxis
-                          angle={90}
-                          domain={[0, 10]}
-                          ticks={[2, 4, 6, 8, 10] as any}
-                          tick={{ fontSize: 9, fill: "hsl(var(--brand-brown))", fillOpacity: 0.5 }}
-                          axisLine={false}
-                        />
-                        <Radar
-                          name="Current"
-                          dataKey="current"
-                          stroke="hsl(var(--brand-red))"
-                          fill="hsl(var(--brand-red))"
-                          fillOpacity={0.12}
-                          strokeWidth={2}
-                          strokeDasharray="6 3"
-                        />
-                        <Radar
-                          name="Projected"
-                          dataKey="projected"
-                          stroke="hsl(var(--brand-moss))"
-                          fill="hsl(var(--brand-moss))"
-                          fillOpacity={0.25}
-                          strokeWidth={2.5}
-                        />
-                        <Legend
-                          wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
-                          iconType="plainline"
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Score breakdown */}
-                  <div className="space-y-3">
-                    {report.scores.map((s, i) => (
-                      <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-brand-brown font-medium">{s.label}</span>
-                          <span className="text-brand-brown/60">
-                            {s.current} → {s.projected}
-                          </span>
-                        </div>
-                        <div className="relative h-2 bg-brand-stone rounded-full overflow-hidden">
-                          <div
-                            className="absolute inset-y-0 left-0 bg-brand-red/40 rounded-full"
-                            style={{ width: `${s.current * 10}%` }}
-                          />
-                          <div
-                            className="absolute inset-y-0 left-0 bg-brand-moss/60 rounded-full"
-                            style={{ width: `${s.projected * 10}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-4 pt-2 text-xs text-brand-brown/50">
-                      <div className="flex items-center gap-1">
-                        <span className="w-3 h-2 bg-brand-red/40 rounded" />
-                        Current
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="w-3 h-2 bg-brand-moss/60 rounded" />
-                        Projected
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Key Insights — 3 cards */}
-            {report.keyInsights && report.keyInsights.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {report.keyInsights.map((insight, idx) => {
-                  const icons = [Target, Lightbulb, Zap];
-                  const Icon = icons[idx % icons.length];
-                  const colors = [
-                    "text-brand-red",
-                    "text-brand-copper",
-                    "text-brand-moss",
-                  ];
-                  return (
-                    <div
-                      key={idx}
-                      className="bg-brand-stone/40 rounded-xl p-4 space-y-2"
+          {/* Operational Scores Card */}
+          {report.scores && report.scores.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
+            >
+              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide text-center mb-6">
+                Operational Impact
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                {/* Radar chart */}
+                <div className="w-full h-[320px] md:h-[380px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart
+                      data={report.scores.map((s) => ({
+                        dimension:
+                          s.label.length > 12
+                            ? s.label.slice(0, 10) + "…"
+                            : s.label,
+                        fullLabel: s.label,
+                        current: s.current,
+                        projected: s.projected,
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="55%"
                     >
-                      <div className="flex items-center gap-2">
-                        <Icon className={`w-4 h-4 ${colors[idx % colors.length]}`} />
-                        <span className="font-semibold text-sm text-brand-brown">
-                          {insight.label}
+                      <PolarGrid
+                        gridType="polygon"
+                        stroke="#4B3428"
+                        strokeOpacity={0.15}
+                      />
+                      <PolarAngleAxis
+                        dataKey="dimension"
+                        tick={{ fontSize: 11, fill: "#4B3428", fontWeight: 500 }}
+                        tickLine={false}
+                      />
+                      <PolarRadiusAxis
+                        angle={90}
+                        domain={[0, 10]}
+                        ticks={[2, 4, 6, 8, 10] as any}
+                        tick={{ fontSize: 9, fill: "#4B3428", fillOpacity: 0.4 }}
+                        axisLine={false}
+                      />
+                      <Radar
+                        name="Current"
+                        dataKey="current"
+                        stroke="#8B2E2E"
+                        fill="#8B2E2E"
+                        fillOpacity={0.15}
+                        strokeWidth={2}
+                        strokeDasharray="6 3"
+                      />
+                      <Radar
+                        name="Projected"
+                        dataKey="projected"
+                        stroke="#5F6F52"
+                        fill="#5F6F52"
+                        fillOpacity={0.3}
+                        strokeWidth={2.5}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                        iconType="plainline"
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Score breakdown */}
+                <div className="space-y-4">
+                  {report.scores.map((s, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-brand-brown font-medium">{s.label}</span>
+                        <span className="text-brand-brown/60 font-medium">
+                          {s.current} → {s.projected}
                         </span>
                       </div>
-                      <p className="text-sm text-brand-brown/75 leading-relaxed">
-                        {insight.detail}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Timeline — 30/60/90 */}
-            {report.timeline && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide">
-                  Suggested Timeline
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {[
-                    report.timeline.phase1,
-                    report.timeline.phase2,
-                    report.timeline.phase3,
-                  ].map((phase, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-3 bg-brand-stone/30 rounded-xl p-4"
-                    >
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-copper/10 text-brand-copper text-xs font-bold shrink-0">
-                        {idx + 1}
-                      </div>
-                      <div>
-                        <div className="text-xs font-semibold text-brand-copper">
-                          {phase.label}
-                        </div>
-                        <p className="text-sm text-brand-brown/75 mt-1">
-                          {phase.action}
-                        </p>
+                      <div className="relative h-2.5 bg-brand-stone rounded-full overflow-hidden">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full"
+                          style={{ width: `${s.projected * 10}%`, backgroundColor: "#5F6F52", opacity: 0.5 }}
+                        />
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full"
+                          style={{ width: `${s.current * 10}%`, backgroundColor: "#8B2E2E", opacity: 0.7 }}
+                        />
                       </div>
                     </div>
                   ))}
+                  <div className="flex items-center gap-4 pt-2 text-xs text-brand-brown/50">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-2.5 rounded" style={{ backgroundColor: "#8B2E2E", opacity: 0.7 }} />
+                      Current
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-2.5 rounded" style={{ backgroundColor: "#5F6F52", opacity: 0.5 }} />
+                      Projected
+                    </div>
+                  </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {/* Key Insights Card */}
+          {report.keyInsights && report.keyInsights.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+            >
+              {report.keyInsights.map((insight, idx) => {
+                const icons = [Target, Lightbulb, Zap];
+                const Icon = icons[idx % icons.length];
+                const colors = [
+                  "text-brand-red",
+                  "text-brand-copper",
+                  "text-brand-moss",
+                ];
+                return (
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-lg bg-brand-stone/50`}>
+                        <Icon className={`w-5 h-5 ${colors[idx % colors.length]}`} />
+                      </div>
+                      <span className="font-semibold text-sm text-brand-brown">
+                        {insight.label}
+                      </span>
+                    </div>
+                    <p className="text-sm text-brand-brown/75 leading-relaxed">
+                      {insight.detail}
+                    </p>
+                  </div>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {/* Timeline Card */}
+          {report.timeline && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
+            >
+              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide mb-5">
+                Suggested Timeline
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  report.timeline.phase1,
+                  report.timeline.phase2,
+                  report.timeline.phase3,
+                ].map((phase, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 bg-brand-stone/20 rounded-xl p-5"
+                  >
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-copper/10 text-brand-copper text-sm font-bold shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-brand-copper uppercase tracking-wide">
+                        {phase.label}
+                      </div>
+                      <p className="text-sm text-brand-brown/75 mt-1.5 leading-relaxed">
+                        {phase.action}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Fit Signals & Risks Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            {report.fitSignals && report.fitSignals.length > 0 && (
+              <div className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3">
+                <h4 className="text-xs font-semibold text-brand-moss uppercase tracking-wide">
+                  Why This Fits
+                </h4>
+                <ul className="space-y-2">
+                  {report.fitSignals.map((s, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-brand-brown/70 flex items-start gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4 text-brand-moss mt-0.5 shrink-0" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-
-            {/* Fit Signals & Risks — subtle footer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-surface-line/50">
-              {report.fitSignals && report.fitSignals.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-brand-moss uppercase tracking-wide">
-                    Why This Fits
-                  </h4>
-                  <ul className="space-y-1">
-                    {report.fitSignals.map((s, i) => (
-                      <li
-                        key={i}
-                        className="text-sm text-brand-brown/70 flex items-start gap-2"
-                      >
-                        <CheckCircle className="w-3 h-3 text-brand-moss mt-1 shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {report.risks && report.risks.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-brand-red/80 uppercase tracking-wide">
-                    Watch For
-                  </h4>
-                  <ul className="space-y-1">
-                    {report.risks.map((r, i) => (
-                      <li
-                        key={i}
-                        className="text-sm text-brand-brown/70 flex items-start gap-2"
-                      >
-                        <AlertTriangle className="w-3 h-3 text-brand-red/60 mt-1 shrink-0" />
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <div className="pt-2 flex gap-4">
-              <Link href="/fit">
-                <Button variant="outline" className="rounded-xl">
-                  Start New Diagnostic
-                </Button>
-              </Link>
-            </div>
+            {report.risks && report.risks.length > 0 && (
+              <div className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3">
+                <h4 className="text-xs font-semibold text-brand-red/80 uppercase tracking-wide">
+                  Watch For
+                </h4>
+                <ul className="space-y-2">
+                  {report.risks.map((r, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-brand-brown/70 flex items-start gap-2"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-brand-red/60 mt-0.5 shrink-0" />
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </motion.div>
-        )}
-      </div>
+
+          {/* Action footer */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="flex gap-4 pb-8"
+          >
+            <Link href="/fit">
+              <Button variant="outline" className="rounded-xl">
+                Start New Diagnostic
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      )}
     </Layout>
   );
 }
