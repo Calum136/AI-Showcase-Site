@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Link } from "wouter";
+import { ContactDialog } from "@/components/ContactDialog";
 import { api } from "@shared/routes";
 import {
   RadarChart,
@@ -506,46 +507,66 @@ export default function FitChat() {
 
                 {/* Score breakdown bars with 1–10 scale */}
                 <div className="space-y-5">
-                  {report.scores.map((s, i) => (
-                    <div key={i} className="space-y-1.5">
-                      <span className="text-sm text-brand-brown font-semibold">{s.label}</span>
-                      <div className="relative">
-                        {/* Scale markers */}
-                        <div className="flex justify-between text-[10px] text-brand-brown/40 mb-1 px-0.5">
-                          <span>1</span>
-                          <span>10</span>
-                        </div>
-                        {/* Bar track */}
-                        <div className="relative h-4 bg-brand-stone rounded-full overflow-hidden">
-                          {/* Projected (behind — copper) */}
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-full"
-                            style={{ width: `${s.projected * 10}%`, backgroundColor: "#B45A3C", opacity: 0.35 }}
-                          />
-                          {/* Current (front — slate) */}
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-full"
-                            style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
-                          />
-                        </div>
-                        {/* Score numbers positioned over bar ends */}
-                        <div className="relative h-5 mt-0.5">
-                          <span
-                            className="absolute text-xs font-bold"
-                            style={{ left: `${s.current * 10}%`, transform: "translateX(-50%)", color: "#2F2F33" }}
-                          >
-                            {s.current}
-                          </span>
-                          <span
-                            className="absolute text-xs font-bold"
-                            style={{ left: `${s.projected * 10}%`, transform: "translateX(-50%)", color: "#B45A3C" }}
-                          >
-                            {s.projected}
-                          </span>
+                  {report.scores.map((s, i) => {
+                    // If projected < current, reduction is good → use moss green
+                    const isReduction = s.projected < s.current;
+                    const projColor = isReduction ? "#5F6F52" : "#B45A3C";
+                    return (
+                      <div key={i} className="space-y-1.5">
+                        <span className="text-sm text-brand-brown font-semibold">{s.label}</span>
+                        <div className="relative">
+                          {/* Scale markers */}
+                          <div className="flex justify-between text-[10px] text-brand-brown/40 mb-1 px-0.5">
+                            <span>1</span>
+                            <span>10</span>
+                          </div>
+                          {/* Bar track */}
+                          <div className="relative h-4 bg-brand-stone rounded-full overflow-hidden">
+                            {isReduction ? (
+                              <>
+                                {/* Reduction: current is larger (behind), projected smaller (front, green) */}
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full"
+                                  style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
+                                />
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full"
+                                  style={{ width: `${s.projected * 10}%`, backgroundColor: projColor, opacity: 0.6 }}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                {/* Growth: projected is larger (behind), current smaller (front) */}
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full"
+                                  style={{ width: `${s.projected * 10}%`, backgroundColor: projColor, opacity: 0.35 }}
+                                />
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full"
+                                  style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
+                                />
+                              </>
+                            )}
+                          </div>
+                          {/* Score numbers positioned over bar ends */}
+                          <div className="relative h-5 mt-0.5">
+                            <span
+                              className="absolute text-xs font-bold"
+                              style={{ left: `${s.current * 10}%`, transform: "translateX(-50%)", color: "#2F2F33" }}
+                            >
+                              {s.current}
+                            </span>
+                            <span
+                              className="absolute text-xs font-bold"
+                              style={{ left: `${s.projected * 10}%`, transform: "translateX(-50%)", color: projColor }}
+                            >
+                              {s.projected}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div className="flex items-center gap-5 pt-1 text-xs text-brand-brown/50 font-medium">
                     <div className="flex items-center gap-1.5">
                       <span className="w-4 h-3 rounded" style={{ backgroundColor: "#2F2F33", opacity: 0.55 }} />
@@ -554,6 +575,10 @@ export default function FitChat() {
                     <div className="flex items-center gap-1.5">
                       <span className="w-4 h-3 rounded" style={{ backgroundColor: "#B45A3C", opacity: 0.35 }} />
                       Projected
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#5F6F52", opacity: 0.6 }} />
+                      Reduced
                     </div>
                   </div>
                 </div>
@@ -689,11 +714,11 @@ export default function FitChat() {
             transition={{ delay: 0.35 }}
             className="flex flex-col sm:flex-row gap-4 pb-8"
           >
-            <a href="mailto:calumkershaw@outlook.com">
+            <ContactDialog>
               <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-white">
                 Contact Me
               </Button>
-            </a>
+            </ContactDialog>
             <Link href="/fit">
               <Button variant="outline" className="rounded-xl">
                 Start New Diagnostic
