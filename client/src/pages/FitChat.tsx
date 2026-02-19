@@ -72,10 +72,19 @@ export default function FitChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length]);
 
-  // Auto-start conversation on mount
+  // Auto-start conversation on mount — check localStorage for JD text from assessment page
   useEffect(() => {
     if (!hasStarted) {
-      startConversation();
+      let savedJd = "";
+      try {
+        savedJd = localStorage.getItem("fitJdText") || "";
+        if (savedJd) localStorage.removeItem("fitJdText"); // one-time use
+      } catch {}
+      if (savedJd) {
+        startConversation(savedJd);
+      } else {
+        startConversation();
+      }
     }
   }, []);
 

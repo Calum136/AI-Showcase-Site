@@ -146,6 +146,8 @@ export default function FitLanding() {
         return;
       }
 
+      // Save JD text for the chat page to pick up
+      try { localStorage.setItem("fitJdText", inputText.trim()); } catch {}
       setState({ status: "success", data: result.data });
     } catch (err) {
       setState({
@@ -381,24 +383,24 @@ export default function FitLanding() {
                   <Card className="rounded-2xl bg-surface-ink border-surface-line/30">
                     <CardContent className="p-6 text-center space-y-4">
                       <h3 className="text-lg font-semibold text-surface-paper">
-                        Like this analysis?
+                        Want to dig deeper?
                       </h3>
                       <p className="text-sm text-surface-paper/70 max-w-md mx-auto">
-                        I build custom evaluation tools and AI systems for organizations.
-                        This same structured approach helped JollyTails reduce procedure lookup time by ~70%.
+                        Talk through the biggest operational bottleneck with my diagnostic tool — it'll use this job description as context.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Link href="/fit/chat">
+                          <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper">
+                            <MessageSquare className="mr-2 w-4 h-4" />
+                            Discuss This Further
+                          </Button>
+                        </Link>
                         <Link href="/case-study">
                           <Button
                             variant="outline"
                             className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10"
                           >
                             See the Case Study
-                          </Button>
-                        </Link>
-                        <Link href="/about">
-                          <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper">
-                            Learn About My Approach <ArrowRight className="ml-2 w-4 h-4" />
                           </Button>
                         </Link>
                       </div>
