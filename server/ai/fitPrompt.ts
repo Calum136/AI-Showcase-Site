@@ -48,7 +48,7 @@ Technology leader who translates business priorities into working systems. Combi
 TECHNICAL SKILLS:
 - AI & Automation: OpenAI API, Anthropic Claude, RAG Systems, Vector DBs, Embeddings, Agent Orchestration, MCP Servers, Make.com
 - Development: TypeScript, Python, React, Node.js, Express, PostgreSQL, SQLite, REST APIs
-- Data & Analytics: Power BI, SQL, ETL Pipelines, Data Profiling, Root Cause Analysis, Dashboard Design
+- Data & Analytics: Power BI, Tableau, Excel, Google Sheets, SQL, ETL Pipelines, Data Warehousing, Data Profiling, Statistical Modeling, Root Cause Analysis, Dashboard Design
 - Process & Delivery: Systems Thinking, Process Automation, Workflow Design, Stakeholder Management, Requirements Translation
 
 KEY EXPERIENCE:
