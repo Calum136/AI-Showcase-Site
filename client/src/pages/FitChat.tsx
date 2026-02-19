@@ -422,47 +422,56 @@ export default function FitChat() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                   {/* Radar chart */}
-                  <div className="w-full h-[300px] md:h-[320px]">
+                  <div className="w-full h-[320px] md:h-[360px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart
                         data={report.scores.map((s) => ({
-                          dimension: s.label,
+                          dimension: s.label.length > 14 ? s.label.slice(0, 12) + "…" : s.label,
+                          fullLabel: s.label,
                           current: s.current,
                           projected: s.projected,
                         }))}
                         cx="50%"
                         cy="50%"
-                        outerRadius="70%"
+                        outerRadius="60%"
                       >
-                        <PolarGrid stroke="hsl(var(--brand-stone))" />
+                        <PolarGrid
+                          gridType="polygon"
+                          stroke="hsl(var(--brand-brown))"
+                          strokeOpacity={0.2}
+                        />
                         <PolarAngleAxis
                           dataKey="dimension"
-                          tick={{ fontSize: 11, fill: "hsl(var(--brand-brown))" }}
+                          tick={{ fontSize: 10, fill: "hsl(var(--brand-brown))", fontWeight: 500 }}
+                          tickLine={false}
                         />
                         <PolarRadiusAxis
                           angle={90}
                           domain={[0, 10]}
-                          tick={{ fontSize: 10, fill: "hsl(var(--brand-brown))" }}
-                          tickCount={6}
+                          ticks={[2, 4, 6, 8, 10] as any}
+                          tick={{ fontSize: 9, fill: "hsl(var(--brand-brown))", fillOpacity: 0.5 }}
+                          axisLine={false}
                         />
                         <Radar
                           name="Current"
                           dataKey="current"
                           stroke="hsl(var(--brand-red))"
                           fill="hsl(var(--brand-red))"
-                          fillOpacity={0.15}
+                          fillOpacity={0.12}
                           strokeWidth={2}
+                          strokeDasharray="6 3"
                         />
                         <Radar
-                          name="After Implementation"
+                          name="Projected"
                           dataKey="projected"
                           stroke="hsl(var(--brand-moss))"
                           fill="hsl(var(--brand-moss))"
-                          fillOpacity={0.2}
-                          strokeWidth={2}
+                          fillOpacity={0.25}
+                          strokeWidth={2.5}
                         />
                         <Legend
-                          wrapperStyle={{ fontSize: "12px" }}
+                          wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                          iconType="plainline"
                         />
                       </RadarChart>
                     </ResponsiveContainer>
