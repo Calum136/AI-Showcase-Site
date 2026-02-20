@@ -33,12 +33,24 @@ const fitChatSchema = z.discriminatedUnion("action", [
 ]);
 
 // ---------------------
+// Industry hourly rates (conservative admin/ops averages)
+// ---------------------
+const INDUSTRY_HOURLY_RATES: Record<string, number> = {
+  "Hospitality": 20,
+  "Trades": 30,
+  "Retail": 18,
+  "Healthcare": 28,
+  "Professional Services": 35,
+  "Other": 25,
+};
+
+// ---------------------
 // Fallback questions if AI generation fails
 // ---------------------
 const FALLBACK_PAIN_QUESTIONS = [
-  "Which of these tools causes you the most manual re-entry or copy-paste work?",
-  "How many hours per week do you estimate your team spends on repetitive admin tasks?",
-  "What's the one thing you wish just 'happened automatically'?",
+  "Which of your tools or daily processes causes the most headaches — where does work get stuck, duplicated, or slowed down?",
+  "Across your whole team, roughly how many hours per week go into that problem area — including all the manual steps, re-entry, and follow-ups?",
+  "If you could wave a magic wand and have one thing just happen automatically, what would it be?",
 ];
 
 // ---------------------
@@ -103,14 +115,19 @@ async function generateQuestions(
 
   const systemPrompt = `You are a business diagnostic specialist. Generate exactly 3 targeted discovery questions for a business diagnostic.
 
+QUESTION STRUCTURE (you MUST follow this exact structure):
+
+Q1: Ask which specific tool, process, or workflow from their stack causes them the MOST problems, friction, or wasted time. If they listed specific tools, name 2-3 of their tools as examples in the question. This question must identify their single biggest pain point.
+
+Q2: Ask how many TOTAL hours per week their team spends on that problem area. Push for a concrete number. Emphasize "across your whole team" so they include all staff time — not just one person. Example framing: "Across everyone on your team, roughly how many total hours per week go into [the problem area] — including the manual steps, re-entry, double-checking, and follow-ups?"
+
+Q3: Ask what one thing they most wish happened automatically. Reference their specific tools and connect it to the pain they described. This should uncover their ideal automation outcome.
+
 RULES:
 - Each question must be 1 sentence, conversational tone
 - Questions must be SPECIFIC to this business's industry and tools — never generic
-- If they listed specific software tools, at least 1 question must reference their actual tools by name
-- Focus on: workflow pain points, time waste, manual data entry, and automation opportunities
-- Questions should uncover information needed to recommend specific automations
-- Do NOT ask about their budget or timeline
-- Do NOT ask yes/no questions — ask open-ended questions that get them describing their workflows
+- Do NOT ask about budget or timeline
+- Do NOT ask yes/no questions
 
 Return ONLY a valid JSON array of exactly 3 strings. Example:
 ["Question 1?", "Question 2?", "Question 3?"]`;
@@ -138,6 +155,35 @@ Return ONLY a valid JSON array of exactly 3 strings. Example:
 }
 
 // ---------------------
+// Server-side ROI math enforcement
+// ---------------------
+function enforceROIMath(parsed: any, industry: string) {
+  const hourlyRate = INDUSTRY_HOURLY_RATES[industry] ?? 25;
+
+  // Extract what the AI estimated
+  const currentHoursPerWeek = Math.max(1, Number(parsed?.currentHoursPerWeek ?? parsed?.timeSavedHoursPerWeek ?? 10));
+  const automationPercentage = Math.min(80, Math.max(20, Number(parsed?.automationPercentage ?? 60)));
+  const timeSavedHoursPerWeek = Math.round(currentHoursPerWeek * automationPercentage / 100 * 10) / 10;
+  const implementationCost = Math.max(2000, Math.round(Number(parsed?.implementationCost ?? 5000) / 100) * 100);
+
+  // Always recalculate these from the formula — never trust the AI's arithmetic
+  const annualValue = Math.round((timeSavedHoursPerWeek * hourlyRate * 52) / 100) * 100;
+  const paybackMonths = annualValue > 0
+    ? Math.round((implementationCost / (annualValue / 12)) * 10) / 10
+    : 0;
+
+  return {
+    currentHoursPerWeek,
+    automationPercentage,
+    timeSavedHoursPerWeek,
+    hourlyRate,
+    annualValue,
+    implementationCost,
+    paybackMonths,
+  };
+}
+
+// ---------------------
 // ROI Report generation
 // ---------------------
 async function generateROIReport(diagnosticContext: {
@@ -155,20 +201,35 @@ async function generateROIReport(diagnosticContext: {
     .map((pa, i) => `Q${i + 1}: ${pa.question}\nA${i + 1}: ${pa.answer}`)
     .join("\n\n");
 
+  const hourlyRate = INDUSTRY_HOURLY_RATES[diagnosticContext.industry] ?? 25;
+
   const systemPrompt = `You are a business automation consultant producing a specific ROI analysis based on diagnostic data. Your job is to identify the top automation opportunity and produce grounded, realistic numbers.
 
+TIME ESTIMATION RULES:
+- Extract the TOTAL hours/week the user mentioned from their answers (this is "currentHoursPerWeek")
+- Be honest about what percentage can actually be automated (typically 40-70%, never claim 100%)
+- timeSavedHoursPerWeek = currentHoursPerWeek × automationPercentage / 100
+- The industry hourly rate for ${diagnosticContext.industry} is $${hourlyRate}/hr
+- NEVER claim you can automate 100% of someone's time — be realistic
+
 ROI CALCULATION RULES:
-- Use the hours/week mentioned in the pain answers as your starting baseline
-- Estimate hourly cost at $25-45/hr depending on the industry (use the research context for guidance)
-- Annual value = hours saved per week * hourly cost * 52
+- annualValue = timeSavedHoursPerWeek × ${hourlyRate} × 52
 - Implementation cost should be realistic: $2,000-$15,000 range for most SMB automations
-- Payback period = implementation cost / (monthly savings)
-- Be CONSERVATIVE — it's better to underestimate savings than overpromise
-- Round dollar amounts to nearest $100
+- paybackMonths = implementationCost / (annualValue / 12)
+- Be CONSERVATIVE — underpromise so results overdeliver
+
+WORKED EXAMPLE (follow this math pattern):
+If the user says ~20 hrs/week on manual tasks, and you estimate 55% can be automated:
+- currentHoursPerWeek: 20
+- automationPercentage: 55
+- timeSavedHoursPerWeek: 20 × 0.55 = 11
+- annualValue: 11 × ${hourlyRate} × 52 = ${11 * hourlyRate * 52}
+- implementationCost: $6,000 (based on complexity)
+- paybackMonths: 6000 / (${11 * hourlyRate * 52} / 12) = ${Math.round(6000 / (11 * hourlyRate * 52 / 12) * 10) / 10}
 
 RECOMMENDATION RULES:
 - The top opportunity MUST reference specific tools from their software stack
-- Explain HOW the integration would work in plain language (mention Make.com, Zapier, or custom API connections as appropriate)
+- Explain HOW the integration would work in plain language (mention Make.com, Zapier, or custom connections as appropriate)
 - Name the exact data flow: "Data moves from [Tool A] to [Tool B] automatically when [trigger]"
 - Secondary opportunities should be distinct from the primary one
 - The recommended next step should be a clear, specific call to action
@@ -184,6 +245,7 @@ LANGUAGE RULES:
       role: "user",
       content: `BUSINESS: ${diagnosticContext.businessName}
 INDUSTRY: ${diagnosticContext.industry}
+HOURLY RATE: $${hourlyRate}/hr (industry average for admin/ops staff)
 
 SOFTWARE STACK: ${stackList}
 
@@ -202,10 +264,10 @@ Generate the ROI report. Return ONLY valid JSON:
     "description": "2-3 sentences explaining what gets automated, which tools connect, and what changes day-to-day"
   },
   "estimatedImpact": {
-    "timeSavedHoursPerWeek": <number>,
-    "annualValue": <number in dollars>,
-    "implementationCost": <number in dollars>,
-    "paybackMonths": <number>
+    "currentHoursPerWeek": <number - total hours the user reported spending>,
+    "automationPercentage": <number 0-100 - realistic % that can be automated>,
+    "timeSavedHoursPerWeek": <number - currentHoursPerWeek * automationPercentage / 100>,
+    "implementationCost": <number in dollars>
   },
   "secondaryOpportunities": [
     { "title": "...", "description": "...", "timeSavedHoursPerWeek": <number> },
@@ -218,37 +280,51 @@ Generate the ROI report. Return ONLY valid JSON:
 
   const jsonStart = raw.indexOf("{");
   const jsonEnd = raw.lastIndexOf("}");
-  if (jsonStart >= 0 && jsonEnd > jsonStart) {
-    const p = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
-    return {
-      businessName: String(p.businessName ?? diagnosticContext.businessName),
-      industry: String(p.industry ?? diagnosticContext.industry),
-      topOpportunity: {
-        title: String(p.topOpportunity?.title ?? "Workflow Automation"),
-        description: String(p.topOpportunity?.description ?? ""),
-      },
-      estimatedImpact: {
-        timeSavedHoursPerWeek: Math.max(0, Number(p.estimatedImpact?.timeSavedHoursPerWeek ?? 5)),
-        annualValue: Math.max(0, Math.round(Number(p.estimatedImpact?.annualValue ?? 0) / 100) * 100),
-        implementationCost: Math.max(0, Math.round(Number(p.estimatedImpact?.implementationCost ?? 0) / 100) * 100),
-        paybackMonths: Math.max(0, Number(p.estimatedImpact?.paybackMonths ?? 3)),
-      },
-      secondaryOpportunities: Array.isArray(p.secondaryOpportunities)
-        ? p.secondaryOpportunities.slice(0, 3).map((x: any) => ({
-            title: String(x?.title ?? ""),
-            description: String(x?.description ?? ""),
-            timeSavedHoursPerWeek: typeof x?.timeSavedHoursPerWeek === "number" ? x.timeSavedHoursPerWeek : undefined,
-          }))
-        : [],
-      recommendedNextStep: String(p.recommendedNextStep ?? "Book a 30-minute call to confirm these numbers with your actual workflow data."),
-    };
+  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+    throw new Error("AI report did not contain valid JSON.");
   }
 
-  throw new Error("AI report did not contain valid JSON.");
+  const p = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+
+  const toSecondary = (v: any) =>
+    Array.isArray(v)
+      ? v.slice(0, 3).map((x: any) => ({
+          title: String(x?.title ?? ""),
+          description: String(x?.description ?? ""),
+          timeSavedHoursPerWeek: typeof x?.timeSavedHoursPerWeek === "number"
+            ? x.timeSavedHoursPerWeek
+            : undefined,
+        }))
+      : [];
+
+  // Server-side math enforcement — always recalculate annualValue and paybackMonths
+  const impact = enforceROIMath(p.estimatedImpact, diagnosticContext.industry);
+
+  return {
+    businessName: String(p.businessName ?? diagnosticContext.businessName),
+    industry: String(p.industry ?? diagnosticContext.industry),
+    topOpportunity: {
+      title: String(p.topOpportunity?.title ?? "Workflow Automation"),
+      description: String(p.topOpportunity?.description ?? ""),
+    },
+    estimatedImpact: impact,
+    secondaryOpportunities: toSecondary(p.secondaryOpportunities),
+    recommendedNextStep: String(p.recommendedNextStep ?? "Get in touch to walk through your actual workflows and refine these numbers."),
+  };
 }
 
-// Fallback report
+// ---------------------
+// Fallback ROI report for API failures
+// ---------------------
 function fallbackReport(businessName: string, industry: string) {
+  const hourlyRate = INDUSTRY_HOURLY_RATES[industry] ?? 25;
+  const currentHours = 15;
+  const automationPct = 55;
+  const timeSaved = Math.round(currentHours * automationPct / 100 * 10) / 10;
+  const annualValue = Math.round((timeSaved * hourlyRate * 52) / 100) * 100;
+  const implCost = 5000;
+  const payback = Math.round((implCost / (annualValue / 12)) * 10) / 10;
+
   return {
     businessName,
     industry,
@@ -257,10 +333,13 @@ function fallbackReport(businessName: string, industry: string) {
       description: `Based on what you've shared, the biggest opportunity is automating the manual, repetitive tasks that eat into your team's day. The most common pattern in ${industry} businesses is data that gets entered in one place and then re-typed or copy-pasted into another.`,
     },
     estimatedImpact: {
-      timeSavedHoursPerWeek: 8,
-      annualValue: 12500,
-      implementationCost: 4000,
-      paybackMonths: 4,
+      currentHoursPerWeek: currentHours,
+      automationPercentage: automationPct,
+      timeSavedHoursPerWeek: timeSaved,
+      hourlyRate,
+      annualValue,
+      implementationCost: implCost,
+      paybackMonths: payback,
     },
     secondaryOpportunities: [
       {
@@ -274,7 +353,7 @@ function fallbackReport(businessName: string, industry: string) {
         timeSavedHoursPerWeek: 2,
       },
     ],
-    recommendedNextStep: "Book a 30-minute call to walk through your actual workflows and confirm these numbers.",
+    recommendedNextStep: "Get in touch to walk through your actual workflows and refine these numbers.",
   };
 }
 

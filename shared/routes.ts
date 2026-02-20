@@ -77,7 +77,10 @@ export const roiReportSchema = z.object({
     description: z.string(),
   }),
   estimatedImpact: z.object({
+    currentHoursPerWeek: z.number(),
+    automationPercentage: z.number(),
     timeSavedHoursPerWeek: z.number(),
+    hourlyRate: z.number(),
     annualValue: z.number(),
     implementationCost: z.number(),
     paybackMonths: z.number(),
@@ -122,6 +125,19 @@ export const fitReportGenerateResponseSchema = z.object({
   role: z.literal("assistant"),
   content: z.string(),
   report: roiReportSchema,
+});
+
+// Lead capture endpoint
+export const fitLeadInputSchema = z.object({
+  email: z.string().email(),
+  name: z.string().max(200).optional(),
+  businessName: z.string(),
+  industry: z.string(),
+  topRecommendation: z.string(),
+});
+
+export const fitLeadResponseSchema = z.object({
+  success: z.boolean(),
 });
 
 export const api = {
@@ -175,6 +191,16 @@ export const api = {
       input: fitReportGenerateInputSchema,
       responses: {
         200: fitReportGenerateResponseSchema,
+        400: errorSchemas.badRequest,
+        500: errorSchemas.internal,
+      },
+    },
+    lead: {
+      method: "POST" as const,
+      path: "/api/fit/lead",
+      input: fitLeadInputSchema,
+      responses: {
+        200: fitLeadResponseSchema,
         400: errorSchemas.badRequest,
         500: errorSchemas.internal,
       },

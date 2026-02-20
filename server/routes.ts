@@ -15,8 +15,11 @@ import {
   fitResearchInputSchema,
   fitQuestionsInputSchema,
   fitReportGenerateInputSchema,
+  fitLeadInputSchema,
 } from "@shared/routes";
 import { z } from "zod";
+import * as fs from "fs";
+import * as path from "path";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -139,6 +142,52 @@ export async function registerRoutes(
       content: "Here's your personalized automation analysis.",
       report,
     });
+  });
+
+  // Lead capture endpoint — stores leads locally (Supabase later)
+  app.post(api.fit.lead.path, async (req, res) => {
+    const parsed = fitLeadInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.errors[0]?.message ?? "Invalid input",
+      });
+    }
+
+    const lead = {
+      ...parsed.data,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const dataDir = path.join(process.cwd(), "data");
+      const leadsFile = path.join(dataDir, "leads.json");
+
+      // Ensure data directory exists
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      // Read existing leads or start fresh
+      let leads: any[] = [];
+      if (fs.existsSync(leadsFile)) {
+        try {
+          leads = JSON.parse(fs.readFileSync(leadsFile, "utf-8"));
+        } catch {
+          leads = [];
+        }
+      }
+
+      leads.push(lead);
+      fs.writeFileSync(leadsFile, JSON.stringify(leads, null, 2));
+
+      console.log(`[fit-lead] Captured: ${lead.email} (${lead.businessName})`);
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("[fit-lead] Failed to save lead:", err);
+      // Still return success — don't block the user experience for a storage failure
+      console.log(`[fit-lead] Fallback log: ${JSON.stringify(lead)}`);
+      return res.json({ success: true });
+    }
   });
 
   // ======================

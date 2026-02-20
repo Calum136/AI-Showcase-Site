@@ -12,12 +12,15 @@ import {
   TrendingUp,
   Calculator,
   Loader2,
+  Mail,
+  CheckCircle2,
 } from "lucide-react";
 import { Link } from "wouter";
 import { ContactDialog } from "@/components/ContactDialog";
 import { api } from "@shared/routes";
 import {
   SOFTWARE_STACK_CATEGORIES,
+  INDUSTRY_SPECIFIC_TOOLS,
   INDUSTRY_OPTIONS,
   type SoftwareCategory,
 } from "@shared/softwareStack";
@@ -50,7 +53,10 @@ type ROIReport = {
     description: string;
   };
   estimatedImpact: {
+    currentHoursPerWeek: number;
+    automationPercentage: number;
     timeSavedHoursPerWeek: number;
+    hourlyRate: number;
     annualValue: number;
     implementationCost: number;
     paybackMonths: number;
@@ -72,9 +78,9 @@ type ChatMsg = {
 
 // Fallback questions
 const FALLBACK_PAIN_QUESTIONS = [
-  "Which of these tools causes you the most manual re-entry or copy-paste work?",
-  "How many hours per week do you estimate your team spends on repetitive admin tasks?",
-  "What's the one thing you wish just 'happened automatically'?",
+  "Which of your tools or daily processes causes the most headaches \u2014 where does work get stuck, duplicated, or slowed down?",
+  "Across your whole team, roughly how many hours per week go into that problem area \u2014 including all the manual steps, re-entry, and follow-ups?",
+  "If you could wave a magic wand and have one thing just happen automatically, what would it be?",
 ];
 
 // ---------------------
@@ -104,6 +110,7 @@ export default function FitChat() {
 
   // Software stack state
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [otherTools, setOtherTools] = useState("");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -198,11 +205,18 @@ export default function FitChat() {
   }, [formName, formIndustry]);
 
   const handleSoftwareStackSubmit = useCallback(async () => {
-    setContext((c) => ({ ...c, softwareStack: selectedTools }));
+    // Merge selected checkboxes with "Other" free-text entries
+    const otherList = otherTools
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    const allTools = [...selectedTools, ...otherList];
+
+    setContext((c) => ({ ...c, softwareStack: allTools }));
 
     // Add user response summary to chat
-    const toolSummary = selectedTools.length > 0
-      ? selectedTools.join(", ")
+    const toolSummary = allTools.length > 0
+      ? allTools.join(", ")
       : "No specific tools selected";
 
     setMessages((m) => [
@@ -236,7 +250,7 @@ export default function FitChat() {
           businessName: context.businessName,
           industry: context.industry,
           researchContext: context.researchContext,
-          softwareStack: selectedTools,
+          softwareStack: allTools,
         }),
       });
 
@@ -277,7 +291,7 @@ export default function FitChat() {
 
       setPhase("pain-questions");
     }
-  }, [selectedTools, context.businessName, context.industry, context.researchContext]);
+  }, [selectedTools, otherTools, context.businessName, context.industry, context.researchContext]);
 
   const handlePainAnswer = useCallback(async () => {
     const text = draft.trim();
@@ -464,8 +478,11 @@ export default function FitChat() {
 
               {phase === "software-stack" && (
                 <SoftwareStackCard
+                  industry={context.industry}
                   selectedTools={selectedTools}
+                  otherTools={otherTools}
                   onToggle={handleToolToggle}
+                  onOtherChange={setOtherTools}
                   onSubmit={handleSoftwareStackSubmit}
                 />
               )}
@@ -579,17 +596,25 @@ function BusinessCaptureCard({
 }
 
 // ---------------------
-// Software Stack Card
+// Software Stack Card (Fix 1: industry-specific tools + "Other" free-text)
 // ---------------------
 function SoftwareStackCard({
+  industry,
   selectedTools,
+  otherTools,
   onToggle,
+  onOtherChange,
   onSubmit,
 }: {
+  industry: string;
   selectedTools: string[];
+  otherTools: string;
   onToggle: (tool: string) => void;
+  onOtherChange: (v: string) => void;
   onSubmit: () => void;
 }) {
+  const industryTools = INDUSTRY_SPECIFIC_TOOLS[industry] ?? [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -602,11 +627,43 @@ function SoftwareStackCard({
           What tools does your business use?
         </h3>
         <p className="text-xs text-brand-brown/60">
-          Select all that apply. It's fine to skip tools that aren't listed.
+          Select all that apply. You can also add tools not listed below.
         </p>
       </div>
 
       <div className="space-y-4">
+        {/* Industry-specific tools section */}
+        {industryTools.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-brand-red uppercase tracking-wide mb-2">
+              {industry} Tools
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {industryTools.map((tool) => {
+                const checked = selectedTools.includes(tool);
+                return (
+                  <label
+                    key={tool}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
+                      checked
+                        ? "bg-brand-red/10 border-brand-red/40 text-brand-brown"
+                        : "bg-surface-paper border-surface-line text-brand-brown/70 hover:border-brand-red/30"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => onToggle(tool)}
+                      className="h-4 w-4"
+                    />
+                    {tool}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* General tool categories */}
         {(Object.entries(SOFTWARE_STACK_CATEGORIES) as [SoftwareCategory, readonly string[]][]).map(
           ([category, tools]) => (
             <div key={category}>
@@ -638,6 +695,20 @@ function SoftwareStackCard({
             </div>
           )
         )}
+
+        {/* Other tools free-text input */}
+        <div>
+          <p className="text-xs font-semibold text-brand-brown/70 uppercase tracking-wide mb-2">
+            Other Tools
+          </p>
+          <input
+            type="text"
+            className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+            placeholder="e.g. PioneerRx, Custom EHR, Jane App (comma-separated)"
+            value={otherTools}
+            onChange={(e) => onOtherChange(e.target.value)}
+          />
+        </div>
       </div>
 
       <Button className="w-full rounded-xl" onClick={onSubmit}>
@@ -649,7 +720,128 @@ function SoftwareStackCard({
 }
 
 // ---------------------
-// ROI Report View
+// Lead Capture Form (Fix 6)
+// ---------------------
+function LeadCaptureForm({
+  report,
+  context,
+}: {
+  report: ROIReport;
+  context: DiagnosticContext;
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  const handleSubmit = async () => {
+    if (!email.trim()) return;
+    setStatus("submitting");
+
+    try {
+      const r = await fetch(api.fit.lead.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim() || undefined,
+          businessName: context.businessName,
+          industry: context.industry,
+          topRecommendation: report.topOpportunity.title,
+        }),
+      });
+
+      if (!r.ok) throw new Error("Failed to submit");
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-brand-moss/30 bg-brand-moss/5 p-6 md:p-8 text-center space-y-2"
+      >
+        <CheckCircle2 className="h-8 w-8 text-brand-moss mx-auto" />
+        <p className="text-brand-brown font-semibold">Got it! We'll follow up with you soon.</p>
+        <p className="text-sm text-brand-brown/60">Keep this page open to reference your report anytime.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.22 }}
+      className="rounded-2xl border border-surface-line bg-brand-stone/30 p-6 md:p-8 space-y-4"
+    >
+      <div className="text-center space-y-1">
+        <Mail className="h-6 w-6 text-brand-copper mx-auto mb-2" />
+        <h3 className="text-lg font-bold text-brand-brown">
+          Want a personalized follow-up?
+        </h3>
+        <p className="text-sm text-brand-brown/60 max-w-md mx-auto">
+          Leave your email and we'll send you a refined version of this analysis with specific next steps.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+        <input
+          type="email"
+          className="flex-1 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+          placeholder="you@business.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
+        <input
+          type="text"
+          className="sm:w-40 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+          placeholder="Name (optional)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          className="rounded-xl px-8"
+          disabled={!email.trim() || status === "submitting"}
+          onClick={handleSubmit}
+        >
+          {status === "submitting" ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Mail className="h-4 w-4 mr-2" />
+              Send Me the Report
+            </>
+          )}
+        </Button>
+      </div>
+
+      {status === "error" && (
+        <p className="text-sm text-brand-red text-center">
+          Something went wrong. Please try again.
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+// ---------------------
+// ROI Report View (Fix 4: time context, Fix 5: CTA wording, Fix 6: lead capture)
 // ---------------------
 function ROIReportView({
   report,
@@ -660,6 +852,8 @@ function ROIReportView({
 }) {
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+
+  const { estimatedImpact } = report;
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
@@ -702,6 +896,22 @@ function ROIReportView({
         </p>
       </motion.div>
 
+      {/* Time context summary (Fix 4) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="rounded-2xl border border-brand-copper/20 bg-brand-copper/5 p-5 md:p-6"
+      >
+        <p className="text-sm text-brand-brown leading-relaxed">
+          Based on <strong>~{estimatedImpact.currentHoursPerWeek} hours/week</strong> your
+          team currently spends, we estimate{" "}
+          <strong>{estimatedImpact.automationPercentage}%</strong> (
+          <strong>{estimatedImpact.timeSavedHoursPerWeek} hours</strong>) can be automated
+          at <strong>${estimatedImpact.hourlyRate}/hr</strong> industry average.
+        </p>
+      </motion.div>
+
       {/* Estimated Impact — 2x2 grid */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -712,22 +922,22 @@ function ROIReportView({
         <ImpactCard
           icon={<Clock className="h-5 w-5 text-brand-copper" />}
           label="Time Saved"
-          value={`${report.estimatedImpact.timeSavedHoursPerWeek} hrs/week`}
+          value={`${estimatedImpact.timeSavedHoursPerWeek} hrs/week`}
         />
         <ImpactCard
           icon={<DollarSign className="h-5 w-5 text-brand-moss" />}
           label="Annual Value"
-          value={formatCurrency(report.estimatedImpact.annualValue)}
+          value={formatCurrency(estimatedImpact.annualValue)}
         />
         <ImpactCard
           icon={<Calculator className="h-5 w-5 text-brand-brown" />}
           label="Implementation Cost"
-          value={formatCurrency(report.estimatedImpact.implementationCost)}
+          value={formatCurrency(estimatedImpact.implementationCost)}
         />
         <ImpactCard
           icon={<TrendingUp className="h-5 w-5 text-brand-copper" />}
           label="Payback Period"
-          value={`${report.estimatedImpact.paybackMonths} months`}
+          value={`${estimatedImpact.paybackMonths} months`}
         />
       </motion.div>
 
@@ -767,7 +977,10 @@ function ROIReportView({
         </motion.div>
       )}
 
-      {/* CTA Card */}
+      {/* Lead Capture Form (Fix 6) */}
+      <LeadCaptureForm report={report} context={context} />
+
+      {/* CTA Card (Fix 5: wording changes) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -775,15 +988,15 @@ function ROIReportView({
         className="rounded-2xl border border-surface-line bg-brand-charcoal p-8 md:p-10 text-center space-y-4"
       >
         <h3 className="text-xl font-bold text-surface-paper">
-          Get the Full Implementation Plan
+          Ready to Explore This Further?
         </h3>
         <p className="text-surface-paper/70 text-sm max-w-lg mx-auto">
-          {report.recommendedNextStep}
+          This analysis is based on industry averages — a quick conversation lets us refine it with your actual numbers.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <ContactDialog>
             <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-white px-8">
-              Book a Free Call
+              Get in Touch
             </Button>
           </ContactDialog>
           <Link href="/fit/chat">
