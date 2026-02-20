@@ -3,19 +3,33 @@ export type FitMessage = {
   content: string;
 };
 
-export type FitReport = {
-  verdict: "YES" | "NO";
-  heroRecommendation: string;
-  approachSummary: string;
-  keyInsights: Array<{ label: string; detail: string }>;
-  timeline: {
-    phase1: { label: string; action: string };
-    phase2: { label: string; action: string };
-    phase3: { label: string; action: string };
+export type ROIReport = {
+  businessName: string;
+  industry: string;
+  topOpportunity: {
+    title: string;
+    description: string;
   };
-  scores?: Array<{ label: string; current: number; projected: number }>;
-  fitSignals: string[];
-  risks: string[];
+  estimatedImpact: {
+    timeSavedHoursPerWeek: number;
+    annualValue: number;
+    implementationCost: number;
+    paybackMonths: number;
+  };
+  secondaryOpportunities: Array<{
+    title: string;
+    description: string;
+    timeSavedHoursPerWeek?: number;
+  }>;
+  recommendedNextStep: string;
+};
+
+export type DiagnosticContext = {
+  businessName: string;
+  industry: string;
+  researchContext: string;
+  softwareStack: string[];
+  painAnswers: Array<{ question: string; answer: string }>;
 };
 
 type AiOptions = {
@@ -25,93 +39,14 @@ type AiOptions = {
   provider?: "anthropic" | "openai";
 };
 
-type NextResponseInput = {
-  jdText?: string;
-  userTurns: number;
-  messages: FitMessage[];
-};
-
-type ReportInput = {
-  jdText?: string;
-  messages: FitMessage[];
-};
-
-// Calum's resume context for fit analysis
-const CALUM_RESUME_CONTEXT = `
-CANDIDATE PROFILE: Calum Kershaw
-Title: AI Systems Developer & Process Analyst
-Location: Truro, Nova Scotia
-
-SUMMARY:
-Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering client AI automation and building agent-orchestrated systems for real businesses.
-
-TECHNICAL SKILLS:
-- AI & Automation: OpenAI API, Anthropic Claude, RAG Systems, Vector DBs, Embeddings, Agent Orchestration, MCP Servers, Make.com
-- Development: TypeScript, Python, React, Node.js, Express, PostgreSQL, SQLite, REST APIs
-- Data & Analytics: Power BI, Tableau, Excel, Google Sheets, SQL, ETL Pipelines, Data Warehousing, Data Profiling, Statistical Modeling, Root Cause Analysis, Dashboard Design
-- Process & Delivery: Systems Thinking, Process Automation, Workflow Design, Stakeholder Management, Requirements Translation
-
-KEY EXPERIENCE:
-1. AI Solutions Developer (Independent Practice, 2025-Present)
-   - Blackbird Brewing: End-to-end AI email automation — 17-category classifier with escalation rules, brand-voice matching, ~120 emails/week, delivered on budget in 3 weeks
-   - JollyTails Resort: RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard
-   - Built MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex
-   - Multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks
-
-2. Operations Supervisor - Jolly Tails Pet Resort (2022, 2025-Present)
-   - Improved operational KPIs by ~10% through data profiling and process optimization
-   - Technology liaison translating operational needs into system requirements
-
-3. Data Analyst - St. Francis Xavier University, Advancement Office (2024-2025)
-   - Power BI dashboards with rule-based quality checks
-   - SQL queries for complex data extraction and reporting
-
-4. Student Manager - Kevin's Corner Food Bank, StFX (2023-2024)
-   - Scaled operations to support 140+ additional users
-   - Designed workflows enabling 300% increase in operational hours
-
-EDUCATION:
-- Post-Bacc Diploma, Enterprise IT Management - St. Francis Xavier (2024)
-- BSc, Biology & Psychology - Dalhousie University (2022)
-
-CERTIFICATIONS:
-- AI & Agentic Workflows - Maven (2025)
-- Generative AI Leader - Google Cloud (2025)
-- AI Mastery Program - Marketing AI Institute (2024-Present)
-`;
-
-const DIAGNOSTIC_SYSTEM_PROMPT = `You are Calum Kershaw's diagnostic AI assistant. Your job is to have a real conversation that finds the ONE biggest operational pain point and drills into the root cause.
-
-${CALUM_RESUME_CONTEXT}
-
-**Your Persona:**
-- Systems-thinking consultant who actually listens
-- Genuinely curious, not interrogating
-- Grounded, professional, unhurried
-
-**Your Goal:**
-Find the ONE root cause bottleneck. Start with a symptom, dig until you hit the actual problem.
-
-**How to respond:**
-- Every response is 1-2 sentences max. ONE question only — never stack two questions
-- DO NOT repeat or restate what the user just said — go straight to your insight or follow-up
-- Pick the most specific detail they mentioned and pull on that thread
-- Every question must reference something SPECIFIC from their last message
-
-**CRITICAL RULES:**
-- NEVER start by summarizing what the user said
-- Jump straight to your observation, insight, or follow-up question
-- Use their specific terminology naturally but do NOT repeat their sentences
-- NEVER give generic responses
-- NEVER ask broad survey questions like "How do you currently handle X?" — form a HYPOTHESIS and ask about that instead
-- NEVER stack two questions in one response
-- If the user gives garbage input, respond: "I want to give you something actually useful — could you share what's taking up the most time or causing the most friction in your day-to-day?"
-- Keep drilling into ONE thread
-- Never sell Calum directly
-
-**RESPONSE FORMAT:**
-Return ONLY valid JSON: { "message": "your response", "readyForReport": false }
-Set readyForReport to true when you can name the root pain point. Typically 3-5 exchanges.`;
+// -----------------------------
+// Fallback questions if AI generation fails
+// -----------------------------
+const FALLBACK_PAIN_QUESTIONS = [
+  "Which of these tools causes you the most manual re-entry or copy-paste work?",
+  "How many hours per week do you estimate your team spends on repetitive admin tasks?",
+  "What's the one thing you wish just 'happened automatically'?",
+];
 
 // -----------------------------
 // Anthropic Claude API call (single turn)
@@ -135,47 +70,6 @@ async function callAnthropicText(
       max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(`Anthropic API error (${response.status}): ${errorText || response.statusText}`);
-  }
-
-  const data: any = await response.json();
-  const content = data?.content?.[0]?.text;
-  if (typeof content !== "string" || !content.trim()) {
-    throw new Error("Anthropic returned an empty response.");
-  }
-  return content.trim();
-}
-
-// -----------------------------
-// Anthropic multi-turn call
-// -----------------------------
-async function callAnthropicMultiTurn(
-  systemPrompt: string,
-  messages: Array<{ role: string; content: string }>,
-  opts: { apiKey: string; model: string }
-): Promise<string> {
-  const { apiKey, model } = opts;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: messages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
     }),
   });
 
@@ -254,163 +148,172 @@ function getAiOpts(overrides?: AiOptions) {
   throw new Error("Missing API key. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.");
 }
 
-function parseAiResponse(raw: string): { message: string; readyForReport: boolean } {
-  try {
-    const jsonStart = raw.indexOf("{");
-    const jsonEnd = raw.lastIndexOf("}");
-    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
-      return {
-        message: String(parsed.message || "").trim(),
-        readyForReport: Boolean(parsed.readyForReport),
-      };
-    }
-  } catch {}
-  return { message: raw.trim(), readyForReport: false };
-}
-
 // -----------------------------
-// Generate next response (AI-driven readiness)
+// Research: Industry intelligence brief
 // -----------------------------
-export async function aiGenerateNextResponse(
-  input: NextResponseInput,
+export async function aiResearchBusiness(
+  input: { businessName: string; industry: string },
   overrides?: AiOptions
-): Promise<{ message: string; readyForReport: boolean }> {
+): Promise<string> {
   const opts = getAiOpts(overrides);
-  const jd = String(input.jdText ?? "").trim();
 
-  const chatMessages: Array<{ role: string; content: string }> = [];
+  const systemPrompt = `You are a business research analyst specializing in small and medium businesses. Given a business name and industry, produce a concise operational intelligence brief.
 
-  if (jd) {
-    chatMessages.push({
-      role: "user",
-      content: `Context about my business:\n"""\n${jd.slice(0, 6000)}\n"""`,
-    });
-    chatMessages.push({
-      role: "assistant",
-      content: '{"message": "Thanks for sharing that context. Let me ask you about it.", "readyForReport": false}',
-    });
-  }
+Focus on:
+1. The 3-5 most common operational pain points in this specific industry
+2. Typical software tools used in this industry and their common integration challenges
+3. Average hourly labor cost range for admin/operations staff in this industry ($XX-$XX/hr)
+4. The most impactful automation opportunities that exist TODAY using tools like Make.com, Zapier, or custom integrations
+5. Industry-specific workflow bottlenecks that waste the most time
 
-  for (const msg of input.messages) {
-    chatMessages.push({ role: msg.role, content: msg.content });
-  }
+Be specific and factual. Reference real tools and real workflows. 600 words max. No fluff, no disclaimers.`;
 
-  let turnGuidance = "";
-  if (input.userTurns <= 2) {
-    turnGuidance = "Early in the conversation. Understand the symptom, ask what the current process looks like. Do NOT set readyForReport to true.";
-  } else if (input.userTurns <= 4) {
-    turnGuidance = "Mid-conversation. Drill into the root cause. If you can name it clearly, set readyForReport to true.";
-  } else {
-    turnGuidance = "Several exchanges done. Summarize the root pain point and set readyForReport to true.";
-  }
+  const userPrompt = `Business: ${input.businessName}\nIndustry: ${input.industry}`;
 
-  chatMessages.push({
-    role: "user",
-    content: `[SYSTEM INSTRUCTION - NOT A USER MESSAGE]
-${turnGuidance}
-User turn count: ${input.userTurns}
-
-Generate your next response. Follow the thread.
-Return ONLY valid JSON: { "message": "your response", "readyForReport": true/false }`,
-  });
-
-  let raw: string;
   if (opts.provider === "anthropic") {
-    raw = await callAnthropicMultiTurn(DIAGNOSTIC_SYSTEM_PROMPT, chatMessages, opts);
+    return await callAnthropicText(systemPrompt, userPrompt, opts);
   } else {
-    const prompt = `${DIAGNOSTIC_SYSTEM_PROMPT}\n\nConversation:\n${chatMessages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}`;
-    raw = await callOpenAiText(prompt, opts);
+    return await callOpenAiText(`${systemPrompt}\n\n${userPrompt}`, opts);
   }
-
-  const parsed = parseAiResponse(raw);
-
-  if (!parsed.message) {
-    return {
-      message: "I want to make sure I understand — could you tell me a bit more about how that plays out day-to-day?",
-      readyForReport: false,
-    };
-  }
-
-  // Safety rails
-  if (parsed.readyForReport && input.userTurns < 3) {
-    parsed.readyForReport = false;
-  }
-  if (input.userTurns >= 6 && !parsed.readyForReport) {
-    parsed.readyForReport = true;
-  }
-
-  return parsed;
 }
 
 // -----------------------------
-// Report generation (with scores)
+// Generate tailored pain questions
 // -----------------------------
-export async function aiGenerateReport(
-  input: ReportInput,
-  overrides?: AiOptions
-): Promise<FitReport> {
-  const opts = getAiOpts(overrides);
-  const jd = String(input.jdText ?? "").trim();
-
-  const systemPrompt = `You are producing a FitReport based on a diagnostic conversation where you identified a specific operational pain point.
-
-${CALUM_RESUME_CONTEXT}
-
-LANGUAGE RULES (CRITICAL):
-- Write EVERYTHING in plain language a non-technical business owner would understand
-- NO tech jargon
-- The hero recommendation should describe the OUTCOME for the team
-- Reference specific things from the conversation
-
-SCORING RULES:
-- Score 5-6 operational dimensions on a 0-10 scale based on what was discussed
-- Pick dimensions RELEVANT to what came up
-- Labels must be action-oriented and specific — describe what gets better, not abstract categories
-  GOOD: "Time Freed Up", "Customer Self-Service", "Info Findability", "Manual Work Reduced", "Response Speed"
-  BAD: "Staff Capacity", "Process Clarity", "Automation Level" (too vague)
-- Keep labels SHORT (2-3 words max) so they display well on charts
-- Be honest — a 3→7 jump is more credible than 2→9`;
-
-  const userPrompt = `
-${jd ? `Context:\n"""\n${jd.slice(0, 30000)}\n"""\n\n` : ""}Conversation:
-${input.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
-
-Generate a FitReport focused on the ONE pain point identified.
-
-Return ONLY valid JSON:
-{
-  "verdict": "YES" or "NO",
-  "heroRecommendation": "One bold sentence — the outcome",
-  "approachSummary": "2-3 plain sentences",
-  "keyInsights": [
-    { "label": "The Root Problem", "detail": "..." },
-    { "label": "Where the Fix Lives", "detail": "..." },
-    { "label": "First Win", "detail": "..." }
-  ],
-  "timeline": {
-    "phase1": { "label": "First 30 Days", "action": "..." },
-    "phase2": { "label": "Days 30-60", "action": "..." },
-    "phase3": { "label": "Days 60-90", "action": "..." }
+export async function aiGeneratePainQuestions(
+  input: {
+    businessName: string;
+    industry: string;
+    researchContext: string;
+    softwareStack: string[];
   },
-  "scores": [
-    { "label": "Time Freed Up", "current": 3, "projected": 7 },
-    { "label": "Response Speed", "current": 3, "projected": 7 },
-    { "label": "Info Findability", "current": 4, "projected": 8 },
-    { "label": "Manual Work", "current": 6, "projected": 2 },
-    { "label": "Customer Access", "current": 3, "projected": 8 }
-  ],
-  "fitSignals": ["..."],
-  "risks": ["..."]
-}
+  overrides?: AiOptions
+): Promise<string[]> {
+  const opts = getAiOpts(overrides);
 
-Pick 5-6 dimensions most relevant to THIS conversation. Don't use the examples if they don't fit.`;
+  const stackList = input.softwareStack.length > 0
+    ? input.softwareStack.join(", ")
+    : "no specific tools selected";
+
+  const systemPrompt = `You are a business diagnostic specialist. Generate exactly 3 targeted discovery questions for a business diagnostic.
+
+RULES:
+- Each question must be 1 sentence, conversational tone
+- Questions must be SPECIFIC to this business's industry and tools — never generic
+- If they listed specific software tools, at least 1 question must reference their actual tools by name
+- Focus on: workflow pain points, time waste, manual data entry, and automation opportunities
+- Questions should uncover information needed to recommend specific automations
+- Do NOT ask about their budget or timeline
+- Do NOT ask yes/no questions — ask open-ended questions that get them describing their workflows
+
+Return ONLY a valid JSON array of exactly 3 strings. Example:
+["Question 1?", "Question 2?", "Question 3?"]`;
+
+  const userPrompt = `Business: ${input.businessName}
+Industry: ${input.industry}
+Software Stack: ${stackList}
+
+Industry Research Context:
+${input.researchContext.slice(0, 2000)}`;
 
   let raw: string;
   if (opts.provider === "anthropic") {
     raw = await callAnthropicText(systemPrompt, userPrompt, opts);
   } else {
-    raw = await callOpenAiText(systemPrompt + "\n\n" + userPrompt, opts);
+    raw = await callOpenAiText(`${systemPrompt}\n\n${userPrompt}`, opts);
+  }
+
+  try {
+    const arrStart = raw.indexOf("[");
+    const arrEnd = raw.lastIndexOf("]");
+    if (arrStart >= 0 && arrEnd > arrStart) {
+      const parsed = JSON.parse(raw.slice(arrStart, arrEnd + 1));
+      if (Array.isArray(parsed) && parsed.length >= 3) {
+        return parsed.slice(0, 3).map(String);
+      }
+    }
+  } catch {}
+
+  return FALLBACK_PAIN_QUESTIONS;
+}
+
+// -----------------------------
+// ROI Report generation
+// -----------------------------
+export async function aiGenerateROIReport(
+  input: DiagnosticContext,
+  overrides?: AiOptions
+): Promise<ROIReport> {
+  const opts = getAiOpts(overrides);
+
+  const stackList = input.softwareStack.length > 0
+    ? input.softwareStack.join(", ")
+    : "No specific tools listed";
+
+  const painQA = input.painAnswers
+    .map((pa, i) => `Q${i + 1}: ${pa.question}\nA${i + 1}: ${pa.answer}`)
+    .join("\n\n");
+
+  const systemPrompt = `You are a business automation consultant producing a specific ROI analysis based on diagnostic data. Your job is to identify the top automation opportunity and produce grounded, realistic numbers.
+
+ROI CALCULATION RULES:
+- Use the hours/week mentioned in the pain answers as your starting baseline
+- Estimate hourly cost at $25-45/hr depending on the industry (use the research context for guidance)
+- Annual value = hours saved per week * hourly cost * 52
+- Implementation cost should be realistic: $2,000-$15,000 range for most SMB automations
+- Payback period = implementation cost / (monthly savings)
+- Be CONSERVATIVE — it's better to underestimate savings than overpromise
+- Round dollar amounts to nearest $100
+
+RECOMMENDATION RULES:
+- The top opportunity MUST reference specific tools from their software stack
+- Explain HOW the integration would work in plain language (mention Make.com, Zapier, or custom API connections as appropriate)
+- Name the exact data flow: "Data moves from [Tool A] to [Tool B] automatically when [trigger]"
+- Secondary opportunities should be distinct from the primary one
+- The recommended next step should be a clear, specific call to action
+
+LANGUAGE RULES:
+- Write everything in plain language a non-technical business owner would understand
+- No jargon — no "RAG", "pipeline", "API", "webhook" in the final output
+- Describe outcomes, not technology`;
+
+  const userPrompt = `BUSINESS: ${input.businessName}
+INDUSTRY: ${input.industry}
+
+SOFTWARE STACK: ${stackList}
+
+INDUSTRY RESEARCH:
+${input.researchContext.slice(0, 3000)}
+
+DIAGNOSTIC ANSWERS:
+${painQA}
+
+Generate the ROI report. Return ONLY valid JSON:
+{
+  "businessName": "${input.businessName}",
+  "industry": "${input.industry}",
+  "topOpportunity": {
+    "title": "Short name for the automation (e.g., 'Booking-to-Spreadsheet Sync')",
+    "description": "2-3 sentences explaining what gets automated, which tools connect, and what changes day-to-day for the team"
+  },
+  "estimatedImpact": {
+    "timeSavedHoursPerWeek": <number>,
+    "annualValue": <number in dollars>,
+    "implementationCost": <number in dollars>,
+    "paybackMonths": <number>
+  },
+  "secondaryOpportunities": [
+    { "title": "...", "description": "...", "timeSavedHoursPerWeek": <number> },
+    { "title": "...", "description": "...", "timeSavedHoursPerWeek": <number> }
+  ],
+  "recommendedNextStep": "A specific CTA sentence"
+}`;
+
+  let raw: string;
+  if (opts.provider === "anthropic") {
+    raw = await callAnthropicText(systemPrompt, userPrompt, opts);
+  } else {
+    raw = await callOpenAiText(`${systemPrompt}\n\n${userPrompt}`, opts);
   }
 
   const jsonStart = raw.indexOf("{");
@@ -421,32 +324,64 @@ Pick 5-6 dimensions most relevant to THIS conversation. Don't use the examples i
 
   const p = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
 
-  const toStringArray = (v: any) =>
-    Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : [];
-  const toInsightArray = (v: any) =>
-    Array.isArray(v) ? v.map((x: any) => ({ label: String(x?.label ?? ""), detail: String(x?.detail ?? "") })) : [];
-  const toPhase = (v: any) => ({ label: String(v?.label ?? ""), action: String(v?.action ?? "") });
-  const toScores = (v: any) =>
+  const toSecondary = (v: any) =>
     Array.isArray(v)
-      ? v.map((x: any) => ({
-          label: String(x?.label ?? ""),
-          current: Math.min(10, Math.max(0, Number(x?.current ?? 5))),
-          projected: Math.min(10, Math.max(0, Number(x?.projected ?? 7))),
+      ? v.slice(0, 3).map((x: any) => ({
+          title: String(x?.title ?? ""),
+          description: String(x?.description ?? ""),
+          timeSavedHoursPerWeek: typeof x?.timeSavedHoursPerWeek === "number"
+            ? x.timeSavedHoursPerWeek
+            : undefined,
         }))
       : [];
 
   return {
-    verdict: p?.verdict === "YES" ? "YES" : "NO",
-    heroRecommendation: String(p.heroRecommendation ?? ""),
-    approachSummary: String(p.approachSummary ?? ""),
-    keyInsights: toInsightArray(p.keyInsights),
-    timeline: {
-      phase1: toPhase(p.timeline?.phase1),
-      phase2: toPhase(p.timeline?.phase2),
-      phase3: toPhase(p.timeline?.phase3),
+    businessName: String(p.businessName ?? input.businessName),
+    industry: String(p.industry ?? input.industry),
+    topOpportunity: {
+      title: String(p.topOpportunity?.title ?? "Workflow Automation"),
+      description: String(p.topOpportunity?.description ?? ""),
     },
-    scores: toScores(p.scores),
-    fitSignals: toStringArray(p.fitSignals),
-    risks: toStringArray(p.risks),
+    estimatedImpact: {
+      timeSavedHoursPerWeek: Math.max(0, Number(p.estimatedImpact?.timeSavedHoursPerWeek ?? 5)),
+      annualValue: Math.max(0, Math.round(Number(p.estimatedImpact?.annualValue ?? 0) / 100) * 100),
+      implementationCost: Math.max(0, Math.round(Number(p.estimatedImpact?.implementationCost ?? 0) / 100) * 100),
+      paybackMonths: Math.max(0, Number(p.estimatedImpact?.paybackMonths ?? 3)),
+    },
+    secondaryOpportunities: toSecondary(p.secondaryOpportunities),
+    recommendedNextStep: String(p.recommendedNextStep ?? "Book a 30-minute call to confirm these numbers with your actual workflow data."),
+  };
+}
+
+// -----------------------------
+// Fallback ROI report for API failures
+// -----------------------------
+export function fallbackROIReport(businessName: string, industry: string): ROIReport {
+  return {
+    businessName,
+    industry,
+    topOpportunity: {
+      title: "Repetitive Task Automation",
+      description: `Based on what you've shared, the biggest opportunity is automating the manual, repetitive tasks that eat into your team's day. The most common pattern in ${industry} businesses is data that gets entered in one place and then re-typed or copy-pasted into another.`,
+    },
+    estimatedImpact: {
+      timeSavedHoursPerWeek: 8,
+      annualValue: 12500,
+      implementationCost: 4000,
+      paybackMonths: 4,
+    },
+    secondaryOpportunities: [
+      {
+        title: "Automated Customer Communication",
+        description: "Set up automatic responses and follow-ups for common customer requests, reducing response time and freeing up staff.",
+        timeSavedHoursPerWeek: 3,
+      },
+      {
+        title: "Reporting & Data Consolidation",
+        description: "Automatically pull data from your tools into a single dashboard or spreadsheet, eliminating manual report building.",
+        timeSavedHoursPerWeek: 2,
+      },
+    ],
+    recommendedNextStep: "Book a 30-minute call to walk through your actual workflows and confirm these numbers.",
   };
 }

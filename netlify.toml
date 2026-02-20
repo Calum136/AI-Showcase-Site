@@ -10,17 +10,17 @@
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/api/fit/start"
+  from = "/api/fit/research"
+  to = "/.netlify/functions/fit-chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/fit/questions"
   to = "/.netlify/functions/fit-chat"
   status = 200
 
 [[redirects]]
   from = "/api/fit/message"
-  to = "/.netlify/functions/fit-chat"
-  status = 200
-
-[[redirects]]
-  from = "/api/fit/upload"
   to = "/.netlify/functions/fit-chat"
   status = 200
 

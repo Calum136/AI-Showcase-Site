@@ -1,51 +1,22 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import { aiGenerateNextResponse, aiGenerateReport } from "./ai/fitPrompt";
+import {
+  aiResearchBusiness,
+  aiGeneratePainQuestions,
+  aiGenerateROIReport,
+  fallbackROIReport,
+} from "./ai/fitPrompt";
 import { generateFitAssessment } from "./ai/fitAssessment";
 import { fitAssessmentInputSchema } from "@shared/fitAssessmentSchema";
 
 import { api } from "@shared/routes";
+import {
+  fitResearchInputSchema,
+  fitQuestionsInputSchema,
+  fitReportGenerateInputSchema,
+} from "@shared/routes";
 import { z } from "zod";
-// -----------------------------
-// Fit (stateless architecture - context passed by client each request)
-// -----------------------------
-type FitMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
-type FitReport = {
-  verdict: "YES" | "NO";
-  heroRecommendation: string;
-  approachSummary: string;
-  keyInsights: Array<{ label: string; detail: string }>;
-  timeline: {
-    phase1: { label: string; action: string };
-    phase2: { label: string; action: string };
-    phase3: { label: string; action: string };
-  };
-  scores?: Array<{ label: string; current: number; projected: number }>;
-  fitSignals: string[];
-  risks: string[];
-};
-
-// Zod request schemas (stateless)
-const fitStartSchema = z.object({
-  action: z.literal("start"),
-  jdText: z.string().max(50_000).optional(),
-});
-
-const fitMessageSchema = z.object({
-  action: z.literal("message"),
-  userMessage: z.string().min(1).max(20_000),
-  jdText: z.string().max(50_000).optional(),
-  messages: z.array(z.object({
-    role: z.enum(["user", "assistant"]),
-    content: z.string(),
-  })).max(30),
-  userTurns: z.number().int().min(0),
-});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -89,146 +60,89 @@ export async function registerRoutes(
   });
 
   // ======================
-  // Fit Routes (stateless - context passed by client)
+  // Fit Diagnostic Routes (Enhanced)
   // ======================
 
-  app.post(api.fit.start.path, async (req, res) => {
-    const parsed = fitStartSchema.safeParse(req.body);
+  // Research endpoint — generates industry intelligence brief
+  app.post(api.fit.research.path, async (req, res) => {
+    const parsed = fitResearchInputSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
         message: parsed.error.errors[0]?.message ?? "Invalid input",
       });
     }
 
-    const jdText = parsed.data.jdText || "";
-
-    // AI-generated first question (with fallback)
-    let firstPrompt = "What's the thing that's eating the most time at work right now?";
     try {
-      if (jdText) {
-        const result = await aiGenerateNextResponse({
-          jdText,
-          userTurns: 0,
-          messages: [],
-        });
-        firstPrompt = result.message || firstPrompt;
-      }
+      const researchContext = await aiResearchBusiness({
+        businessName: parsed.data.businessName,
+        industry: parsed.data.industry,
+      });
+      return res.json({ researchContext });
     } catch (err) {
-      console.error("AI start prompt failed, using fallback:", err);
+      console.error("AI research failed:", err);
+      return res.status(500).json({
+        message: "Failed to generate research context. Please try again.",
+      });
     }
-
-    return res.json({
-      stage: 1,
-      role: "assistant",
-      content: firstPrompt,
-    });
   });
 
+  // Questions endpoint — generates tailored pain questions
+  app.post(api.fit.questions.path, async (req, res) => {
+    const parsed = fitQuestionsInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.errors[0]?.message ?? "Invalid input",
+      });
+    }
+
+    try {
+      const questions = await aiGeneratePainQuestions({
+        businessName: parsed.data.businessName,
+        industry: parsed.data.industry,
+        researchContext: parsed.data.researchContext,
+        softwareStack: parsed.data.softwareStack,
+      });
+      return res.json({ questions });
+    } catch (err) {
+      console.error("AI question generation failed:", err);
+      return res.status(500).json({
+        message: "Failed to generate questions. Please try again.",
+      });
+    }
+  });
+
+  // Report endpoint — generates ROI report from full diagnostic context
   app.post(api.fit.message.path, async (req, res) => {
-    const parsed = fitMessageSchema.safeParse(req.body);
+    const parsed = fitReportGenerateInputSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
         message: parsed.error.errors[0]?.message ?? "Invalid input",
       });
     }
 
-    const { userMessage, jdText, messages, userTurns } = parsed.data;
+    const { diagnosticContext } = parsed.data;
 
-    // Add the new user message to history
-    const fullMessages: FitMessage[] = [
-      ...messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
-      { role: "user" as const, content: userMessage },
-    ];
-
-    // AI decides when it has enough info for a report
-    let aiResponse: { message: string; readyForReport: boolean };
+    let report;
     try {
-      aiResponse = await aiGenerateNextResponse({
-        jdText: jdText || "",
-        userTurns,
-        messages: fullMessages,
-      });
+      report = await aiGenerateROIReport(diagnosticContext);
     } catch (err) {
-      console.error("AI next response failed:", err);
-      aiResponse = {
-        message: "I'm having trouble connecting right now — could you try that again?",
-        readyForReport: false,
-      };
-    }
-
-    // If AI says ready, generate the report
-    if (aiResponse.readyForReport) {
-      const reportMessages: FitMessage[] = [
-        ...fullMessages,
-        { role: "assistant" as const, content: aiResponse.message },
-      ];
-
-      let report: FitReport;
-      try {
-        report = await aiGenerateReport({
-          jdText: jdText ?? "",
-          messages: reportMessages,
-        });
-      } catch (err) {
-        console.error("AI report failed, using fallback:", err);
-        report = {
-          verdict: "YES",
-          heroRecommendation: "Free your team from the repetitive tasks that eat their day so they can focus on work that actually matters",
-          approachSummary: "The biggest drain is repetitive manual work — the same questions, the same sorting, the same requests over and over. The fix is automating the predictable parts so your team gets their time back.",
-          keyInsights: [
-            { label: "The Root Problem", detail: "Your team spends hours on tasks that follow the same pattern every time — time they can't spend on work that needs a human." },
-            { label: "Where the Fix Lives", detail: "The handoff point where requests come in and someone has to manually sort, respond, or route them." },
-            { label: "First Win", detail: "Automate the most common request type — the one that eats the most time. The team feels the difference immediately." },
-          ],
-          timeline: {
-            phase1: { label: "First 30 Days", action: "Map the top 5 repetitive tasks and measure how much time each one takes" },
-            phase2: { label: "Days 30-60", action: "Automate the #1 time sink — build it, test it, get the team using it" },
-            phase3: { label: "Days 60-90", action: "Expand to the next 2-3 tasks and set up a rhythm so improvements stick" },
-          },
-          scores: [
-            { label: "Information Flow", current: 4, projected: 7 },
-            { label: "Staff Capacity", current: 3, projected: 7 },
-            { label: "Process Clarity", current: 5, projected: 7 },
-            { label: "Response Time", current: 4, projected: 8 },
-            { label: "Automation Level", current: 2, projected: 7 },
-          ],
-          fitSignals: [
-            "The challenges match Calum's track record of automating repetitive workflows",
-            "The team is ready to move faster — they just need the repetitive parts handled",
-          ],
-          risks: [
-            "If the team is too stretched to participate in the transition, automation can stall",
-            "Early wins are critical to keep momentum",
-          ],
-        };
-      }
-
-      return res.json({
-        stage: 3,
-        verdict: report.verdict,
-        report,
-        role: "assistant",
-        content: aiResponse.message,
-      });
+      console.error("AI report generation failed, using fallback:", err);
+      report = fallbackROIReport(
+        diagnosticContext.businessName,
+        diagnosticContext.industry,
+      );
     }
 
     return res.json({
-      stage: 1,
-      role: "assistant",
-      content: aiResponse.message,
-    });
-  });
-
-  // Upload endpoint - now handled client-side for .txt files
-  // Keep route for backwards compatibility but simplified
-  app.post(api.fit.upload.path, async (req, res) => {
-    return res.status(400).json({
-      message: "File upload is now handled client-side. Please use the chat interface to paste text directly.",
+      stage: 3 as const,
+      role: "assistant" as const,
+      content: "Here's your personalized automation analysis.",
+      report,
     });
   });
 
   // ======================
-  // Fit Assessment Route
+  // Fit Assessment Route (kept for backward compatibility)
   // ======================
 
   // Simple in-memory rate limiter
