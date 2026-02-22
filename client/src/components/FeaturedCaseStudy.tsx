@@ -12,7 +12,7 @@ const FEATURED_PROJECTS = [
     description:
       "AI-powered email triage and response system for a Nova Scotia brewery, reducing repetitive inbox work while preserving the owner's voice and keeping humans in control of every booking.",
     metrics: [
-      { value: "14/14", label: "Emails Routed" },
+      { value: "500+", label: "Emails/Month" },
       { value: "17", label: "Categories" },
       { value: "~$20/mo", label: "Operating Cost" },
     ],

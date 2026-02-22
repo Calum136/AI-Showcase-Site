@@ -54,8 +54,8 @@ export default function BlackbirdCaseStudy() {
           {/* Key Metrics */}
           <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mt-8">
             <div className="text-center p-4 bg-brand-stone rounded-xl">
-              <div className="text-2xl font-bold text-brand-copper">14/14</div>
-              <div className="text-xs text-brand-brown/70">Emails Routed Correctly</div>
+              <div className="text-2xl font-bold text-brand-copper">500+</div>
+              <div className="text-xs text-brand-brown/70">Emails/Month</div>
             </div>
             <div className="text-center p-4 bg-brand-stone rounded-xl">
               <div className="text-2xl font-bold text-brand-copper">17</div>
@@ -100,7 +100,7 @@ export default function BlackbirdCaseStudy() {
               <div>
                 <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Outcome</span>
                 <p className="text-sm text-brand-brown/80 mt-1">
-                  Full pipeline live: Gmail → Make.com → Render → classified response → Gmail action. 14/14 real emails routed correctly.
+                  Full pipeline live: Gmail → Make.com → Render → classified response → Gmail action. Routing ~20 emails/day, 500+/month.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -324,7 +324,7 @@ export default function BlackbirdCaseStudy() {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-brand-moss mt-0.5" />
-                    <span><strong className="text-brand-charcoal">14/14 real emails</strong> from Andy's inbox routed correctly after one classifier fix</span>
+                    <span><strong className="text-brand-charcoal">500+ emails/month</strong> routed — ~20/day across all categories</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-brand-moss mt-0.5" />
