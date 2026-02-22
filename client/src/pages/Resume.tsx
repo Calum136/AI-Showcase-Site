@@ -17,6 +17,7 @@ import {
   TrendingUp,
   BookOpen,
 } from "lucide-react";
+import { generateResumePdf } from "@/lib/generateResumePdf";
 
 type ResumeData = {
   personalInfo: {
@@ -217,7 +218,7 @@ export default function Resume() {
                   <Button
                     variant="outline"
                     className="rounded-xl gap-2"
-                    onClick={() => window.print()}
+                    onClick={() => generateResumePdf(resume)}
                   >
                     <Download className="w-4 h-4" />
                     Download PDF

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,24 +35,53 @@ const FEATURED_PROJECTS = [
     caseStudyLink: "/case-study/maritime-home-map",
     badge: "In Development",
   },
+  {
+    title: "JollyTails Staff Assistant",
+    description:
+      "AI knowledge base that turned 20+ fragmented SOPs into an intelligent, searchable system. Staff get instant, contextual answers instead of hunting through documents or interrupting senior team members.",
+    metrics: [
+      { value: "20+", label: "Docs Unified" },
+      { value: "~70%", label: "Faster Lookup" },
+      { value: "RAG", label: "Architecture" },
+    ],
+    techStack: ["TypeScript", "React", "OpenAI", "pgvector"],
+    flowSteps: ["Docs", "Embeddings", "Search", "Answers"],
+    caseStudyLink: "/case-study/jollytails",
+    badge: "Pro-Bono Delivery",
+  },
 ];
+
+const INTERVAL_MS = 10000;
 
 export function FeaturedCaseStudy() {
   const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % FEATURED_PROJECTS.length);
+    }, INTERVAL_MS);
+  }, []);
+
+  const goTo = useCallback((index: number) => {
+    setCurrent(index);
+    resetTimer();
+  }, [resetTimer]);
 
   const next = useCallback(
-    () => setCurrent((c) => (c + 1) % FEATURED_PROJECTS.length),
-    [],
+    () => goTo((current + 1) % FEATURED_PROJECTS.length),
+    [current, goTo],
   );
   const prev = useCallback(
-    () => setCurrent((c) => (c - 1 + FEATURED_PROJECTS.length) % FEATURED_PROJECTS.length),
-    [],
+    () => goTo((current - 1 + FEATURED_PROJECTS.length) % FEATURED_PROJECTS.length),
+    [current, goTo],
   );
 
   useEffect(() => {
-    const id = setInterval(next, 8000);
-    return () => clearInterval(id);
-  }, [next]);
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
 
   const project = FEATURED_PROJECTS[current];
 
@@ -187,7 +216,7 @@ export function FeaturedCaseStudy() {
           {FEATURED_PROJECTS.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrent(i)}
+              onClick={() => goTo(i)}
               className={`w-2 h-2 rounded-full transition-colors ${
                 i === current ? "bg-brand-copper" : "bg-brand-brown/20"
               }`}

@@ -20,17 +20,17 @@ export default function CaseStudies() {
 
   return (
     <Layout>
-      {/* Tab bar */}
-      <div className="sticky top-16 z-20 bg-surface-paper/95 backdrop-blur-sm border-b border-surface-line/40 -mx-4 px-4 md:-mx-8 md:px-8">
-        <div className="max-w-6xl mx-auto flex gap-1 py-2">
+      {/* Spreadsheet-style tab bar */}
+      <div className="border-b border-surface-line/60 -mx-4 px-4 md:-mx-8 md:px-8 mb-8">
+        <div className="max-w-6xl mx-auto flex">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setLocation(`/case-study/${tab.id}`)}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              className={`px-5 py-2.5 text-sm font-medium border border-b-0 transition-colors -mb-px ${
                 activeTab.id === tab.id
-                  ? "bg-brand-copper text-surface-paper"
-                  : "text-brand-brown/60 hover:text-brand-brown hover:bg-brand-stone/50"
+                  ? "bg-surface-paper text-brand-copper border-surface-line/60 rounded-t-lg z-10"
+                  : "bg-brand-stone/30 text-brand-brown/50 border-transparent hover:text-brand-brown/70 hover:bg-brand-stone/50 rounded-t-lg"
               }`}
             >
               {tab.label}
