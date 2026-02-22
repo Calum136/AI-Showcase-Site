@@ -22,9 +22,6 @@ export default function FitEvaluate() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Badge className="bg-brand-moss/10 text-brand-moss border-brand-moss mb-2">
-            Normally $60 — free during beta
-          </Badge>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-red leading-tight">
             Find Out Exactly Where AI Can Save Your Business Time and Money
           </h1>
@@ -56,6 +53,12 @@ export default function FitEvaluate() {
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           </Link>
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+            <span className="line-through text-brand-brown/40">$19</span>
+            <Badge className="bg-brand-moss/10 text-brand-moss border-brand-moss">
+              Free
+            </Badge>
+          </div>
         </motion.div>
 
         {/* How it works */}
