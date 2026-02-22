@@ -23,7 +23,7 @@ export const errorSchemas = {
 };
 
 // -----------------------------
-// Fit schemas (server-led, no persistence)
+// Legacy Fit schemas (kept for backward compatibility)
 // -----------------------------
 export const fitStageSchema = z.union([
   z.literal(1),
@@ -52,38 +52,93 @@ export const fitReportSchema = z.object({
   risks: z.array(z.string()),
 });
 
-export const fitStartInputSchema = z.object({
-  action: z.literal("start"),
-  jdText: z.string().max(50_000).optional(),
+// -----------------------------
+// Enhanced Fit Diagnostic schemas
+// -----------------------------
+
+// Diagnostic context — accumulated through the intake flow
+export const diagnosticContextSchema = z.object({
+  businessName: z.string().min(1).max(200),
+  industry: z.string().min(1).max(100),
+  researchContext: z.string(),
+  softwareStack: z.array(z.string()),
+  painAnswers: z.array(z.object({
+    question: z.string(),
+    answer: z.string(),
+  })),
 });
 
-export const fitStartResponseSchema = z.object({
-  stage: fitStageSchema,
+// ROI Report — the new output format
+export const roiReportSchema = z.object({
+  businessName: z.string(),
+  industry: z.string(),
+  topOpportunity: z.object({
+    title: z.string(),
+    description: z.string(),
+  }),
+  estimatedImpact: z.object({
+    currentHoursPerWeek: z.number(),
+    automationPercentage: z.number(),
+    timeSavedHoursPerWeek: z.number(),
+    hourlyRate: z.number(),
+    annualValue: z.number(),
+    implementationCost: z.number(),
+    paybackMonths: z.number(),
+  }),
+  secondaryOpportunities: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    timeSavedHoursPerWeek: z.number().optional(),
+  })).max(3),
+  recommendedNextStep: z.string(),
+});
+
+// Research endpoint
+export const fitResearchInputSchema = z.object({
+  businessName: z.string().min(1).max(200),
+  industry: z.string().min(1).max(100),
+});
+
+export const fitResearchResponseSchema = z.object({
+  researchContext: z.string(),
+});
+
+// Questions endpoint
+export const fitQuestionsInputSchema = z.object({
+  businessName: z.string().min(1).max(200),
+  industry: z.string().min(1).max(100),
+  researchContext: z.string(),
+  softwareStack: z.array(z.string()),
+});
+
+export const fitQuestionsResponseSchema = z.object({
+  questions: z.array(z.string()).min(1).max(5),
+});
+
+// Report generation endpoint
+export const fitReportGenerateInputSchema = z.object({
+  diagnosticContext: diagnosticContextSchema,
+});
+
+export const fitReportGenerateResponseSchema = z.object({
+  stage: z.literal(3),
   role: z.literal("assistant"),
   content: z.string(),
+  report: roiReportSchema,
 });
 
-export const fitMessageInputSchema = z.object({
-  action: z.literal("message"),
-  userMessage: z.string().min(1).max(20_000),
-  jdText: z.string().max(50_000).optional(),
-  messages: z.array(z.object({
-    role: z.enum(["user", "assistant"]),
-    content: z.string(),
-  })).max(30),
-  userTurns: z.number().int().min(0),
+// Lead capture endpoint
+export const fitLeadInputSchema = z.object({
+  email: z.string().email(),
+  name: z.string().max(200).optional(),
+  businessName: z.string(),
+  industry: z.string(),
+  topRecommendation: z.string(),
 });
 
-export const fitMessageResponseSchema = z.object({
-  stage: fitStageSchema,
-  role: z.literal("assistant"),
-  content: z.string(),
-  verdict: z.union([z.literal("YES"), z.literal("NO")]).optional(),
-  report: fitReportSchema.optional(),
+export const fitLeadResponseSchema = z.object({
+  success: z.boolean(),
 });
-
-// Upload returns same shape as start (it just extracts text first)
-export const fitUploadResponseSchema = fitStartResponseSchema;
 
 export const api = {
   content: {
@@ -110,12 +165,22 @@ export const api = {
   },
 
   fit: {
-    start: {
+    research: {
       method: "POST" as const,
-      path: "/api/fit/start",
-      input: fitStartInputSchema,
+      path: "/api/fit/research",
+      input: fitResearchInputSchema,
       responses: {
-        200: fitStartResponseSchema,
+        200: fitResearchResponseSchema,
+        400: errorSchemas.badRequest,
+        500: errorSchemas.internal,
+      },
+    },
+    questions: {
+      method: "POST" as const,
+      path: "/api/fit/questions",
+      input: fitQuestionsInputSchema,
+      responses: {
+        200: fitQuestionsResponseSchema,
         400: errorSchemas.badRequest,
         500: errorSchemas.internal,
       },
@@ -123,20 +188,19 @@ export const api = {
     message: {
       method: "POST" as const,
       path: "/api/fit/message",
-      input: fitMessageInputSchema,
+      input: fitReportGenerateInputSchema,
       responses: {
-        200: fitMessageResponseSchema,
+        200: fitReportGenerateResponseSchema,
         400: errorSchemas.badRequest,
-        404: errorSchemas.notFound,
         500: errorSchemas.internal,
       },
     },
-    upload: {
+    lead: {
       method: "POST" as const,
-      path: "/api/fit/upload",
-      // multipart/form-data, so we intentionally omit `input` here
+      path: "/api/fit/lead",
+      input: fitLeadInputSchema,
       responses: {
-        200: fitUploadResponseSchema,
+        200: fitLeadResponseSchema,
         400: errorSchemas.badRequest,
         500: errorSchemas.internal,
       },

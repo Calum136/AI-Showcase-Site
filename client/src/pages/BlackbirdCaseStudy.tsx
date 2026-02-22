@@ -33,10 +33,9 @@ const fadeIn = {
   transition: { duration: 0.5 },
 };
 
-export default function BlackbirdCaseStudy() {
+export function BlackbirdContent() {
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-6xl mx-auto space-y-10">
         {/* Hero Section */}
         <motion.div {...fadeIn} className="text-center space-y-4">
           <Badge variant="secondary" className="mb-4">
@@ -538,6 +537,13 @@ export default function BlackbirdCaseStudy() {
           </div>
         </motion.div>
       </div>
+  );
+}
+
+export default function BlackbirdCaseStudy() {
+  return (
+    <Layout>
+      <BlackbirdContent />
     </Layout>
   );
 }

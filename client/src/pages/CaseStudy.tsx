@@ -33,10 +33,9 @@ const fadeIn = {
   transition: { duration: 0.5 },
 };
 
-export default function CaseStudy() {
+export function JollyTailsContent() {
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-6xl mx-auto space-y-10">
         {/* Hero Section */}
         <motion.div {...fadeIn} className="text-center space-y-4">
           <Badge variant="secondary" className="mb-4">
@@ -702,6 +701,13 @@ export default function CaseStudy() {
           </div>
         </motion.div>
       </div>
+  );
+}
+
+export default function CaseStudy() {
+  return (
+    <Layout>
+      <JollyTailsContent />
     </Layout>
   );
 }

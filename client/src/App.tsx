@@ -24,9 +24,7 @@ import References from "@/pages/References";
 import FitEvaluate from "@/pages/FitEvaluate";
 import FitLanding from "@/pages/FitLanding";
 import FitChat from "@/pages/FitChat";
-import CaseStudy from "@/pages/CaseStudy";
-import BlackbirdCaseStudy from "@/pages/BlackbirdCaseStudy";
-import MaritimeHomeMapCaseStudy from "@/pages/MaritimeHomeMapCaseStudy";
+import CaseStudies from "@/pages/CaseStudies";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -40,10 +38,8 @@ function Router() {
       <Route path="/fit" component={FitEvaluate} />
       <Route path="/fit/assess" component={FitLanding} />
       <Route path="/fit/chat" component={FitChat} />
-      <Route path="/case-study" component={CaseStudy} />
-      <Route path="/case-study/jollytails" component={CaseStudy} />
-      <Route path="/case-study/blackbird-brewing" component={BlackbirdCaseStudy} />
-      <Route path="/case-study/maritime-home-map" component={MaritimeHomeMapCaseStudy} />
+      <Route path="/case-study" component={CaseStudies} />
+      <Route path="/case-study/:slug" component={CaseStudies} />
       <Route component={NotFound} />
     </Switch>
   );

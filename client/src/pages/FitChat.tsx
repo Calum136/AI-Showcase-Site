@@ -1,30 +1,73 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
 import {
   Send,
-  Upload,
-  CheckCircle,
-  AlertTriangle,
   ArrowLeft,
-  Target,
-  Lightbulb,
-  Zap,
+  ArrowRight,
+  DollarSign,
+  Clock,
+  TrendingUp,
+  Calculator,
+  Loader2,
+  Mail,
+  CheckCircle2,
 } from "lucide-react";
 import { Link } from "wouter";
 import { ContactDialog } from "@/components/ContactDialog";
 import { api } from "@shared/routes";
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+  SOFTWARE_STACK_CATEGORIES,
+  INDUSTRY_SPECIFIC_TOOLS,
+  INDUSTRY_OPTIONS,
+  type SoftwareCategory,
+} from "@shared/softwareStack";
+
+// ---------------------
+// Types
+// ---------------------
+type DiagnosticPhase =
+  | "business-capture"
+  | "researching"
+  | "software-stack"
+  | "generating-questions"
+  | "pain-questions"
+  | "generating-report"
+  | "report";
+
+type DiagnosticContext = {
+  businessName: string;
+  industry: string;
+  researchContext: string;
+  softwareStack: string[];
+  painAnswers: Array<{ question: string; answer: string }>;
+};
+
+type ROIReport = {
+  businessName: string;
+  industry: string;
+  topOpportunity: {
+    title: string;
+    description: string;
+  };
+  estimatedImpact: {
+    currentHoursPerWeek: number;
+    automationPercentage: number;
+    timeSavedHoursPerWeek: number;
+    hourlyRate: number;
+    annualValue: number;
+    implementationCost: number;
+    paybackMonths: number;
+  };
+  secondaryOpportunities: Array<{
+    title: string;
+    description: string;
+    timeSavedHoursPerWeek?: number;
+  }>;
+  recommendedNextStep: string;
+};
 
 type ChatMsg = {
   id: string;
@@ -33,218 +76,320 @@ type ChatMsg = {
   isTyping?: boolean;
 };
 
-type ScoreDimension = {
-  label: string;
-  current: number;
-  projected: number;
-};
+// Fallback questions
+const FALLBACK_PAIN_QUESTIONS = [
+  "Which of your tools or daily processes causes the most headaches \u2014 where does work get stuck, duplicated, or slowed down?",
+  "Across your whole team, roughly how many hours per week go into that problem area \u2014 including all the manual steps, re-entry, and follow-ups?",
+  "If you could wave a magic wand and have one thing just happen automatically, what would it be?",
+];
 
-type FitReport = {
-  verdict: "YES" | "NO";
-  heroRecommendation: string;
-  approachSummary: string;
-  keyInsights: Array<{ label: string; detail: string }>;
-  timeline: {
-    phase1: { label: string; action: string };
-    phase2: { label: string; action: string };
-    phase3: { label: string; action: string };
-  };
-  scores?: ScoreDimension[];
-  fitSignals: string[];
-  risks: string[];
-};
-
+// ---------------------
+// Main Component
+// ---------------------
 export default function FitChat() {
-  const [complete, setComplete] = useState(false);
+  const [phase, setPhase] = useState<DiagnosticPhase>("business-capture");
+  const [context, setContext] = useState<DiagnosticContext>({
+    businessName: "",
+    industry: "",
+    researchContext: "",
+    softwareStack: [],
+    painAnswers: [],
+  });
+  const [report, setReport] = useState<ROIReport | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [draft, setDraft] = useState("");
-  const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<FitReport | null>(null);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [jdText, setJdText] = useState<string>("");
+
+  // Pain questions state
+  const [painQuestions, setPainQuestions] = useState<string[]>([]);
+  const [currentPainQuestion, setCurrentPainQuestion] = useState(0);
+
+  // Business capture form state
+  const [formName, setFormName] = useState("");
+  const [formIndustry, setFormIndustry] = useState("");
+
+  // Software stack state
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [otherTools, setOtherTools] = useState("");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length]);
+  }, [messages.length, phase]);
 
-  // Auto-start conversation on mount — check localStorage for JD text from assessment page
+  // Focus input when pain questions start
   useEffect(() => {
-    if (!hasStarted) {
-      let savedJd = "";
-      try {
-        savedJd = localStorage.getItem("fitJdText") || "";
-        if (savedJd) localStorage.removeItem("fitJdText"); // one-time use
-      } catch {}
-      if (savedJd) {
-        startConversation(savedJd);
-      } else {
-        startConversation();
-      }
+    if (phase === "pain-questions") {
+      setTimeout(() => inputRef.current?.focus(), 300);
     }
+  }, [phase, currentPainQuestion]);
+
+  // Add initial greeting on mount
+  useEffect(() => {
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Let's find out exactly where AI can save your business time and money. First, a couple of quick questions.",
+      },
+    ]);
   }, []);
 
-  async function startConversation(initialJdText?: string) {
-    setIsBusy(true);
+  // ---------------------
+  // Phase transitions
+  // ---------------------
+
+  const handleBusinessCapture = useCallback(async () => {
+    if (!formName.trim() || !formIndustry) return;
+
+    const name = formName.trim();
+    const industry = formIndustry;
+
+    // Add user response to chat
+    setMessages((m) => [
+      ...m,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: `${name} - ${industry}`,
+      },
+    ]);
+
+    setContext((c) => ({ ...c, businessName: name, industry }));
+    setPhase("researching");
     setError(null);
-    setReport(null);
-    setComplete(false);
-    setHasStarted(true);
 
-    const contextText = initialJdText || "";
-    if (initialJdText) {
-      setJdText(initialJdText);
-    }
-
-    // Show typing indicator immediately
-    const typingId = crypto.randomUUID();
-    setMessages([
-      { id: typingId, role: "assistant", content: "", isTyping: true },
+    // Add researching indicator
+    setMessages((m) => [
+      ...m,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "",
+        isTyping: true,
+      },
     ]);
 
     try {
-      const payload = {
-        action: "start" as const,
-        jdText: contextText,
-      };
-
-      const r = await fetch(api.fit.start.path, {
+      const r = await fetch(api.fit.research.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ businessName: name, industry }),
       });
 
       const data = await r.json().catch(() => null);
+      if (!r.ok) throw new Error(data?.message ?? "Research failed");
 
-      if (!r.ok) {
-        throw new Error(data?.message ?? `Start failed (${r.status})`);
-      }
+      const researchContext = String(data.researchContext ?? "");
+      setContext((c) => ({ ...c, researchContext }));
 
-      const first = String(data.content ?? "").trim();
-
-      // Replace typing indicator with actual message
-      setMessages([
+      // Replace typing indicator
+      setMessages((m) => [
+        ...m.filter((x) => !x.isTyping),
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content:
-            first ||
-            "What's the thing that's eating the most time at work right now?",
+          content: `Great, I've researched the ${industry.toLowerCase()} industry. Now let's see what tools you're working with.`,
         },
       ]);
+
+      setPhase("software-stack");
     } catch (e: any) {
-      setMessages([]);
-      setError(e?.message ?? "Failed to start conversation.");
-      setHasStarted(false);
-    } finally {
-      setIsBusy(false);
+      setMessages((m) => m.filter((x) => !x.isTyping));
+      setError(e?.message ?? "Failed to research industry. Please try again.");
+      setPhase("business-capture");
     }
-  }
+  }, [formName, formIndustry]);
 
-  async function uploadFile(file: File) {
-    setIsBusy(true);
-    setError(null);
+  const handleSoftwareStackSubmit = useCallback(async () => {
+    // Merge selected checkboxes with "Other" free-text entries
+    const otherList = otherTools
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    const allTools = [...selectedTools, ...otherList];
 
-    try {
-      const text = await file.text();
-      if (!text.trim()) throw new Error("File appears to be empty.");
-      setJdText(text);
-      await startConversation(text);
-    } catch (e: any) {
-      setError(
-        e?.message ||
-          "Could not read file. Please paste the text directly instead.",
-      );
-      setIsBusy(false);
-    }
-  }
+    setContext((c) => ({ ...c, softwareStack: allTools }));
 
-  async function sendMessage() {
-    const text = (draft ?? "").trim();
-    if (!text || !hasStarted) return;
+    // Add user response summary to chat
+    const toolSummary = allTools.length > 0
+      ? allTools.join(", ")
+      : "No specific tools selected";
 
-    const userMsg: ChatMsg = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text,
-    };
+    setMessages((m) => [
+      ...m,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: toolSummary,
+      },
+    ]);
 
-    setMessages((m) => [...m, userMsg]);
-    setDraft("");
-    setIsBusy(true);
+    setPhase("generating-questions");
     setError(null);
 
     // Add typing indicator
-    const typingId = crypto.randomUUID();
     setMessages((m) => [
       ...m,
-      { id: typingId, role: "assistant", content: "", isTyping: true },
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "",
+        isTyping: true,
+      },
     ]);
 
     try {
-      // Build message history (excluding typing indicators)
-      const currentMessages = [...messages, userMsg];
-      const historyForServer = currentMessages
-        .filter((m) => !m.isTyping)
-        .map((m) => ({ role: m.role, content: m.content }));
-
-      const userTurnCount =
-        currentMessages.filter((m) => m.role === "user").length;
-
-      const r = await fetch(api.fit.message.path, {
+      const r = await fetch(api.fit.questions.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "message",
-          userMessage: text,
-          jdText,
-          messages: historyForServer,
-          userTurns: userTurnCount,
+          businessName: context.businessName,
+          industry: context.industry,
+          researchContext: context.researchContext,
+          softwareStack: allTools,
         }),
       });
 
       const data = await r.json().catch(() => null);
+      if (!r.ok) throw new Error(data?.message ?? "Question generation failed");
 
-      if (!r.ok) {
-        throw new Error(data?.message ?? `Message failed (${r.status})`);
-      }
+      const questions: string[] = Array.isArray(data.questions) && data.questions.length >= 3
+        ? data.questions.slice(0, 3)
+        : FALLBACK_PAIN_QUESTIONS;
 
-      const aiText = String(data.content ?? "").trim();
+      setPainQuestions(questions);
+      setCurrentPainQuestion(0);
 
-      // Small delay for natural feel
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Replace typing indicator with first question
+      setMessages((m) => [
+        ...m.filter((x) => !x.isTyping),
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: questions[0],
+        },
+      ]);
 
-      // Replace typing indicator with actual message
-      setMessages((m) =>
-        m
-          .filter((x) => x.id !== typingId)
-          .concat({
+      setPhase("pain-questions");
+    } catch (e: any) {
+      // Fallback to hardcoded questions
+      setPainQuestions(FALLBACK_PAIN_QUESTIONS);
+      setCurrentPainQuestion(0);
+
+      setMessages((m) => [
+        ...m.filter((x) => !x.isTyping),
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: FALLBACK_PAIN_QUESTIONS[0],
+        },
+      ]);
+
+      setPhase("pain-questions");
+    }
+  }, [selectedTools, otherTools, context.businessName, context.industry, context.researchContext]);
+
+  const handlePainAnswer = useCallback(async () => {
+    const text = draft.trim();
+    if (!text) return;
+
+    const questionIdx = currentPainQuestion;
+    const question = painQuestions[questionIdx];
+
+    // Add user answer to chat
+    setMessages((m) => [
+      ...m,
+      { id: crypto.randomUUID(), role: "user", content: text },
+    ]);
+    setDraft("");
+
+    // Store the answer
+    const newPainAnswers = [
+      ...context.painAnswers,
+      { question, answer: text },
+    ];
+    setContext((c) => ({ ...c, painAnswers: newPainAnswers }));
+
+    const nextIdx = questionIdx + 1;
+
+    if (nextIdx < painQuestions.length) {
+      // Ask next question after a brief delay
+      setCurrentPainQuestion(nextIdx);
+      setTimeout(() => {
+        setMessages((m) => [
+          ...m,
+          {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: aiText || "Let me think about that...",
-          }),
-      );
+            content: painQuestions[nextIdx],
+          },
+        ]);
+      }, 400);
+    } else {
+      // All questions answered — generate report
+      setPhase("generating-report");
 
-      if (data.report) {
-        setReport(data.report as FitReport);
-        setComplete(true);
+      setMessages((m) => [
+        ...m,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "",
+          isTyping: true,
+        },
+      ]);
+
+      try {
+        const fullContext: DiagnosticContext = {
+          businessName: context.businessName,
+          industry: context.industry,
+          researchContext: context.researchContext,
+          softwareStack: context.softwareStack,
+          painAnswers: newPainAnswers,
+        };
+
+        const r = await fetch(api.fit.message.path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ diagnosticContext: fullContext }),
+        });
+
+        const data = await r.json().catch(() => null);
+        if (!r.ok) throw new Error(data?.message ?? "Report generation failed");
+
+        setReport(data.report as ROIReport);
+        setMessages((m) => m.filter((x) => !x.isTyping));
+        setPhase("report");
+      } catch (e: any) {
+        setMessages((m) => m.filter((x) => !x.isTyping));
+        setError(e?.message ?? "Failed to generate report. Please try again.");
+        // Stay on generating-report phase so user can see error
       }
-    } catch (e: any) {
-      setMessages((m) => m.filter((x) => x.id !== typingId));
-      setError(e?.message ?? "Failed to send message.");
-    } finally {
-      setIsBusy(false);
     }
-  }
+  }, [draft, currentPainQuestion, painQuestions, context]);
 
+  const handleToolToggle = useCallback((tool: string) => {
+    setSelectedTools((prev) =>
+      prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool]
+    );
+  }, []);
+
+  const isBusy = phase === "researching" || phase === "generating-questions" || phase === "generating-report";
+
+  // ---------------------
+  // Render
+  // ---------------------
   return (
     <Layout>
-      {/* Chat phase — viewport-locked */}
-      {!complete && (
+      {/* Report phase — full-width scrollable */}
+      {phase === "report" && report ? (
+        <ROIReportView report={report} context={context} />
+      ) : (
+        /* Chat/intake phase — viewport-locked */
         <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-128px)] md:h-[calc(100dvh-144px)]">
           {/* Header */}
           <motion.div
@@ -260,39 +405,17 @@ export default function FitChat() {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-brand-red">
-                  Fit Lab Diagnostic
+                  AI Savings Diagnostic
                 </h1>
                 <p className="text-sm text-surface-line">
-                  Finding your biggest bottleneck
+                  {phase === "business-capture" && "Tell us about your business"}
+                  {phase === "researching" && "Researching your industry..."}
+                  {phase === "software-stack" && "Select your tools"}
+                  {phase === "generating-questions" && "Preparing your questions..."}
+                  {phase === "pain-questions" && `Question ${currentPainQuestion + 1} of ${painQuestions.length}`}
+                  {phase === "generating-report" && "Building your report..."}
                 </p>
               </div>
-            </div>
-
-            {/* Upload button */}
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".txt"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) uploadFile(f);
-                  e.currentTarget.value = "";
-                }}
-                disabled={isBusy}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-xl"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isBusy}
-                title="Upload job description (.txt) for context"
-              >
-                <Upload className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">Upload JD</span>
-              </Button>
             </div>
           </motion.div>
 
@@ -301,18 +424,9 @@ export default function FitChat() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3 shrink-0"
+              className="text-sm text-brand-red bg-brand-red/10 border border-brand-red/30 rounded-xl p-3 shrink-0 mb-2"
             >
               {error}
-              {!hasStarted && (
-                <Button
-                  variant="link"
-                  className="ml-2 text-brand-red underline p-0 h-auto"
-                  onClick={() => startConversation()}
-                >
-                  Try again
-                </Button>
-              )}
             </motion.div>
           )}
 
@@ -324,12 +438,7 @@ export default function FitChat() {
             className="rounded-2xl border border-surface-line bg-surface-paper overflow-hidden flex flex-col flex-1 min-h-0"
           >
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 min-h-0">
-              {messages.length === 0 && !isBusy && (
-                <p className="text-surface-line text-center py-8">
-                  Starting conversation...
-                </p>
-              )}
-
+              {/* Chat messages */}
               {messages.map((m) => (
                 <motion.div
                   key={m.id}
@@ -356,383 +465,57 @@ export default function FitChat() {
                 </motion.div>
               ))}
 
+              {/* Inline phase cards */}
+              {phase === "business-capture" && (
+                <BusinessCaptureCard
+                  formName={formName}
+                  formIndustry={formIndustry}
+                  onNameChange={setFormName}
+                  onIndustryChange={setFormIndustry}
+                  onSubmit={handleBusinessCapture}
+                />
+              )}
+
+              {phase === "software-stack" && (
+                <SoftwareStackCard
+                  industry={context.industry}
+                  selectedTools={selectedTools}
+                  otherTools={otherTools}
+                  onToggle={handleToolToggle}
+                  onOtherChange={setOtherTools}
+                  onSubmit={handleSoftwareStackSubmit}
+                />
+              )}
+
               <div ref={bottomRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50 shrink-0">
-              <input
-                data-testid="input-chat-message"
-                className="flex-1 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
-                placeholder={isBusy ? "Thinking..." : "Type your response..."}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                disabled={isBusy || !hasStarted}
-              />
-              <Button
-                data-testid="button-send-message"
-                size="icon"
-                className="h-12 w-12 rounded-xl"
-                onClick={sendMessage}
-                disabled={!(draft ?? "").trim() || isBusy || !hasStarted}
-              >
-                <Send className="h-5 w-5" />
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Report phase — full-width scrollable page with card sections */}
-      {report && (
-        <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
-          {/* Back nav */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4"
-          >
-            <Link href="/fit">
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-brand-red">
-                Diagnostic Report
-              </h1>
-              <p className="text-sm text-surface-line">
-                Diagnostic Complete
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Hero Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-2xl border border-surface-line bg-surface-paper p-8 md:p-10"
-          >
-            <div className="text-center space-y-4">
-              <Badge
-                className={
-                  report.verdict === "YES"
-                    ? "bg-brand-moss/10 text-brand-moss border-brand-moss"
-                    : "bg-brand-red/10 text-brand-red border-brand-red"
-                }
-              >
-                {report.verdict === "YES" ? (
-                  <>
-                    <CheckCircle className="w-3 h-3 mr-1" /> Good Fit
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="w-3 h-3 mr-1" /> Needs Review
-                  </>
-                )}
-              </Badge>
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-brown leading-snug max-w-3xl mx-auto">
-                {report.heroRecommendation}
-              </h2>
-              <p className="text-brand-brown/70 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                {report.approachSummary}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Operational Score Card */}
-          {report.scores && report.scores.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
-            >
-              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide text-center mb-6">
-                Operational Score
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                {/* Radar chart — full labels, larger text */}
-                <div className="w-full h-[380px] md:h-[440px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart
-                      data={report.scores.map((s) => ({
-                        dimension: s.label,
-                        current: s.current,
-                        projected: s.projected,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius="65%"
-                    >
-                      <PolarGrid
-                        gridType="polygon"
-                        stroke="#4B3428"
-                        strokeOpacity={0.15}
-                      />
-                      <PolarAngleAxis
-                        dataKey="dimension"
-                        tick={{ fontSize: 13, fill: "#4B3428", fontWeight: 600 }}
-                        tickLine={false}
-                      />
-                      <PolarRadiusAxis
-                        angle={90}
-                        domain={[0, 10]}
-                        ticks={[2, 4, 6, 8, 10] as any}
-                        tick={{ fontSize: 11, fill: "#4B3428", fillOpacity: 0.35 }}
-                        axisLine={false}
-                      />
-                      <Radar
-                        name="Current"
-                        dataKey="current"
-                        stroke="#2F2F33"
-                        fill="#2F2F33"
-                        fillOpacity={0.1}
-                        strokeWidth={2}
-                        strokeDasharray="6 3"
-                      />
-                      <Radar
-                        name="Projected"
-                        dataKey="projected"
-                        stroke="#B45A3C"
-                        fill="#B45A3C"
-                        fillOpacity={0.25}
-                        strokeWidth={2.5}
-                      />
-                      <Legend
-                        wrapperStyle={{ fontSize: "14px", paddingTop: "12px", fontWeight: 500 }}
-                        iconType="plainline"
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Score breakdown bars with 1–10 scale */}
-                <div className="space-y-5">
-                  {report.scores.map((s, i) => {
-                    // If projected < current, reduction is good → use moss green
-                    const isReduction = s.projected < s.current;
-                    const projColor = isReduction ? "#5F6F52" : "#B45A3C";
-                    return (
-                      <div key={i} className="space-y-1.5">
-                        <span className="text-sm text-brand-brown font-semibold">{s.label}</span>
-                        <div className="relative">
-                          {/* Scale markers */}
-                          <div className="flex justify-between text-[10px] text-brand-brown/40 mb-1 px-0.5">
-                            <span>1</span>
-                            <span>10</span>
-                          </div>
-                          {/* Bar track */}
-                          <div className="relative h-4 bg-brand-stone rounded-full overflow-hidden">
-                            {isReduction ? (
-                              <>
-                                {/* Reduction: current is larger (behind), projected smaller (front, green) */}
-                                <div
-                                  className="absolute inset-y-0 left-0 rounded-full"
-                                  style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
-                                />
-                                <div
-                                  className="absolute inset-y-0 left-0 rounded-full"
-                                  style={{ width: `${s.projected * 10}%`, backgroundColor: projColor, opacity: 0.6 }}
-                                />
-                              </>
-                            ) : (
-                              <>
-                                {/* Growth: projected is larger (behind), current smaller (front) */}
-                                <div
-                                  className="absolute inset-y-0 left-0 rounded-full"
-                                  style={{ width: `${s.projected * 10}%`, backgroundColor: projColor, opacity: 0.35 }}
-                                />
-                                <div
-                                  className="absolute inset-y-0 left-0 rounded-full"
-                                  style={{ width: `${s.current * 10}%`, backgroundColor: "#2F2F33", opacity: 0.55 }}
-                                />
-                              </>
-                            )}
-                          </div>
-                          {/* Score numbers positioned over bar ends */}
-                          <div className="relative h-5 mt-0.5">
-                            <span
-                              className="absolute text-xs font-bold"
-                              style={{ left: `${s.current * 10}%`, transform: "translateX(-50%)", color: "#2F2F33" }}
-                            >
-                              {s.current}
-                            </span>
-                            <span
-                              className="absolute text-xs font-bold"
-                              style={{ left: `${s.projected * 10}%`, transform: "translateX(-50%)", color: projColor }}
-                            >
-                              {s.projected}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="flex items-center gap-5 pt-1 text-xs text-brand-brown/50 font-medium">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#2F2F33", opacity: 0.55 }} />
-                      Current
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#B45A3C", opacity: 0.35 }} />
-                      Projected
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-4 h-3 rounded" style={{ backgroundColor: "#5F6F52", opacity: 0.6 }} />
-                      Reduced
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Key Insights Card */}
-          {report.keyInsights && report.keyInsights.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
-            >
-              {report.keyInsights.map((insight, idx) => {
-                const icons = [Target, Lightbulb, Zap];
-                const Icon = icons[idx % icons.length];
-                const colors = [
-                  "text-brand-red",
-                  "text-brand-copper",
-                  "text-brand-moss",
-                ];
-                return (
-                  <div
-                    key={idx}
-                    className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded-lg bg-brand-stone/50`}>
-                        <Icon className={`w-5 h-5 ${colors[idx % colors.length]}`} />
-                      </div>
-                      <span className="font-semibold text-sm text-brand-brown">
-                        {insight.label}
-                      </span>
-                    </div>
-                    <p className="text-sm text-brand-brown/75 leading-relaxed">
-                      {insight.detail}
-                    </p>
-                  </div>
-                );
-              })}
-            </motion.div>
-          )}
-
-          {/* Fit Signals & Risks Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {report.fitSignals && report.fitSignals.length > 0 && (
-              <div className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3">
-                <h4 className="text-xs font-semibold text-brand-moss uppercase tracking-wide">
-                  Why This Fits
-                </h4>
-                <ul className="space-y-2">
-                  {report.fitSignals.map((s, i) => (
-                    <li
-                      key={i}
-                      className="text-sm text-brand-brown/70 flex items-start gap-2"
-                    >
-                      <CheckCircle className="w-4 h-4 text-brand-moss mt-0.5 shrink-0" />
-                      {s}
-                    </li>
-                  ))}
-                </ul>
+            {/* Input Area — only during pain-questions phase */}
+            {phase === "pain-questions" && (
+              <div className="border-t border-surface-line p-4 flex gap-3 bg-surface-paper/50 shrink-0">
+                <input
+                  ref={inputRef}
+                  className="flex-1 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+                  placeholder="Type your answer..."
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handlePainAnswer();
+                    }
+                  }}
+                />
+                <Button
+                  size="icon"
+                  className="h-12 w-12 rounded-xl"
+                  onClick={handlePainAnswer}
+                  disabled={!draft.trim()}
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
               </div>
             )}
-            {report.risks && report.risks.length > 0 && (
-              <div className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-3">
-                <h4 className="text-xs font-semibold text-brand-red/80 uppercase tracking-wide">
-                  Watch For
-                </h4>
-                <ul className="space-y-2">
-                  {report.risks.map((r, i) => (
-                    <li
-                      key={i}
-                      className="text-sm text-brand-brown/70 flex items-start gap-2"
-                    >
-                      <AlertTriangle className="w-4 h-4 text-brand-red/60 mt-0.5 shrink-0" />
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Timeline Card — at the bottom */}
-          {report.timeline && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
-            >
-              <h3 className="text-sm font-semibold text-brand-brown/60 uppercase tracking-wide mb-5">
-                Suggested Timeline
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  report.timeline.phase1,
-                  report.timeline.phase2,
-                  report.timeline.phase3,
-                ].map((phase, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-3 bg-brand-stone/20 rounded-xl p-5"
-                  >
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-copper/10 text-brand-copper text-sm font-bold shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-brand-copper uppercase tracking-wide">
-                        {phase.label}
-                      </div>
-                      <p className="text-sm text-brand-brown/75 mt-1.5 leading-relaxed">
-                        {phase.action}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Action footer — Contact Me + Start New */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="flex flex-col sm:flex-row gap-4 pb-8"
-          >
-            <ContactDialog>
-              <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-white">
-                Contact Me
-              </Button>
-            </ContactDialog>
-            <Link href="/fit">
-              <Button variant="outline" className="rounded-xl">
-                Start New Diagnostic
-              </Button>
-            </Link>
           </motion.div>
         </div>
       )}
@@ -740,6 +523,527 @@ export default function FitChat() {
   );
 }
 
+// ---------------------
+// Business Capture Card
+// ---------------------
+function BusinessCaptureCard({
+  formName,
+  formIndustry,
+  onNameChange,
+  onIndustryChange,
+  onSubmit,
+}: {
+  formName: string;
+  formIndustry: string;
+  onNameChange: (v: string) => void;
+  onIndustryChange: (v: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="rounded-2xl border border-surface-line bg-brand-stone/30 p-5 md:p-6 space-y-4 max-w-md"
+    >
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs font-semibold text-brand-brown/70 uppercase tracking-wide block mb-1.5">
+            Business Name
+          </label>
+          <input
+            type="text"
+            className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+            placeholder="e.g. Harbour Coffee"
+            value={formName}
+            onChange={(e) => onNameChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && formName.trim() && formIndustry) {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-brand-brown/70 uppercase tracking-wide block mb-1.5">
+            Industry
+          </label>
+          <select
+            className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+            value={formIndustry}
+            onChange={(e) => onIndustryChange(e.target.value)}
+          >
+            <option value="">Select your industry...</option>
+            {INDUSTRY_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <Button
+        className="w-full rounded-xl"
+        disabled={!formName.trim() || !formIndustry}
+        onClick={onSubmit}
+      >
+        Continue
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </Button>
+    </motion.div>
+  );
+}
+
+// ---------------------
+// Software Stack Card (Fix 1: industry-specific tools + "Other" free-text)
+// ---------------------
+function SoftwareStackCard({
+  industry,
+  selectedTools,
+  otherTools,
+  onToggle,
+  onOtherChange,
+  onSubmit,
+}: {
+  industry: string;
+  selectedTools: string[];
+  otherTools: string;
+  onToggle: (tool: string) => void;
+  onOtherChange: (v: string) => void;
+  onSubmit: () => void;
+}) {
+  const industryTools = INDUSTRY_SPECIFIC_TOOLS[industry] ?? [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="rounded-2xl border border-surface-line bg-brand-stone/30 p-5 md:p-6 space-y-4"
+    >
+      <div>
+        <h3 className="text-sm font-semibold text-brand-brown mb-1">
+          What tools does your business use?
+        </h3>
+        <p className="text-xs text-brand-brown/60">
+          Select all that apply. You can also add tools not listed below.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Industry-specific tools section */}
+        {industryTools.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-brand-red uppercase tracking-wide mb-2">
+              {industry} Tools
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {industryTools.map((tool) => {
+                const checked = selectedTools.includes(tool);
+                return (
+                  <label
+                    key={tool}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
+                      checked
+                        ? "bg-brand-red/10 border-brand-red/40 text-brand-brown"
+                        : "bg-surface-paper border-surface-line text-brand-brown/70 hover:border-brand-red/30"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => onToggle(tool)}
+                      className="h-4 w-4"
+                    />
+                    {tool}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* General tool categories */}
+        {(Object.entries(SOFTWARE_STACK_CATEGORIES) as [SoftwareCategory, readonly string[]][]).map(
+          ([category, tools]) => (
+            <div key={category}>
+              <p className="text-xs font-semibold text-brand-copper uppercase tracking-wide mb-2">
+                {category}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {tools.map((tool) => {
+                  const checked = selectedTools.includes(tool);
+                  return (
+                    <label
+                      key={tool}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
+                        checked
+                          ? "bg-brand-copper/10 border-brand-copper/40 text-brand-brown"
+                          : "bg-surface-paper border-surface-line text-brand-brown/70 hover:border-brand-copper/30"
+                      }`}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => onToggle(tool)}
+                        className="h-4 w-4"
+                      />
+                      {tool}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        )}
+
+        {/* Other tools free-text input */}
+        <div>
+          <p className="text-xs font-semibold text-brand-brown/70 uppercase tracking-wide mb-2">
+            Other Tools
+          </p>
+          <input
+            type="text"
+            className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+            placeholder="e.g. PioneerRx, Custom EHR, Jane App (comma-separated)"
+            value={otherTools}
+            onChange={(e) => onOtherChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Button className="w-full rounded-xl" onClick={onSubmit}>
+        Continue
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </Button>
+    </motion.div>
+  );
+}
+
+// ---------------------
+// Lead Capture Form (Fix 6)
+// ---------------------
+function LeadCaptureForm({
+  report,
+  context,
+}: {
+  report: ROIReport;
+  context: DiagnosticContext;
+}) {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  const handleSubmit = async () => {
+    if (!email.trim()) return;
+    setStatus("submitting");
+
+    try {
+      const r = await fetch(api.fit.lead.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim() || undefined,
+          businessName: context.businessName,
+          industry: context.industry,
+          topRecommendation: report.topOpportunity.title,
+        }),
+      });
+
+      if (!r.ok) throw new Error("Failed to submit");
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-brand-moss/30 bg-brand-moss/5 p-6 md:p-8 text-center space-y-2"
+      >
+        <CheckCircle2 className="h-8 w-8 text-brand-moss mx-auto" />
+        <p className="text-brand-brown font-semibold">Got it! We'll follow up with you soon.</p>
+        <p className="text-sm text-brand-brown/60">Keep this page open to reference your report anytime.</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.22 }}
+      className="rounded-2xl border border-surface-line bg-brand-stone/30 p-6 md:p-8 space-y-4"
+    >
+      <div className="text-center space-y-1">
+        <Mail className="h-6 w-6 text-brand-copper mx-auto mb-2" />
+        <h3 className="text-lg font-bold text-brand-brown">
+          Want a personalized follow-up?
+        </h3>
+        <p className="text-sm text-brand-brown/60 max-w-md mx-auto">
+          Leave your email and we'll send you a refined version of this analysis with specific next steps.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+        <input
+          type="email"
+          className="flex-1 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+          placeholder="you@business.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
+        <input
+          type="text"
+          className="sm:w-40 rounded-xl border border-surface-line px-4 py-3 text-sm bg-surface-paper text-brand-brown placeholder:text-surface-line focus:border-brand-copper focus:ring-1 focus:ring-brand-copper focus:outline-none transition-colors"
+          placeholder="Name (optional)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          className="rounded-xl px-8"
+          disabled={!email.trim() || status === "submitting"}
+          onClick={handleSubmit}
+        >
+          {status === "submitting" ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Mail className="h-4 w-4 mr-2" />
+              Send Me the Report
+            </>
+          )}
+        </Button>
+      </div>
+
+      {status === "error" && (
+        <p className="text-sm text-brand-red text-center">
+          Something went wrong. Please try again.
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+// ---------------------
+// ROI Report View (Fix 4: time context, Fix 5: CTA wording, Fix 6: lead capture)
+// ---------------------
+function ROIReportView({
+  report,
+  context,
+}: {
+  report: ROIReport;
+  context: DiagnosticContext;
+}) {
+  const formatCurrency = (n: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+
+  const { estimatedImpact } = report;
+
+  return (
+    <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
+      {/* Back nav */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-4"
+      >
+        <Link href="/fit">
+          <Button variant="ghost" size="icon" className="rounded-xl">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-brand-red">
+            Your Automation Analysis
+          </h1>
+          <p className="text-sm text-surface-line">
+            {report.businessName} | {report.industry}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Top Automation Opportunity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="rounded-2xl border border-surface-line bg-surface-paper p-8 md:p-10"
+      >
+        <p className="text-xs font-semibold text-brand-copper uppercase tracking-wide mb-3">
+          Top Automation Opportunity
+        </p>
+        <h2 className="text-2xl md:text-3xl font-bold text-brand-brown leading-snug mb-4">
+          {report.topOpportunity.title}
+        </h2>
+        <p className="text-brand-brown/70 text-base md:text-lg leading-relaxed">
+          {report.topOpportunity.description}
+        </p>
+      </motion.div>
+
+      {/* Time context summary (Fix 4) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="rounded-2xl border border-brand-copper/20 bg-brand-copper/5 p-5 md:p-6"
+      >
+        <p className="text-sm text-brand-brown leading-relaxed">
+          Based on <strong>~{estimatedImpact.currentHoursPerWeek} hours/week</strong> your
+          team currently spends, we estimate{" "}
+          <strong>{estimatedImpact.automationPercentage}%</strong> (
+          <strong>{estimatedImpact.timeSavedHoursPerWeek} hours</strong>) can be automated
+          at <strong>${estimatedImpact.hourlyRate}/hr</strong> industry average.
+        </p>
+      </motion.div>
+
+      {/* Estimated Impact — 2x2 grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="grid grid-cols-2 gap-4"
+      >
+        <ImpactCard
+          icon={<Clock className="h-5 w-5 text-brand-copper" />}
+          label="Time Saved"
+          value={`${estimatedImpact.timeSavedHoursPerWeek} hrs/week`}
+        />
+        <ImpactCard
+          icon={<DollarSign className="h-5 w-5 text-brand-moss" />}
+          label="Annual Value"
+          value={formatCurrency(estimatedImpact.annualValue)}
+        />
+        <ImpactCard
+          icon={<Calculator className="h-5 w-5 text-brand-brown" />}
+          label="Implementation Cost"
+          value={formatCurrency(estimatedImpact.implementationCost)}
+        />
+        <ImpactCard
+          icon={<TrendingUp className="h-5 w-5 text-brand-copper" />}
+          label="Payback Period"
+          value={`${estimatedImpact.paybackMonths} months`}
+        />
+      </motion.div>
+
+      {/* Secondary Opportunities */}
+      {report.secondaryOpportunities.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl border border-surface-line bg-surface-paper p-6 md:p-8"
+        >
+          <p className="text-xs font-semibold text-brand-brown/60 uppercase tracking-wide mb-5">
+            Additional Opportunities
+          </p>
+          <div className="space-y-5">
+            {report.secondaryOpportunities.map((opp, idx) => (
+              <div key={idx} className="flex gap-4">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-copper/10 text-brand-copper text-sm font-bold shrink-0 mt-0.5">
+                  {idx + 2}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-brand-brown text-sm mb-1">
+                    {opp.title}
+                    {opp.timeSavedHoursPerWeek != null && (
+                      <span className="text-brand-copper font-normal ml-2">
+                        ~{opp.timeSavedHoursPerWeek} hrs/week
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-sm text-brand-brown/70 leading-relaxed">
+                    {opp.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Lead Capture Form (Fix 6) */}
+      <LeadCaptureForm report={report} context={context} />
+
+      {/* CTA Card (Fix 5: wording changes) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="rounded-2xl border border-surface-line bg-brand-charcoal p-8 md:p-10 text-center space-y-4"
+      >
+        <h3 className="text-xl font-bold text-surface-paper">
+          Ready to Explore This Further?
+        </h3>
+        <p className="text-surface-paper/70 text-sm max-w-lg mx-auto">
+          This analysis is based on industry averages — a quick conversation lets us refine it with your actual numbers.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <ContactDialog>
+            <Button className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-white px-8">
+              Get in Touch
+            </Button>
+          </ContactDialog>
+          <Link href="/fit/chat">
+            <Button
+              variant="outline"
+              className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10"
+              onClick={() => window.location.reload()}
+            >
+              Start New Diagnostic
+            </Button>
+          </Link>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ---------------------
+// Impact Card
+// ---------------------
+function ImpactCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-surface-line bg-surface-paper p-5 md:p-6 space-y-2">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-xs font-semibold text-brand-brown/60 uppercase tracking-wide">
+          {label}
+        </span>
+      </div>
+      <p className="text-2xl md:text-3xl font-bold text-brand-brown">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// ---------------------
+// Typing Indicator
+// ---------------------
 function TypingIndicator() {
   return (
     <span className="inline-flex items-center gap-1">

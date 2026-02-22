@@ -35,9 +35,8 @@ const fadeIn = {
   transition: { duration: 0.5 },
 };
 
-export default function MaritimeHomeMapCaseStudy() {
+export function MaritimeHomeMapContent() {
   return (
-    <Layout>
       <div className="max-w-6xl mx-auto space-y-10">
         {/* Hero Section */}
         <motion.div {...fadeIn} className="text-center space-y-4">
@@ -553,6 +552,13 @@ export default function MaritimeHomeMapCaseStudy() {
           </div>
         </motion.div>
       </div>
+  );
+}
+
+export default function MaritimeHomeMapCaseStudy() {
+  return (
+    <Layout>
+      <MaritimeHomeMapContent />
     </Layout>
   );
 }
