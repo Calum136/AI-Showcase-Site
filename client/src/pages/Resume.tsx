@@ -69,7 +69,7 @@ const CALUM_RESUME: ResumeData = {
   },
 
   impactSummary: [
-    "Delivered AI email automation system processing ~120 emails/week for hospitality client",
+    "Delivered AI email automation system processing 500+ emails/month for hospitality client",
     "Built RAG knowledge base consolidating 20+ SOPs — ~70% faster procedure lookup",
     "Designed multi-agent workflows for parallel frontend, backend, and documentation tasks",
     "End-to-end delivery: requirements gathering through deployment and handoff",
@@ -107,7 +107,7 @@ const CALUM_RESUME: ResumeData = {
         "Developed multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks",
       ],
       techStack: ["TypeScript", "React", "Node.js", "OpenAI API", "Claude API", "Make.com", "Render"],
-      keyAchievement: "Blackbird Brewing: AI email system processing ~120 emails/week — delivered in 3 weeks",
+      keyAchievement: "Blackbird Brewing: AI email system processing 500+ emails/month — delivered in 3 weeks",
     },
     {
       position: "Operations Supervisor",
@@ -173,7 +173,7 @@ const CALUM_RESUME: ResumeData = {
     {
       name: "Blackbird Brewing — Email Automation",
       description:
-        "AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing ~120 emails/week.",
+        "AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing 500+ emails/month.",
     },
     {
       name: "JollyTails Staff Assistant (DogBot)",

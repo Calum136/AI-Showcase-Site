@@ -16,7 +16,7 @@ const professionalProjects = [
     category: "Automation",
     image: "/blackbird-email.png",
     link: "#",
-    impact: "~120 emails/week automated for client",
+    impact: "500+ emails/month automated for client",
   },
   {
     title: "JollyTails Staff Assistant (DogBot)",
