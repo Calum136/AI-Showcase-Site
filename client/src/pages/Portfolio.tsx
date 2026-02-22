@@ -38,14 +38,25 @@ const professionalProjects = [
     link: "#",
     impact: "Live AI diagnostic generating personalized hiring reports",
   },
+  {
+    title: "Maritime Home Map",
+    description:
+      "Nova Scotia mortgage affordability calculator with interactive Mapbox choropleth. Enter income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone with OSFI B-20 stress testing.",
+    tags: ["Tools", "React", "TypeScript", "Mapbox GL"],
+    category: "Tools",
+    image: "/maritime-home-map.png",
+    link: "#",
+    impact: "30+ NS municipalities mapped with real PVSC + StatsCan data",
+  },
 ];
 
-type FilterCategory = "All" | "AI Systems" | "Automation" | "Analytics";
+type FilterCategory = "All" | "AI Systems" | "Automation" | "Analytics" | "Tools";
 
 const filterCategories: FilterCategory[] = [
   "All",
   "AI Systems",
   "Automation",
+  "Tools",
   "Analytics",
 ];
 

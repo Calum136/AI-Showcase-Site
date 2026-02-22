@@ -12,5 +12,19 @@
     "description": "Portfolio and hiring evaluation system built with content-driven architecture. Demonstrates AI integration, systems thinking, and modern full-stack development.",
     "tags": ["TypeScript", "React", "PostgreSQL", "Express"],
     "link": "https://github.com/Calum136/ai-showcase-site"
+  },
+  {
+    "id": "3",
+    "title": "Blackbird Brewing — Email Automation",
+    "description": "AI-powered email triage and response system for a Nova Scotia brewery, reducing repetitive inbox work while preserving the owner's voice and keeping humans in control of every booking.",
+    "tags": ["Make.com", "OpenAI API", "Gmail API", "Node.js", "Render"],
+    "link": "#"
+  },
+  {
+    "id": "4",
+    "title": "Maritime Home Map",
+    "description": "A Nova Scotia mortgage affordability calculator with interactive map. Enter your income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone.",
+    "tags": ["React", "TypeScript", "Mapbox GL", "Vite", "TailwindCSS", "Netlify"],
+    "link": "#"
   }
 ]
