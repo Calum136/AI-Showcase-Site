@@ -3,11 +3,13 @@ import { useLocation } from "wouter";
 import { JollyTailsContent } from "@/pages/CaseStudy";
 import { BlackbirdContent } from "@/pages/BlackbirdCaseStudy";
 import { MaritimeHomeMapContent } from "@/pages/MaritimeHomeMapCaseStudy";
+import { OpenBrainContent } from "@/pages/OpenBrainCaseStudy";
 
 const TABS = [
   { id: "blackbird-brewing", label: "Blackbird Brewing", content: BlackbirdContent },
   { id: "maritime-home-map", label: "Maritime Home Map", content: MaritimeHomeMapContent },
   { id: "jollytails", label: "JollyTails", content: JollyTailsContent },
+  { id: "open-brain", label: "Open Brain", content: OpenBrainContent },
 ] as const;
 
 export default function CaseStudies() {

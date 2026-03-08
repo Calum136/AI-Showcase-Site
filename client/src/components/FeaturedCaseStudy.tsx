@@ -33,7 +33,7 @@ const FEATURED_PROJECTS = [
     techStack: ["React", "TypeScript", "Mapbox GL", "TailwindCSS"],
     flowSteps: ["Inputs", "Calculate", "Map", "Zones"],
     caseStudyLink: "/case-study/maritime-home-map",
-    badge: "In Development",
+    badge: "Live Tool",
   },
   {
     title: "JollyTails Staff Assistant",

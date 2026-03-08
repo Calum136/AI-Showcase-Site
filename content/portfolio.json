@@ -18,13 +18,20 @@
     "title": "Blackbird Brewing — Email Automation",
     "description": "AI-powered email triage and response system for a Nova Scotia brewery, reducing repetitive inbox work while preserving the owner's voice and keeping humans in control of every booking.",
     "tags": ["Make.com", "OpenAI API", "Gmail API", "Node.js", "Render"],
-    "link": "#"
+    "link": "/case-study/blackbird-brewing"
   },
   {
     "id": "4",
     "title": "Maritime Home Map",
     "description": "A Nova Scotia mortgage affordability calculator with interactive map. Enter your income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone.",
     "tags": ["React", "TypeScript", "Mapbox GL", "Vite", "TailwindCSS", "Netlify"],
-    "link": "#"
+    "link": "https://maritimehomemap.netlify.app"
+  },
+  {
+    "id": "5",
+    "title": "Open Brain + Project Memory",
+    "description": "Persistent memory layer for AI assistants — two MCP servers on Supabase backend. Open Brain captures thoughts with semantic search via pgvector embeddings. Project Memory tracks structured project state via CLAUDE.md files.",
+    "tags": ["TypeScript", "Supabase", "pgvector", "Deno", "OpenRouter", "MCP"],
+    "link": "/case-study/open-brain"
   }
 ]

@@ -102,7 +102,7 @@ export function MaritimeHomeMapContent() {
               <div>
                 <span className="text-xs font-medium text-brand-copper uppercase tracking-wide">Outcome</span>
                 <p className="text-sm text-brand-brown/80 mt-1">
-                  In active development. Early build with real PVSC + StatsCan data mapped.
+                  Live at maritimehomemap.netlify.app. Calculator-first 7-step wizard with insurance engine, 7 NS/federal first-time buyer programs, and GDS/TDS stress test dashboard.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -357,7 +357,7 @@ export function MaritimeHomeMapContent() {
               <CardContent className="pt-6">
                 <h4 className="font-semibold text-brand-moss mb-2">Status</h4>
                 <p className="text-sm text-brand-brown/80">
-                  In active development. Early build with real PVSC + StatsCan data mapped.
+                  Live at maritimehomemap.netlify.app. Major rearchitecture completed March 2026 — calculator-first 7-step wizard replacing the original map-centric layout.
                 </p>
               </CardContent>
             </Card>
@@ -523,6 +523,18 @@ export function MaritimeHomeMapContent() {
             about what you're trying to solve.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://maritimehomemap.netlify.app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                size="lg"
+                className="rounded-xl bg-brand-moss hover:bg-brand-moss/90 text-surface-paper"
+              >
+                View Live Tool <ExternalLink className="ml-2 w-4 h-4" />
+              </Button>
+            </a>
             <ContactDialog>
               <Button
                 size="lg"

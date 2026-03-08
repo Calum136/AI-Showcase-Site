@@ -15,7 +15,7 @@ const professionalProjects = [
     tags: ["AI Systems", "Automation", "OpenAI", "Make.com"],
     category: "Automation",
     image: "/blackbird-email.png",
-    link: "#",
+    link: "/case-study/blackbird-brewing",
     impact: "500+ emails/month automated for client",
   },
   {
@@ -45,8 +45,18 @@ const professionalProjects = [
     tags: ["Tools", "React", "TypeScript", "Mapbox GL"],
     category: "Tools",
     image: "/maritime-home-map.png",
-    link: "#",
+    link: "/case-study/maritime-home-map",
     impact: "30+ NS municipalities mapped with real PVSC + StatsCan data",
+  },
+  {
+    title: "Open Brain + Project Memory",
+    description:
+      "Persistent memory layer for AI assistants — two MCP servers on Supabase. Open Brain captures thoughts with semantic search (pgvector). Project Memory tracks structured project state via CLAUDE.md files. Every Claude session starts with full context.",
+    tags: ["AI Systems", "MCP", "Supabase", "pgvector", "TypeScript"],
+    category: "AI Systems",
+    image: "/open-brain.png",
+    link: "/case-study/open-brain",
+    impact: "Every AI session starts with full context — no re-explaining",
   },
 ];
 
