@@ -127,7 +127,7 @@ export default function Home() {
                   size="lg"
                   className="w-full sm:w-auto text-base font-semibold h-14 px-10 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  Try Evaluate Tool <ArrowRight className="ml-2 w-5 h-5" />
+                  Talk to My Agent <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
 

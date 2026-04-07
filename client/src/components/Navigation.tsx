@@ -10,7 +10,7 @@ export function Navigation() {
   const navItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/about", label: "About", icon: User },
-    { href: "/fit", label: "Evaluate", icon: MessageSquare },
+    { href: "/fit", label: "Agent", icon: MessageSquare },
     { href: "/case-study", label: "Case Study", icon: BookOpen },
     { href: "/resume", label: "Resume", icon: FileText },
     { href: "/portfolio", label: "Portfolio", icon: Briefcase },
@@ -69,7 +69,7 @@ export function Navigation() {
               size="sm"
               className="rounded-xl border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10 hover:border-surface-paper/50"
             >
-              Use Evaluation Tool
+              Talk to My Agent
             </Button>
           </Link>
           <ContactDialog>

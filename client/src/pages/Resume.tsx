@@ -61,7 +61,7 @@ const CALUM_RESUME: ResumeData = {
     name: "Calum Kershaw",
     title: "AI Systems Developer & Process Analyst",
     summary:
-      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Currently delivering client AI automation and building agent-orchestrated systems for real businesses.",
+      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Building agent-orchestrated systems, knowledge infrastructure, and automation tools for real-world problems.",
     email: "calum@nineroads.com",
     phone: "727-900-4878",
     location: "Truro, NS",
@@ -98,9 +98,9 @@ const CALUM_RESUME: ResumeData = {
   experience: [
     {
       position: "AI Solutions Developer",
-      company: "Independent Practice",
+      company: "Independent Projects",
       period: "2025 – Present",
-      scope: "Delivering AI-powered automation systems for business clients. Translating operational pain points into structured technology solutions.",
+      scope: "Building AI-powered automation systems and tools. Translating operational problems into working technology solutions.",
       highlights: [
         "Blackbird Brewing: Built end-to-end AI email automation — 17-category classifier with escalation rules and brand-voice matching, delivered on budget",
         "JollyTails Resort: Built RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard",
@@ -285,7 +285,7 @@ export default function Resume() {
                 </ul>
 
                 <p className="text-xs text-brand-brown/60 italic">
-                  This ranking reflects active learning velocity and systematic improvement in how I architect and deploy AI systems—the technical foundations I apply in every client engagement.
+                  This ranking reflects active learning velocity and systematic improvement in how I architect and deploy AI systems—the technical foundations I apply in every project.
                 </p>
               </div>
             </div>

@@ -531,7 +531,7 @@ export function BlackbirdContent() {
                 size="lg"
                 className="rounded-xl text-brand-copper hover:text-brand-copper/80 hover:bg-brand-copper/5"
               >
-                Try Evaluate Tool <ArrowRight className="ml-2 w-4 h-4" />
+                Talk to My Agent <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
           </div>

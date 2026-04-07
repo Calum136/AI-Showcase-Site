@@ -10,6 +10,11 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/api/agent/chat"
+  to = "/.netlify/functions/agent-chat"
+  status = 200
+
+[[redirects]]
   from = "/api/fit/research"
   to = "/.netlify/functions/fit-chat"
   status = 200

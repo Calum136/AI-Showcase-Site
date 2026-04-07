@@ -12,7 +12,7 @@ export function Footer() {
         {/* Compact CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-5 mb-5 border-b border-white/10">
           <p className="text-sm text-surface-paper/80">
-            Ready to evaluate fit? Let's talk.
+            Want to know more? Talk to my agent.
           </p>
           <div className="flex gap-2">
             <ContactDialog>
@@ -29,7 +29,7 @@ export function Footer() {
                 size="sm"
                 className="rounded-lg border-surface-paper/30 text-surface-paper hover:bg-surface-paper/10 text-xs h-8 px-4"
               >
-                Evaluate Tool
+                Talk to Agent
               </Button>
             </Link>
           </div>
@@ -45,7 +45,7 @@ export function Footer() {
               {[
                 { href: "/", label: "Home" },
                 { href: "/about", label: "About" },
-                { href: "/fit", label: "Evaluate" },
+                { href: "/fit", label: "Agent" },
                 { href: "/case-study", label: "Case Study" },
                 { href: "/resume", label: "Resume" },
                 { href: "/portfolio", label: "Portfolio" },
