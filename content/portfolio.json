@@ -16,15 +16,15 @@
   {
     "id": "3",
     "title": "Blackbird Brewing — Email Automation",
-    "description": "AI-powered email triage and response system for a Nova Scotia brewery, reducing repetitive inbox work while preserving the owner's voice and keeping humans in control of every booking.",
-    "tags": ["Make.com", "OpenAI API", "Gmail API", "Node.js", "Render"],
+    "description": "Rebuilt a failing OpenAI email system around Claude Desktop + Gmail MCP. Parsed 1,049 real emails into a living knowledge base — Andy now handles 500+/month reviewing Claude drafts instead of rewriting them from scratch.",
+    "tags": ["Claude", "MCP", "Gmail", "Node.js", "Cowork"],
     "link": "/case-study/blackbird-brewing"
   },
   {
     "id": "4",
-    "title": "Maritime Home Map",
-    "description": "A Nova Scotia mortgage affordability calculator with interactive map. Enter your income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone.",
-    "tags": ["React", "TypeScript", "Mapbox GL", "Vite", "TailwindCSS", "Netlify"],
+    "title": "Coastal Ledger",
+    "description": "7-step mortgage wizard for Nova Scotia first-time homebuyers. Income, debts, lifestyle → full monthly cost breakdown with correct Canadian semi-annual compounding, CMHC insurance tiers, and OSFI B-20 stress testing.",
+    "tags": ["React", "TypeScript", "Vite", "TailwindCSS", "Netlify"],
     "link": "https://maritimehomemap.netlify.app"
   },
   {
@@ -33,5 +33,19 @@
     "description": "Persistent memory layer for AI assistants — two MCP servers on Supabase backend. Open Brain captures thoughts with semantic search via pgvector embeddings. Project Memory tracks structured project state via CLAUDE.md files.",
     "tags": ["TypeScript", "Supabase", "pgvector", "Deno", "OpenRouter", "MCP"],
     "link": "/case-study/open-brain"
+  },
+  {
+    "id": "6",
+    "title": "Sidequest",
+    "description": "Multiplayer voice hangout app with isometric pixel art rooms. Each space has a unique floor layout and CSS theme. Knock-to-invite, friend nicknames, room cover images, echo-cancelled voice via LiveKit. Ships as a web app and Electron desktop build.",
+    "tags": ["React", "LiveKit", "Supabase", "Electron", "Zustand"],
+    "link": "https://sidequest-hangout.netlify.app"
+  },
+  {
+    "id": "7",
+    "title": "Gold River Homes Calculator",
+    "description": "Modular home cost calculator for a Nova Scotia retailer. First-time buyers answer simple questions — the site provides the cost estimates. 9 categories with real NS market defaults (~$348K total), donut chart breakdown, monthly and bi-weekly payments.",
+    "tags": ["Next.js", "Tailwind", "Recharts", "Netlify"],
+    "link": "https://github.com/Calum136/GoldRiverHomes"
   }
 ]

@@ -7,7 +7,7 @@ import { OpenBrainContent } from "@/pages/OpenBrainCaseStudy";
 
 const TABS = [
   { id: "blackbird-brewing", label: "Blackbird Brewing", content: BlackbirdContent },
-  { id: "maritime-home-map", label: "Maritime Home Map", content: MaritimeHomeMapContent },
+  { id: "maritime-home-map", label: "Coastal Ledger", content: MaritimeHomeMapContent },
   { id: "jollytails", label: "JollyTails", content: JollyTailsContent },
   { id: "open-brain", label: "Open Brain", content: OpenBrainContent },
 ] as const;

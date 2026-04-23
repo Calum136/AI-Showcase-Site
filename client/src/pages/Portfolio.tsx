@@ -9,14 +9,24 @@ import { customGPTs, claudeSkills, miniProjects } from "@/data/skillsData";
 
 const professionalProjects = [
   {
-    title: "Blackbird Brewing — AI Email Automation",
+    title: "Blackbird Brewing — Email Automation",
     description:
-      "End-to-end AI email automation system with 17-category classifier, brand-voice response matching, escalation rules, and Make.com integration. Delivered on budget in 3 weeks.",
-    tags: ["AI Systems", "Automation", "OpenAI", "Make.com"],
-    category: "Automation",
+      "Rebuilt a failing OpenAI email system around Claude Desktop + Gmail MCP. Parsed 1,049 real emails into a living knowledge base — Andy now handles 500+/month reviewing Claude drafts instead of rewriting them from scratch.",
+    tags: ["Claude", "MCP", "Gmail API", "Node.js"],
+    category: "Client Work",
     image: "/blackbird-email.png",
     link: "/case-study/blackbird-brewing",
-    impact: "500+ emails/month automated for client",
+    impact: "Pivot from OpenAI → Claude eliminated 100% of draft rewrites",
+  },
+  {
+    title: "Gold River Homes Calculator",
+    description:
+      "Modular home cost calculator for a Nova Scotia retailer. First-time buyers answer simple questions — the site provides the cost estimates. 9 categories with real NS market defaults, donut chart breakdown, monthly and bi-weekly payment output.",
+    tags: ["Next.js", "Tailwind", "Recharts", "Client Work"],
+    category: "Client Work",
+    image: "/gold-river-homes.png",
+    link: "https://github.com/Calum136/GoldRiverHomes",
+    impact: "POC delivered — site tells buyers what things cost, not the reverse",
   },
   {
     title: "JollyTails Staff Assistant (DogBot)",
@@ -39,14 +49,24 @@ const professionalProjects = [
     impact: "Live AI diagnostic generating personalized hiring reports",
   },
   {
-    title: "Maritime Home Map",
+    title: "Coastal Ledger",
     description:
-      "Nova Scotia mortgage affordability calculator with interactive Mapbox choropleth. Enter income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone with OSFI B-20 stress testing.",
-    tags: ["Tools", "React", "TypeScript", "Mapbox GL"],
+      "7-step mortgage wizard for Nova Scotia first-time homebuyers. Income, debts, lifestyle → full monthly cost breakdown with correct Canadian semi-annual compounding, CMHC insurance tiers, and OSFI B-20 stress testing.",
+    tags: ["Tools", "React", "TypeScript", "Vite"],
     category: "Tools",
     image: "/maritime-home-map.png",
     link: "/case-study/maritime-home-map",
-    impact: "30+ NS municipalities mapped with real PVSC + StatsCan data",
+    impact: "30+ NS municipalities, Canadian-accurate mortgage math",
+  },
+  {
+    title: "Sidequest",
+    description:
+      "Multiplayer voice hangout app with isometric pixel art rooms. Each space has a unique floor layout and CSS theme. Knock-to-invite, friend nicknames, room cover images, echo-cancelled voice via LiveKit. Ships as web app and Electron desktop build.",
+    tags: ["Tools", "React", "LiveKit", "Supabase", "Electron"],
+    category: "Tools",
+    image: "/sidequest.png",
+    link: "https://sidequest-hangout.netlify.app",
+    impact: "Live web app + Electron desktop build, 4 themed rooms",
   },
   {
     title: "Open Brain + Project Memory",
@@ -60,14 +80,13 @@ const professionalProjects = [
   },
 ];
 
-type FilterCategory = "All" | "AI Systems" | "Automation" | "Analytics" | "Tools";
+type FilterCategory = "All" | "AI Systems" | "Client Work" | "Tools";
 
 const filterCategories: FilterCategory[] = [
   "All",
   "AI Systems",
-  "Automation",
+  "Client Work",
   "Tools",
-  "Analytics",
 ];
 
 export default function Portfolio() {

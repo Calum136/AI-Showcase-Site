@@ -44,7 +44,7 @@ export function MaritimeHomeMapContent() {
             Case Study
           </Badge>
           <h1 className="text-3xl md:text-5xl font-bold font-display">
-            Maritime Home Map
+            Coastal Ledger
           </h1>
           <p className="text-xl text-brand-brown/80 max-w-2xl mx-auto">
             A Nova Scotia mortgage affordability calculator with interactive map

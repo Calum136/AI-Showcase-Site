@@ -10,28 +10,42 @@ const FEATURED_PROJECTS = [
   {
     title: "Blackbird Brewing — Email Automation",
     description:
-      "AI-powered email triage and response system for a Nova Scotia brewery, reducing repetitive inbox work while preserving the owner's voice and keeping humans in control of every booking.",
+      "Rebuilt a failing OpenAI system around Claude Desktop + Gmail MCP. Parsed 1,049 real emails into a living knowledge base — Andy now reviews Claude drafts instead of rewriting every one from scratch.",
     metrics: [
       { value: "500+", label: "Emails/Month" },
-      { value: "17", label: "Categories" },
-      { value: "~$20/mo", label: "Operating Cost" },
+      { value: "1,049", label: "Emails Parsed" },
+      { value: "0", label: "Draft Rewrites" },
     ],
-    techStack: ["Make.com", "OpenAI", "Gmail API", "Node.js"],
-    flowSteps: ["Email In", "Classify", "Route", "Respond"],
+    techStack: ["Claude Desktop", "Gmail MCP", "Cowork", "Node.js"],
+    flowSteps: ["Email In", "Gmail MCP", "Draft", "Andy Reviews"],
     caseStudyLink: "/case-study/blackbird-brewing",
     badge: "Client Delivery",
   },
   {
-    title: "Maritime Home Map",
+    title: "Sidequest",
     description:
-      "Nova Scotia mortgage affordability calculator with interactive map. Enter your income, debts, and lifestyle — see which NS municipalities you can realistically afford, colour-coded by financial zone.",
+      "Multiplayer voice hangout app with isometric pixel art rooms. Each space has a unique floor shape and CSS theme. Knock-to-invite, friend nicknames, echo-cancelled voice via LiveKit. Ships as a web app and downloadable Electron desktop build.",
+    metrics: [
+      { value: "4", label: "Themed Rooms" },
+      { value: "Web + Electron", label: "Platforms" },
+      { value: "LiveKit", label: "Voice Engine" },
+    ],
+    techStack: ["React 19", "LiveKit", "Supabase", "Electron"],
+    flowSteps: ["Join Room", "Voice", "Interact", "Hang Out"],
+    caseStudyLink: "https://sidequest-hangout.netlify.app",
+    badge: "Live App",
+  },
+  {
+    title: "Coastal Ledger",
+    description:
+      "7-step mortgage wizard for Nova Scotia first-time homebuyers. Income, debts, lifestyle → full monthly cost breakdown with correct Canadian semi-annual compounding, CMHC tiers, and OSFI B-20 stress testing.",
     metrics: [
       { value: "30+", label: "Municipalities" },
-      { value: "15+", label: "Variables" },
+      { value: "7", label: "Wizard Steps" },
       { value: "OSFI B-20", label: "Stress Test" },
     ],
-    techStack: ["React", "TypeScript", "Mapbox GL", "TailwindCSS"],
-    flowSteps: ["Inputs", "Calculate", "Map", "Zones"],
+    techStack: ["React", "TypeScript", "Vite", "TailwindCSS"],
+    flowSteps: ["Inputs", "Calculate", "Qualify", "Results"],
     caseStudyLink: "/case-study/maritime-home-map",
     badge: "Live Tool",
   },
