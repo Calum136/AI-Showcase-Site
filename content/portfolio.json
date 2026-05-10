@@ -37,8 +37,8 @@
   {
     "id": "6",
     "title": "Sidequest",
-    "description": "Multiplayer voice hangout app with isometric pixel art rooms. Each space has a unique floor layout and CSS theme. Knock-to-invite, friend nicknames, room cover images, echo-cancelled voice via LiveKit. Ships as a web app and Electron desktop build.",
-    "tags": ["React", "LiveKit", "Supabase", "Electron", "Zustand"],
+    "description": "Multiplayer voice hangout app with 3D isometric rooms built in React Three Fiber. 23 procedural 3D furniture models, isometric orthographic camera, real-time multiplayer presence and seating via Supabase. Echo-cancelled voice via LiveKit WebRTC. Ships as a web app and Electron desktop build.",
+    "tags": ["React Three Fiber", "Three.js", "LiveKit WebRTC", "Supabase", "Electron"],
     "link": "https://sidequest-hangout.netlify.app"
   },
   {

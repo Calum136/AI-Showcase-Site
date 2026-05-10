@@ -120,6 +120,12 @@ export default function Home() {
               run.
             </p>
 
+            {/* Availability badge */}
+            <div className="flex items-center gap-2 text-sm text-brand-brown/70">
+              <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <span>Available for roles in Halifax, NS — AI Systems &amp; Application Development</span>
+            </div>
+
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/fit">

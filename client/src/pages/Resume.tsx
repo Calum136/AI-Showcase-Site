@@ -79,11 +79,11 @@ const CALUM_RESUME: ResumeData = {
   skillGroups: [
     {
       category: "AI & Automation",
-      skills: ["OpenAI API", "Anthropic Claude", "RAG Systems", "Vector DBs", "Embeddings", "Agent Orchestration", "MCP Servers", "Make.com"],
+      skills: ["OpenAI API", "Anthropic Claude", "RAG Systems", "Vector DBs", "pgvector", "Embeddings", "Agent Orchestration", "Multi-agent Orchestration", "MCP Servers", "Make.com"],
     },
     {
       category: "Development",
-      skills: ["TypeScript", "Python", "React", "Node.js", "Express", "PostgreSQL", "SQLite", "REST APIs"],
+      skills: ["TypeScript", "Python", "React", "React Three Fiber", "Three.js", "Node.js", "Express", "PostgreSQL", "SQLite", "REST APIs", "LiveKit / WebRTC", "Electron"],
     },
     {
       category: "Data & Analytics",
