@@ -31,18 +31,33 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://calumkershaw.netlify.app/fit/assess</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://calumkershaw.netlify.app/fit/chat</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://calumkershaw.netlify.app/references</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://calumkershaw.netlify.app/case-study/gold-river-homes</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://calumkershaw.netlify.app/case-study/blackbird-brewing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://calumkershaw.netlify.app/case-study/maritime-home-map</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://calumkershaw.netlify.app/case-study/jollytails</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://calumkershaw.netlify.app/case-study/open-brain</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

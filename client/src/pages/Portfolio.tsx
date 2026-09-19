@@ -19,14 +19,14 @@ const professionalProjects = [
     impact: "Pivot from OpenAI → Claude eliminated 100% of draft rewrites",
   },
   {
-    title: "Gold River Homes Calculator",
+    title: "Gold River Homes Cost Configurator",
     description:
-      "Modular home cost calculator for a Nova Scotia retailer. First-time buyers answer simple questions — the site provides the cost estimates. 9 categories with real NS market defaults, donut chart breakdown, monthly and bi-weekly payment output.",
-    tags: ["Next.js", "Tailwind", "Recharts", "Client Work"],
+      "Live guided configurator for a Supreme Homes retailer in Chester Basin, NS. First-time buyers price a modular home end to end (land, foundation, well, septic, servicing), and every choice shows its price, monthly payment impact, and a plain-language reason. Canadian mortgage math, checksum-validated share links, printable spec sheet.",
+    tags: ["Next.js", "React", "Tailwind", "Client Work"],
     category: "Client Work",
     image: "/gold-river-homes.png",
-    link: "https://github.com/Calum136/GoldRiverHomes",
-    impact: "POC delivered — site tells buyers what things cost, not the reverse",
+    link: "/case-study/gold-river-homes",
+    impact: "Live in production (Sept 2026). The site tells buyers what things cost, not the reverse",
   },
   {
     title: "JollyTails Staff Assistant (DogBot)",

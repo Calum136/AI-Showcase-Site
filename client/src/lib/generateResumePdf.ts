@@ -21,9 +21,9 @@ type ResumeData = {
     techStack?: string[];
     keyAchievement?: string;
   }>;
-  education: Array<{ institution: string; degree: string; year: string }>;
+  education: Array<{ institution: string; degree: string; year?: string }>;
   certifications: string[];
-  projects: Array<{ name: string; description: string }>;
+  projects: Array<{ name: string; description: string; url?: string }>;
 };
 
 const PAGE_WIDTH = 210;
@@ -201,7 +201,7 @@ export function generateResumePdf(resume: ResumeData) {
     doc.text(edu.degree, MARGIN, y);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 100, 100);
-    doc.text(edu.year, PAGE_WIDTH - MARGIN, y, { align: "right" });
+    if (edu.year) doc.text(edu.year, PAGE_WIDTH - MARGIN, y, { align: "right" });
     y += LINE_HEIGHT;
     doc.setFont("helvetica", "italic");
     doc.setTextColor(80, 80, 80);

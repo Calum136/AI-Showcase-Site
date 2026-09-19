@@ -1,52 +1,148 @@
 {
   "personalInfo": {
     "name": "Calum Kershaw",
-    "title": "AI Systems Developer & Process Analyst",
+    "title": "Operations, Sales & AI Systems",
+    "summary": "Operator who builds systems. I run a retail sales floor as an Operations Supervisor, where I rank 30th in Canada on associate net sales, and I build production software for real businesses on the side: a live home cost configurator, an AI email automation, and a staff knowledge assistant. I combine operations leadership, measurable sales performance, and hands-on data and AI work to make teams faster and decisions clearer.",
     "email": "calum@nineroads.com",
-    "location": "Truro, Nova Scotia",
-    "summary": "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster."
+    "phone": "727-900-4878",
+    "location": "Truro, NS (open to Halifax and remote)",
+    "linkedinLabel": "linkedin.com/in/calum-kershaw",
+    "linkedinUrl": "https://linkedin.com/in/calum-kershaw-a213bb15a/"
   },
-  "skills": ["TypeScript", "Python", "React", "Node.js", "OpenAI API", "Claude API", "RAG Systems", "Agent Orchestration", "MCP Servers", "Make.com", "PostgreSQL", "Power BI", "SQL", "Systems Thinking", "Process Automation"],
+  "impactSummary": [
+    "Ranked 30th in Canada on Staples associate net sales within seven months of hire, and first of 13 at my store in every reporting window",
+    "Shipped a live home cost configurator for a modular home retailer, with Canadian mortgage math and checksum-validated share links",
+    "Delivered AI email automation processing 500+ emails/month for a hospitality client, in three weeks",
+    "Built a RAG knowledge base consolidating 20+ SOPs, with ~70% faster procedure lookup",
+    "Promoted to Retail Operations Supervisor within three weeks of hire",
+    "End-to-end delivery: requirements gathering through deployment and handoff"
+  ],
+  "credential": {
+    "label": "AICred Global Leaderboard",
+    "rank": "Top 10",
+    "score": "9.2",
+    "asOf": "early 2026"
+  },
+  "skillGroups": [
+    {
+      "category": "Sales & Operations",
+      "skills": ["Consultative Selling", "Account Management", "Quoting & Negotiation", "Attach & Upsell", "Team Leadership", "Floor Operations", "Inventory Accuracy", "CRM"]
+    },
+    {
+      "category": "Data & Analytics",
+      "skills": ["Power BI", "SQL", "Excel", "ETL Pipelines", "Data Profiling", "Root Cause Analysis", "Dashboard Design", "KPI Reporting"]
+    },
+    {
+      "category": "AI & Automation",
+      "skills": ["Anthropic Claude", "OpenAI API", "RAG Systems", "pgvector", "Embeddings", "Agent Orchestration", "MCP Servers", "Make.com"]
+    },
+    {
+      "category": "Development",
+      "skills": ["TypeScript", "Python", "React", "Next.js", "Node.js", "Express", "PostgreSQL", "Supabase", "REST APIs", "Netlify"]
+    },
+    {
+      "category": "Process & Delivery",
+      "skills": ["Systems Thinking", "Process Automation", "Workflow Design", "SOP Authoring", "Stakeholder Management", "Requirements Translation"]
+    }
+  ],
   "experience": [
     {
-      "company": "Independent Practice",
+      "position": "Retail Operations Supervisor",
+      "company": "Staples Canada, Store 141 (Truro, NS)",
+      "period": "Feb 2026 – Present",
+      "scope": "Promoted from Retail Sales Associate within three weeks of hire. Own technology as a sales category on a 13-person floor while supervising daily operations.",
+      "highlights": [
+        "Ranked 30th in Canada on the Staples Canada associate net sales ranking within seven months, on $555,348 in net sales; one of only three associates from Atlantic Canada on the list",
+        "First of 13 associates at Store 141 in every reporting window since hire, at 22.8% of store volume and 3.6x the average associate",
+        "Third on the national list for technology sales ($5,628 against a $120 list median) and for service attachment (36 units against a median of 1)",
+        "38.6% protection plan attach rate against a 16.7% store floor average, and the highest business membership conversion on the floor",
+        "Prepare store-level quotes end to end, track service accounts and subscriptions daily, and run opening, closing, and inventory accuracy"
+      ],
+      "techStack": ["Consultative Sales", "Account Management", "Quoting", "Team Leadership"],
+      "keyAchievement": "Top 30 in Canada on net sales within seven months of hire, from a small-market store"
+    },
+    {
       "position": "AI Solutions Developer",
-      "period": "2025 - Present",
-      "description": "Delivering AI-powered automation systems for business clients. Translating operational pain points into structured technology solutions.",
-      "highlights": ["Blackbird Brewing: AI email automation with 17-category classifier, ~120 emails/week", "JollyTails Resort: RAG knowledge base consolidating 20+ SOPs", "Multi-agent workflows for parallel task execution", "MCP server for cross-tool project memory"]
+      "company": "Independent Projects",
+      "period": "2025 – Present",
+      "scope": "Building production software and automation for real businesses. Translating operational problems into working systems.",
+      "highlights": [
+        "Gold River Homes: built and shipped a live 20-screen home cost configurator for a Supreme Homes retailer, covering land, foundation, well, septic, and servicing, with correct Canadian mortgage math (semi-annual compounding, minimum down, CMHC)",
+        "Blackbird Brewing: end-to-end AI email automation with a 17-category classifier, escalation rules, and brand-voice drafts, processing 500+ emails/month",
+        "JollyTails Resort: RAG-powered Q&A system consolidating 20+ fragmented SOPs, with an admin analytics dashboard",
+        "Fraser Pharmacy (in progress): replacement website integrated with the pharmacy's app, programs, and email system",
+        "Built an MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex"
+      ],
+      "techStack": ["TypeScript", "React", "Next.js", "Node.js", "Claude API", "OpenAI API", "Make.com", "Netlify", "Render"],
+      "keyAchievement": "Gold River Homes configurator live in production for a real retailer (Sept 2026)"
     },
     {
-      "company": "Jolly Tails Pet Resort",
       "position": "Operations Supervisor",
-      "period": "2022 & 2025 - Present",
-      "description": "Systematic data profiling and process analysis for high-capacity pet care operations.",
-      "highlights": ["Improved KPIs ~10% through data profiling and process optimization", "Built cross-system validation workflows", "Technology liaison translating operational needs to system requirements"]
+      "company": "Jolly Tails Pet Resort",
+      "period": "2022, 2025 – Jan 2026",
+      "scope": "Data profiling and process analysis for high-capacity pet care operations.",
+      "highlights": [
+        "Improved operational KPIs by ~10% through data profiling and process optimization",
+        "Authored and maintained 20+ operational procedures adopted across a team of 15+",
+        "Built cross-system validation workflows catching data quality issues before impact",
+        "Technology liaison between staff and management, translating operational needs into system requirements"
+      ],
+      "techStack": ["Data Analysis", "Process Design", "Systems Thinking"]
     },
     {
-      "company": "St. Francis Xavier University, Advancement Office",
       "position": "Data Analyst",
-      "period": "2024 - 2025",
-      "description": "Designed dashboards and data quality checks for donor and alumni data systems.",
-      "highlights": ["Power BI dashboards with rule-based quality checks", "SQL queries for data extraction and reporting", "Root cause analysis on legacy system inconsistencies"]
+      "company": "St. Francis Xavier University, Advancement Office",
+      "period": "2024 – 2025",
+      "scope": "Designed dashboards and data quality checks for donor and alumni data systems.",
+      "highlights": [
+        "Built Power BI dashboards with rule-based data quality checks",
+        "Wrote SQL queries for complex data extraction, transformation, and reporting",
+        "Conducted root cause analysis on data inconsistencies across legacy systems",
+        "Delivered actionable insights to leadership for fundraising strategy"
+      ],
+      "techStack": ["SQL", "Power BI", "Excel"],
+      "keyAchievement": "Surfaced data quality issues impacting donor reporting accuracy"
     },
     {
-      "company": "Kevin's Corner Food Bank, StFX",
       "position": "Student Manager",
-      "period": "2023 - 2024",
-      "description": "Scaled operations and designed workflows for campus food bank during rapid growth.",
-      "highlights": ["Scaled operations to support 140+ additional users", "300% increase in operational hours through workflow design"]
+      "company": "Kevin's Corner Food Bank, StFX",
+      "period": "2023 – 2024",
+      "scope": "Scaled operations and designed workflows for a campus food bank during rapid growth.",
+      "highlights": [
+        "Scaled operations to support 140+ additional users during rapid growth",
+        "Designed workflows enabling a 300% increase in operational hours",
+        "Managed team scheduling, resource allocation, and process documentation"
+      ],
+      "keyAchievement": "Built systems under resource constraints: 300% operational scaling"
     }
   ],
   "education": [
+    { "institution": "St. Francis Xavier University", "degree": "Post-Baccalaureate Diploma, Enterprise IT Management" },
+    { "institution": "Dalhousie University", "degree": "BSc, Biology & Psychology" }
+  ],
+  "certifications": [
+    "AI & Agentic Workflows, Maven (2025)",
+    "Generative AI Leader, Google Cloud (2025)",
+    "AI Mastery Program, Marketing AI Institute (2024–Present)"
+  ],
+  "projects": [
     {
-      "institution": "St. Francis Xavier University",
-      "degree": "Post-Baccalaureate Diploma — Enterprise IT Management",
-      "year": "2024"
+      "name": "Gold River Homes, Cost Configurator",
+      "description": "Live guided configurator that prices a modular home end to end for first-time buyers: every choice shows its price, monthly payment impact, and a plain-language reason. 81 licensed photos with a provenance manifest, checksum-validated share links, printable spec sheet.",
+      "url": "https://goldriverhomes.netlify.app/"
     },
     {
-      "institution": "Dalhousie University",
-      "degree": "BSc — Biology & Psychology",
-      "year": "2022"
+      "name": "Blackbird Brewing, Email Automation",
+      "description": "AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing 500+ emails/month."
+    },
+    {
+      "name": "JollyTails Staff Assistant (DogBot)",
+      "description": "RAG-powered Q&A system consolidating 20+ SOPs with admin analytics dashboard, training compliance tracking, and knowledge gap identification."
+    },
+    {
+      "name": "Coastal Ledger (Maritime Home Map)",
+      "description": "Nova Scotia mortgage affordability tool covering 37 municipalities, with B-20 stress testing, first-time buyer program math, and choropleth mapping.",
+      "url": "https://maritimehomemap.netlify.app/"
     }
   ]
 }

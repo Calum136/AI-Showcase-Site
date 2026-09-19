@@ -123,7 +123,7 @@ export default function Home() {
             {/* Availability badge */}
             <div className="flex items-center gap-2 text-sm text-brand-brown/70">
               <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-              <span>Available for roles in Halifax, NS — AI Systems &amp; Application Development</span>
+              <span>Based in Truro, NS. Open to roles in Halifax and remote: operations, sales leadership &amp; AI systems</span>
             </div>
 
             {/* CTAs */}

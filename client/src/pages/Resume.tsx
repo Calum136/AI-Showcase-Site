@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 import { generateResumePdf } from "@/lib/generateResumePdf";
 
-type ResumeData = {
+import resumeData from "../../../content/resume.json";
+
+// Single source of truth: content/resume.json feeds this page, the PDF download,
+// and the static HTML written at build time by script/prerender.ts.
+export type ResumeData = {
   personalInfo: {
     name: string;
     title: string;
@@ -31,6 +35,12 @@ type ResumeData = {
     linkedinUrl: string;
   };
   impactSummary: string[];
+  credential?: {
+    label: string;
+    rank: string;
+    score: string;
+    asOf: string;
+  };
   skillGroups: Array<{
     category: string;
     skills: string[];
@@ -47,147 +57,17 @@ type ResumeData = {
   education: Array<{
     institution: string;
     degree: string;
-    year: string;
+    year?: string;
   }>;
   certifications: string[];
   projects: Array<{
     name: string;
     description: string;
+    url?: string;
   }>;
 };
 
-const CALUM_RESUME: ResumeData = {
-  personalInfo: {
-    name: "Calum Kershaw",
-    title: "AI Systems Developer & Process Analyst",
-    summary:
-      "Technology leader who translates business priorities into working systems. Combines hands-on AI development with operations experience to deliver tools that reduce manual work, improve information flow, and help teams make better decisions faster. Building agent-orchestrated systems, knowledge infrastructure, and automation tools for real-world problems.",
-    email: "calum@nineroads.com",
-    phone: "727-900-4878",
-    location: "Truro, NS",
-    linkedinLabel: "linkedin.com/in/calum-kershaw",
-    linkedinUrl: "https://linkedin.com/in/calum-kershaw-a213bb15a/",
-  },
-
-  impactSummary: [
-    "Delivered AI email automation system processing 500+ emails/month for hospitality client",
-    "Built RAG knowledge base consolidating 20+ SOPs — ~70% faster procedure lookup",
-    "Designed multi-agent workflows for parallel frontend, backend, and documentation tasks",
-    "End-to-end delivery: requirements gathering through deployment and handoff",
-  ],
-
-  skillGroups: [
-    {
-      category: "AI & Automation",
-      skills: ["OpenAI API", "Anthropic Claude", "RAG Systems", "Vector DBs", "pgvector", "Embeddings", "Agent Orchestration", "Multi-agent Orchestration", "MCP Servers", "Make.com"],
-    },
-    {
-      category: "Development",
-      skills: ["TypeScript", "Python", "React", "React Three Fiber", "Three.js", "Node.js", "Express", "PostgreSQL", "SQLite", "REST APIs", "LiveKit / WebRTC", "Electron"],
-    },
-    {
-      category: "Data & Analytics",
-      skills: ["Power BI", "SQL", "ETL Pipelines", "Data Profiling", "Root Cause Analysis", "Dashboard Design"],
-    },
-    {
-      category: "Process & Delivery",
-      skills: ["Systems Thinking", "Process Automation", "Workflow Design", "Stakeholder Management", "Requirements Translation"],
-    },
-  ],
-
-  experience: [
-    {
-      position: "AI Solutions Developer",
-      company: "Independent Projects",
-      period: "2025 – Present",
-      scope: "Building AI-powered automation systems and tools. Translating operational problems into working technology solutions.",
-      highlights: [
-        "Blackbird Brewing: Built end-to-end AI email automation — 17-category classifier with escalation rules and brand-voice matching, delivered on budget",
-        "JollyTails Resort: Built RAG-powered Q&A system consolidating 20+ fragmented SOPs with admin analytics dashboard",
-        "Built MCP server for cross-tool project memory bridging Claude Code, Claude Desktop, GPT, and Codex",
-        "Developed multi-agent workflows for parallel execution of frontend, backend, SEO, and documentation tasks",
-      ],
-      techStack: ["TypeScript", "React", "Node.js", "OpenAI API", "Claude API", "Make.com", "Render"],
-      keyAchievement: "Blackbird Brewing: AI email system processing 500+ emails/month — delivered in 3 weeks",
-    },
-    {
-      position: "Operations Supervisor",
-      company: "Jolly Tails Pet Resort",
-      period: "2022 & 2025 – Present",
-      scope: "Systematic data profiling and process analysis for high-capacity pet care operations.",
-      highlights: [
-        "Improved operational KPIs by ~10% through data profiling and process optimization",
-        "Built cross-system validation workflows catching data quality issues before impact",
-        "Technology liaison between staff and management — translated operational needs into system requirements",
-        "Identified process bottlenecks and designed workflow improvements adopted by team",
-      ],
-      techStack: ["Data Analysis", "Process Design", "Systems Thinking"],
-    },
-    {
-      position: "Data Analyst",
-      company: "St. Francis Xavier University, Advancement Office",
-      period: "2024 – 2025",
-      scope: "Designed dashboards and data quality checks for donor and alumni data systems.",
-      highlights: [
-        "Built Power BI dashboards with rule-based data quality checks",
-        "Wrote SQL queries for complex data extraction, transformation, and reporting",
-        "Conducted root cause analysis on data inconsistencies across legacy systems",
-        "Delivered actionable insights to leadership for fundraising strategy",
-      ],
-      techStack: ["SQL", "Power BI", "Excel"],
-      keyAchievement: "Surfaced data quality issues impacting donor reporting accuracy",
-    },
-    {
-      position: "Student Manager",
-      company: "Kevin's Corner Food Bank, StFX",
-      period: "2023 – 2024",
-      scope: "Scaled operations and designed workflows for campus food bank during rapid growth.",
-      highlights: [
-        "Scaled operations to support 140+ additional users during rapid growth",
-        "Designed workflows enabling a 300% increase in operational hours",
-        "Managed team scheduling, resource allocation, and process documentation",
-      ],
-      keyAchievement: "Built systems under resource constraints — 300% operational scaling",
-    },
-  ],
-
-  education: [
-    {
-      institution: "St. Francis Xavier University",
-      degree: "Post-Baccalaureate Diploma — Enterprise IT Management",
-      year: "2024",
-    },
-    {
-      institution: "Dalhousie University",
-      degree: "BSc — Biology & Psychology",
-      year: "2022",
-    },
-  ],
-
-  certifications: [
-    "AI & Agentic Workflows — Maven (2025)",
-    "Generative AI Leader — Google Cloud (2025)",
-    "AI Mastery Program — Marketing AI Institute (2024–Present)",
-  ],
-
-  projects: [
-    {
-      name: "Blackbird Brewing — Email Automation",
-      description:
-        "AI email classifier (17 categories) with brand-voice responses, escalation rules, and Make.com integration processing 500+ emails/month.",
-    },
-    {
-      name: "JollyTails Staff Assistant (DogBot)",
-      description:
-        "RAG-powered Q&A system consolidating 20+ SOPs with admin analytics dashboard, training compliance tracking, and knowledge gap identification.",
-    },
-    {
-      name: "AI Portfolio & Diagnostic Platform",
-      description:
-        "Full-stack portfolio with AI-powered diagnostic chat generating plain-language fit reports with actionable recommendations.",
-    },
-  ],
-};
+const CALUM_RESUME: ResumeData = resumeData as ResumeData;
 
 export default function Resume() {
   const resume = CALUM_RESUME;
@@ -252,11 +132,14 @@ export default function Resume() {
 
                 <div className="flex flex-wrap items-center gap-4 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-brand-red">#8</span>
-                    <span className="text-sm text-brand-brown">AICred Global Leaderboard</span>
+                    <span className="text-2xl font-bold text-brand-red">{resume.credential?.rank ?? "Top 10"}</span>
+                    <span className="text-sm text-brand-brown">
+                      {resume.credential?.label ?? "AICred Global Leaderboard"}
+                      {resume.credential?.asOf ? ` (${resume.credential.asOf})` : ""}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-semibold text-brand-copper">9.2</span>
+                    <span className="text-xl font-semibold text-brand-copper">{resume.credential?.score ?? "9.2"}</span>
                     <span className="text-sm text-brand-brown">/10 Skill Fluency</span>
                   </div>
                 </div>
@@ -376,7 +259,7 @@ export default function Resume() {
                   <div key={i} className="space-y-1">
                     <p className="font-medium text-sm text-brand-brown">{edu.institution}</p>
                     <p className="text-xs text-brand-brown/70">{edu.degree}</p>
-                    <p className="text-xs text-brand-brown/70">{edu.year}</p>
+                    {edu.year && <p className="text-xs text-brand-brown/70">{edu.year}</p>}
                   </div>
                 ))}
               </CardContent>
@@ -413,7 +296,15 @@ export default function Resume() {
               <CardContent className="space-y-4">
                 {resume.projects.map((p) => (
                   <div key={p.name} className="space-y-1">
-                    <div className="font-medium text-sm text-brand-brown">{p.name}</div>
+                    <div className="font-medium text-sm text-brand-brown">
+                      {p.url ? (
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" className="hover:text-brand-copper underline-offset-2 hover:underline">
+                          {p.name}
+                        </a>
+                      ) : (
+                        p.name
+                      )}
+                    </div>
                     <div className="text-xs text-brand-brown/70">
                       {p.description}
                     </div>

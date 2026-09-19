@@ -40,7 +40,7 @@ export function Footer() {
           {/* Branding + Quick Links combined */}
           <div>
             <h3 className="text-brand-red font-bold text-sm mb-1">Calum Kershaw</h3>
-            <p className="text-surface-line text-xs mb-3">AI Solutions Developer</p>
+            <p className="text-surface-line text-xs mb-3">Operations, Sales &amp; AI Systems</p>
             <nav className="flex flex-col gap-1">
               {[
                 { href: "/", label: "Home" },
