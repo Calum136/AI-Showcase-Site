@@ -131,7 +131,7 @@ export function FeaturedCaseStudy() {
                   <div className="p-8 md:p-10 space-y-6">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-brand-copper border-brand-copper/30">
-                        <BookOpen className="w-3 h-3 mr-1" />
+                        <BookOpen aria-hidden="true" className="w-3 h-3 mr-1" />
                         Case Study
                       </Badge>
                       <Badge variant="outline" className="text-brand-brown/60 border-brand-brown/20 text-xs">
@@ -163,7 +163,7 @@ export function FeaturedCaseStudy() {
                         size="lg"
                         className="rounded-xl bg-brand-copper hover:bg-brand-copper/90 text-surface-paper"
                       >
-                        Read Case Study <ArrowRight className="ml-2 w-4 h-4" />
+                        Read Case Study <ArrowRight aria-hidden="true" className="ml-2 w-4 h-4" />
                       </Button>
                     </Link>
                   </div>
@@ -181,7 +181,7 @@ export function FeaturedCaseStudy() {
                                 {step}
                               </span>
                               {i < project.flowSteps.length - 1 && (
-                                <span className="text-brand-brown/40">→</span>
+                                <span aria-hidden="true" className="text-brand-brown/40">→</span>
                               )}
                             </span>
                           ))}
@@ -215,14 +215,14 @@ export function FeaturedCaseStudy() {
           className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-surface-paper/80 text-brand-brown/40 hover:text-brand-brown/70 transition-colors shadow-sm border border-surface-line/30 z-10"
           aria-label="Previous project"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft aria-hidden="true" className="w-5 h-5" />
         </button>
         <button
           onClick={next}
           className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-surface-paper/80 text-brand-brown/40 hover:text-brand-brown/70 transition-colors shadow-sm border border-surface-line/30 z-10"
           aria-label="Next project"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight aria-hidden="true" className="w-5 h-5" />
         </button>
 
         {/* Dots */}
@@ -235,6 +235,7 @@ export function FeaturedCaseStudy() {
                 i === current ? "bg-brand-copper" : "bg-brand-brown/20"
               }`}
               aria-label={`Go to project ${i + 1}`}
+              aria-current={i === current ? "true" : undefined}
             />
           ))}
         </div>

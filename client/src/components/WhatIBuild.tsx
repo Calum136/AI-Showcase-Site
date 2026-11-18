@@ -54,7 +54,7 @@ export function WhatIBuild() {
                 <CardContent className="p-6 md:p-8 space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-xl bg-brand-copper/10 flex items-center justify-center">
-                      <Icon className="h-6 w-6 text-brand-copper" />
+                      <Icon aria-hidden="true" className="h-6 w-6 text-brand-copper" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg text-brand-charcoal">

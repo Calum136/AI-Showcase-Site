@@ -51,7 +51,7 @@ function TestimonialCarousel() {
             transition={{ duration: 0.3 }}
             className="flex items-start gap-3 w-full"
           >
-            <Quote className="w-5 h-5 text-brand-copper shrink-0 mt-0.5" />
+            <Quote aria-hidden="true" className="w-5 h-5 text-brand-copper shrink-0 mt-0.5" />
             <div>
               <p className="text-sm text-brand-brown/80 italic">
                 "{TESTIMONIALS[current].quote}"
@@ -70,14 +70,14 @@ function TestimonialCarousel() {
         className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-brand-brown/40 hover:text-brand-brown/70 transition-colors"
         aria-label="Previous testimonial"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft aria-hidden="true" className="w-4 h-4" />
       </button>
       <button
         onClick={next}
         className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-brand-brown/40 hover:text-brand-brown/70 transition-colors"
         aria-label="Next testimonial"
       >
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight aria-hidden="true" className="w-4 h-4" />
       </button>
 
       {/* Dots */}
@@ -90,6 +90,7 @@ function TestimonialCarousel() {
               i === current ? "bg-brand-copper" : "bg-brand-brown/20"
             }`}
             aria-label={`Go to testimonial ${i + 1}`}
+            aria-current={i === current ? "true" : undefined}
           />
         ))}
       </div>
@@ -122,7 +123,7 @@ export default function Home() {
 
             {/* Availability badge */}
             <div className="flex items-center gap-2 text-sm text-brand-brown/70">
-              <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <span aria-hidden="true" className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
               <span>Based in Truro, NS. Open to roles in Halifax and remote: operations, sales leadership &amp; AI systems</span>
             </div>
 
@@ -133,7 +134,7 @@ export default function Home() {
                   size="lg"
                   className="w-full sm:w-auto text-base font-semibold h-14 px-10 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  Talk to My Agent <ArrowRight className="ml-2 w-5 h-5" />
+                  Talk to My Agent <ArrowRight aria-hidden="true" className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
 
