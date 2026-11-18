@@ -46,6 +46,6 @@
     "title": "Gold River Homes Calculator",
     "description": "Modular home cost calculator for a Nova Scotia retailer. First-time buyers answer simple questions — the site provides the cost estimates. 9 categories with real NS market defaults (~$348K total), donut chart breakdown, monthly and bi-weekly payments.",
     "tags": ["Next.js", "Tailwind", "Recharts", "Netlify"],
-    "link": "https://github.com/Calum136/GoldRiverHomes"
+    "link": "https://github.com/Calum136/gold-river-homes"
   }
 ]
