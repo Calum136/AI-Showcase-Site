@@ -17,13 +17,13 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:top-0 md:bottom-auto border-t md:border-t-0 md:border-b border-surface-line/30 bg-surface-ink/95 backdrop-blur-md px-4 py-2 md:py-4 shadow-lg md:shadow-none">
+    <nav aria-label="Main" className="fixed bottom-0 left-0 right-0 z-50 md:top-0 md:bottom-auto border-t md:border-t-0 md:border-b border-surface-line/30 bg-surface-ink/95 backdrop-blur-md px-4 py-2 md:py-4 shadow-lg md:shadow-none">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link href="/">
+        <Link href="/" aria-label="Calum Kershaw, home">
           <div className="hidden md:flex items-center gap-3 cursor-pointer group">
             <img
               src="/CalumHeadshot.png"
-              alt="Calum Kershaw"
+              alt=""
               className="w-11 h-11 rounded-full object-cover ring-1 ring-inset ring-surface-paper/15 shadow-[0_10px_30px_rgba(15,23,42,0.35)]"
               draggable={false}
               loading="lazy"
@@ -53,7 +53,7 @@ export function Navigation() {
                       : "text-brand-stone hover:text-surface-paper hover:bg-surface-paper/10"
                   )}
                 >
-                  <Icon className={cn("w-5 h-5 md:w-4 md:h-4", isActive && "text-brand-copper")} />
+                  <Icon aria-hidden="true" className={cn("w-5 h-5 md:w-4 md:h-4", isActive && "text-brand-copper")} />
                   <span className="text-[10px] md:text-sm">{item.label}</span>
                 </Link>
               </li>

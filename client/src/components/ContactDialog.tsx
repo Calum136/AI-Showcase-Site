@@ -60,7 +60,7 @@ export function ContactDialog({
                   className="absolute right-4 top-4 rounded-xl p-2 text-surface-paper/70 hover:text-surface-paper hover:bg-surface-paper/10 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-copper focus:ring-offset-2 focus:ring-offset-surface-ink"
                   aria-label="Close"
                 >
-                  <X className="w-5 h-5" />
+                  <X aria-hidden="true" className="w-5 h-5" />
                 </DialogPrimitive.Close>
 
                 <div className="p-8 md:p-10">
@@ -92,7 +92,7 @@ export function ContactDialog({
                           href="mailto:calum@nineroads.com"
                           className="flex items-center gap-3 rounded-xl border border-surface-line/40 bg-surface-charcoal/70 px-5 py-4 text-surface-paper hover:bg-surface-charcoal/90 transition-colors"
                         >
-                          <Mail className="w-5 h-5 text-brand-copper" />
+                          <Mail aria-hidden="true" className="w-5 h-5 text-brand-copper" />
                           <span className="text-base md:text-lg">
                             calum@nineroads.com
                           </span>
@@ -102,7 +102,7 @@ export function ContactDialog({
                           href="tel:7279004878"
                           className="flex items-center gap-3 rounded-xl border border-surface-line/40 bg-surface-charcoal/70 px-5 py-4 text-surface-paper hover:bg-surface-charcoal/90 transition-colors"
                         >
-                          <Phone className="w-5 h-5 text-brand-copper" />
+                          <Phone aria-hidden="true" className="w-5 h-5 text-brand-copper" />
                           <span className="text-base md:text-lg">
                             727-900-4878
                           </span>
@@ -114,7 +114,7 @@ export function ContactDialog({
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 rounded-xl border border-surface-line/40 bg-surface-charcoal/70 px-5 py-4 text-surface-paper hover:bg-surface-charcoal/90 transition-colors"
                         >
-                          <Linkedin className="w-5 h-5 text-brand-copper" />
+                          <Linkedin aria-hidden="true" className="w-5 h-5 text-brand-copper" />
                           <span className="text-base md:text-lg">LinkedIn</span>
                         </a>
                       </div>

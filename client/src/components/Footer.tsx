@@ -20,7 +20,7 @@ export function Footer() {
                 size="sm"
                 className="rounded-lg bg-brand-copper hover:bg-brand-copper/90 text-surface-paper text-xs h-8 px-4"
               >
-                Contact Me <ArrowRight className="ml-1.5 w-3 h-3" />
+                Contact Me <ArrowRight aria-hidden="true" className="ml-1.5 w-3 h-3" />
               </Button>
             </ContactDialog>
             <Link href="/fit">
@@ -41,7 +41,7 @@ export function Footer() {
           <div>
             <h3 className="text-brand-red font-bold text-sm mb-1">Calum Kershaw</h3>
             <p className="text-surface-line text-xs mb-3">Operations, Sales &amp; AI Systems</p>
-            <nav className="flex flex-col gap-1">
+            <nav aria-label="Footer" className="flex flex-col gap-1">
               {[
                 { href: "/", label: "Home" },
                 { href: "/about", label: "About" },
@@ -59,7 +59,7 @@ export function Footer() {
 
           {/* Connect */}
           <div>
-            <h4 className="font-semibold mb-2 text-surface-paper text-sm">Connect</h4>
+            <h3 className="font-semibold mb-2 text-surface-paper text-sm">Connect</h3>
             <div className="flex flex-col gap-1.5">
               {[
                 { href: "mailto:calum@nineroads.com", icon: Mail, label: "calum@nineroads.com" },
@@ -74,7 +74,7 @@ export function Footer() {
                   {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="hover:text-brand-copper transition-colors flex items-center gap-1.5"
                 >
-                  <Icon className="w-3 h-3" />
+                  <Icon aria-hidden="true" className="w-3 h-3" />
                   {label}
                 </a>
               ))}
